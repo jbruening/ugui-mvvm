@@ -78,7 +78,12 @@ class ItemsControl : MonoBehaviour
         foreach(var item in _itemsSource)
         {
             var control = Instantiate(_itemTemplate);
-            control.transform.parent = trans;
+            control.SetActive(true);
+            var rect = control.GetComponent<RectTransform>();
+            if (rect == null)
+                control.transform.parent = trans;
+            else
+                rect.SetParent(trans, false);
             var context = control.GetComponent<DataContext>();
             if (context == null) continue;
             context.UpdateValue(item);
@@ -91,8 +96,8 @@ class ItemsControl : MonoBehaviour
         var ci = trans.childCount;
         for(int i = 0; i < ci; i++)
         {
-            var child = trans.GetChild(ci);
-            Destroy(child);
+            var child = trans.GetChild(i);
+            Destroy(child.gameObject);
         }
     }
 

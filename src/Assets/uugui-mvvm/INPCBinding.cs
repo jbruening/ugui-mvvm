@@ -93,15 +93,24 @@ public class INPCBinding : MonoBehaviour
         if (_ci != null)
             value = _ci.Convert(value, _vType, null, System.Threading.Thread.CurrentThread.CurrentCulture);
         else if (value != null)
-            value = System.Convert.ChangeType(value, _vType);
+        {
+            if (!_vType.IsAssignableFrom(value.GetType()))
+            {
+                value = System.Convert.ChangeType(value, _vType);
+            }
+        }
         else if (value == null)
             value = GetDefaultValue(_vType);
 
-        if (value != null && value.GetType() != _vType)
+        if (value != null && !_vType.IsAssignableFrom(value.GetType()))
         {
             Debug.LogErrorFormat("Could not bind {0} to type {1}", value.GetType(), _vType);
             return;
         }
+
+        //this is a workaround for text objects getting screwed up if assigned null values
+        if (value == null && _vProp.PropertyType == typeof(string))
+            value = "";
 
         _vProp.SetValue(_view.Component, value, null);
     }

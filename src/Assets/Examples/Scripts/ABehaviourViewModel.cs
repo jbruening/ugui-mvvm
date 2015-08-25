@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
+using UnityEngine;
 
-class AViewModel : INotifyPropertyChanged
+class ABehaviourViewModel : MonoBehaviour, INotifyPropertyChanged
 {
     protected void SetProperty<T>(string propertyName, ref T backingStore, T value)
     {

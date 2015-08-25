@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
+using uguimvvm.Input;
 
 [CustomEditor(typeof(DataContext))]
 class DataContextEditor : Editor
@@ -10,17 +11,30 @@ class DataContextEditor : Editor
     string _searchString;
     private Vector2 _scrollPos;
     private Type _tval;
+    private bool _cvis;
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
 
         var tprop = serializedObject.FindProperty("_type");
+        var iprop = serializedObject.FindProperty("_instantiateOnAwake");
 
         if (_tval == null && !string.IsNullOrEmpty(tprop.stringValue))
         {
             _tval = Type.GetType(tprop.stringValue);
             if (_tval == null) //invalid type name. Clear it so we don't keep looking for an invalid type.
+            {
                 tprop.stringValue = null;
+                iprop.boolValue = false;
+            }
+        }
+
+        if (_tval != null)
+        {
+            if (typeof(UnityEngine.Object).IsAssignableFrom(_tval))
+                GUILayout.Label("Auto-instantiation not possible with UnityEngine.Object types");
+            else
+                EditorGUILayout.PropertyField(iprop);
         }
 
         if (_tval != null)
@@ -29,7 +43,22 @@ class DataContextEditor : Editor
             if (_searchString != _tval.FullName)
             {
                 tprop.stringValue = null;
+                iprop.boolValue = false;
                 _tval = null;
+            }
+            else
+            {
+                _cvis = EditorGUILayout.Foldout(_cvis, "Commands");
+                if (_cvis)
+                {
+                    EditorGUI.indentLevel++;
+                    var cprops = _tval.GetProperties().Where(p => p.PropertyType == typeof(ICommand));
+                    foreach (var prop in cprops)
+                    {
+                        GUILayout.Label(prop.Name);
+                    }
+                    EditorGUI.indentLevel--;
+                }
             }
         }
         else
