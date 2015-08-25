@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
-using uguimvvm.Input;
+using uuguimvvm;
 
 [CustomEditor(typeof(DataContext))]
 class DataContextEditor : Editor
@@ -70,7 +70,7 @@ class DataContextEditor : Editor
         {
             var types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()).Where(t => t.Name.IndexOf(_searchString, StringComparison.OrdinalIgnoreCase) >= 0);
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.Height(100));
-            foreach(var type in types)
+            foreach (var type in types)
             {
                 if (GUILayout.Button(type.FullName))
                 {

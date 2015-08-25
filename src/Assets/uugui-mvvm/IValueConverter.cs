@@ -1,7 +1,10 @@
 ﻿using System;
 
-interface IValueConverter
+namespace uuguimvvm
 {
-    object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture);
-    object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture);
+    interface IValueConverter
+    {
+        object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture);
+        object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture);
+    }
 }

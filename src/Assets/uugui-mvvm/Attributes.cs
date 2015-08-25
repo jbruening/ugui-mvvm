@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 
-public class ComponentReferenceAttribute : PropertyAttribute
+namespace uuguimvvm
 {
+    public class ComponentReferenceAttribute : PropertyAttribute
+    {
 
+    }
 }

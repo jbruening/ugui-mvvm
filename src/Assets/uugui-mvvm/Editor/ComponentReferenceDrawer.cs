@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using uuguimvvm;
 
 [CustomPropertyDrawer(typeof(ComponentReferenceAttribute))]
 class ComponentReferenceDrawer : PropertyDrawer

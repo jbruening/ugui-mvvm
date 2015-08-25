@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 
-namespace System.Collections.ObjectModel
+namespace uuguimvvm
 {
     /// <summary>
     /// Implementation of a dynamic data collection based on generic Collection<T>, 
