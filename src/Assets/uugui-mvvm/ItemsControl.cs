@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -81,9 +77,9 @@ class ItemsControl : MonoBehaviour
         var trans = transform;
         foreach(var item in _itemsSource)
         {
-            var control = GameObject.Instantiate(_itemTemplate);
+            var control = Instantiate(_itemTemplate);
             control.transform.parent = trans;
-            var context = control.GetComponent<DataContext>() as DataContext;
+            var context = control.GetComponent<DataContext>();
             if (context == null) continue;
             context.UpdateValue(item);
         }
@@ -96,7 +92,7 @@ class ItemsControl : MonoBehaviour
         for(int i = 0; i < ci; i++)
         {
             var child = trans.GetChild(ci);
-            GameObject.Destroy(child);
+            Destroy(child);
         }
     }
 

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using UnityEngine;
 
 public class DataContext : MonoBehaviour, INotifyPropertyChanged
@@ -11,20 +8,13 @@ public class DataContext : MonoBehaviour, INotifyPropertyChanged
     [SerializeField]
     string _type;
 
-    private object _value;
-
     private Type _rtype;
     public Type Type
     {
-        get
-        {
-            if (_rtype == null)
-            {
-                _rtype = Type.GetType(_type);
-            }
-            return _rtype;
-        }
+        get { return _rtype ?? (_rtype = Type.GetType(_type)); }
     }
+
+    private object _value;
     public object Value
     {
         get { return _value; }
