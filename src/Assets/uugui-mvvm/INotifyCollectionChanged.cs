@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 
-namespace uuguimvvm
+namespace uguimvvm
 {
     public delegate void NotifyCollectionChangedEventHandler(Object sender, NotifyCollectionChangedEventArgs e);
 

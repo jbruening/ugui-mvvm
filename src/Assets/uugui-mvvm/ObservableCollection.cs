@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 
-namespace uuguimvvm
+namespace uguimvvm
 {
     /// <summary>
     /// Implementation of a dynamic data collection based on generic Collection<T>, 

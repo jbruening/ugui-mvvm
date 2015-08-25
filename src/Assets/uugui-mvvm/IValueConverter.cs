@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace uuguimvvm
+namespace uguimvvm
 {
     interface IValueConverter
     {

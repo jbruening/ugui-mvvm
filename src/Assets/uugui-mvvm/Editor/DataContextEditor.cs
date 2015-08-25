@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
-using uuguimvvm;
+using uguimvvm;
 
 [CustomEditor(typeof(DataContext))]
 class DataContextEditor : Editor

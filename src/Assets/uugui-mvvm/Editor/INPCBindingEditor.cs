@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.Callbacks;
 using System.Reflection;
 using System;
-using uuguimvvm;
+using uguimvvm;
 
 [CustomEditor(typeof(INPCBinding))]
 class INPCBindingEditor : Editor

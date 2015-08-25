@@ -5,7 +5,7 @@ using System.Linq;
 using INotifyPropertyChanged = System.ComponentModel.INotifyPropertyChanged;
 using PropertyChangedEventArgs = System.ComponentModel.PropertyChangedEventArgs;
 
-namespace uuguimvvm
+namespace uguimvvm
 {
     public class INPCBinding : MonoBehaviour
     {

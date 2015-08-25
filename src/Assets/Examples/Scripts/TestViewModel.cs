@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.ComponentModel;
-using uuguimvvm;
+using uguimvvm;
 
 class TestViewModel : ABehaviourViewModel
 {

@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Reflection;
 using UnityEngine;
 
-namespace uuguimvvm
+namespace uguimvvm
 {
     public class DataContext : MonoBehaviour, INotifyPropertyChanged
     {

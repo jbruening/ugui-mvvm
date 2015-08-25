@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace uuguimvvm
+namespace uguimvvm
 {
     public enum BindingMode
     {

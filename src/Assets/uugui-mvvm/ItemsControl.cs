@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace uuguimvvm
+namespace uguimvvm
 {
     class ItemsControl : MonoBehaviour
     {
