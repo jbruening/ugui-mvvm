@@ -7,7 +7,7 @@ class AViewModel : MonoBehaviour, INotifyPropertyChanged
     protected void SetProperty<T>(string propertyName, ref T backingStore, T value)
     {
         if (EqualityComparer<T>.Default.Equals(backingStore, value)) return;
-
+        backingStore = value;
         RaisePropertyChanged(propertyName);
     }
 
