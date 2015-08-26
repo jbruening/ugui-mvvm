@@ -75,6 +75,17 @@ class CommandBindingEditor : Editor
         var rect = EditorGUILayout.GetControlRect(true, INPCBindingEditor.GetCRefHeight(_vmprop));
         INPCBindingEditor.DrawCRefProp(rect, _vmprop, GUIContent.none, typeof(ICommand));
 
+        rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight*2);
+        var label = EditorGUI.BeginProperty(rect, null, _parmprop);
+        
+        //EditorGUI.BeginChangeCheck();
+        //Debug.Log(_parmprop.propertyType);
+        //var strval = EditorGUI.TextField(rect, label, _parmprop.stringValue);
+        //if (EditorGUI.EndChangeCheck())
+        //    _parmprop.stringValue = strval;
+
+        EditorGUI.EndProperty();
+
         serializedObject.ApplyModifiedProperties();
     }
 }
