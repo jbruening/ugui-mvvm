@@ -47,67 +47,63 @@ class INPCBindingEditor : Editor
         if (vcomp == null)
             return;
 
-        var vctype = vcomp.GetType();
-        var scomp = new SerializedObject(vcomp);
-        var vevprop = vctype.GetProperty(viewEvProp.stringValue);
-
-        UnityEventBase vevValue = null;
-        if (vevprop != null && typeof(UnityEventBase).IsAssignableFrom(vevprop.PropertyType))
+        var vevValue = GetEvent(vcomp, viewEvProp);
+        if (vevValue != null)
         {
-            vevValue = vevprop.GetValue(vcomp, null) as UnityEventBase;
+            UnityEditor.Events.UnityEventTools.AddVoidPersistentListener(vevValue, binding.ApplyVToVM);
         }
 
-        else
-        {
-            SerializedProperty evProp = null;
-            var it = scomp.GetIterator();
-            //necessary to actually iterate over the properties of it.
-            it.Next(true);
-            evProp = FirstOrDefault(it, p => p.displayName == viewEvProp.stringValue);
-            viewEvProp.stringValue = evProp.name;
-
-            //if for some reason the reflection stops working, switching for the serialized properties should.
-            #region serialized properties
-            //var m_PersistantCalls = evProp.FindPropertyRelative("m_PersistentCalls");
-            //var m_calls = m_PersistantCalls.FindPropertyRelative("m_Calls");
-            ////add to the end.
-            //m_calls.InsertArrayElementAtIndex(m_calls.arraySize);
-            //var m_idx = m_calls.GetArrayElementAtIndex(m_calls.arraySize - 1);
-
-            //var m_Target = m_idx.FindPropertyRelative("m_Target");
-            //var m_MethodName = m_idx.FindPropertyRelative("m_MethodName");
-            //var m_Mode = m_idx.FindPropertyRelative("m_Mode");
-            //var m_CallState = m_idx.FindPropertyRelative("m_CallState");
-
-            //m_Target.objectReferenceValue = binding;
-            //var methodName = new Action(binding.ApplyVToVM).Method.Name;
-            //m_MethodName.stringValue = methodName;
-            //m_Mode.enumValueIndex = Array.IndexOf(Enum.GetValues(typeof(PersistentListenerMode)), PersistentListenerMode.Void);
-            //m_CallState.enumValueIndex = Array.IndexOf(Enum.GetValues(typeof(UnityEventCallState)), UnityEventCallState.RuntimeOnly);
-            #endregion
-
-            #region reflection
-            var vevProp = vctype.GetField(evProp.name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (vevProp == null)
-            {
-                Debug.LogErrorFormat("Could not get property {0} on {1}", evProp.name, vctype);
-                return;
-            }
-
-            vevValue = vevProp.GetValue(vcomp) as UnityEventBase;
-            #endregion
-        }
-
-        if (vevValue == null)
-        {
-            Debug.LogErrorFormat("Could not get ", viewEvProp.stringValue);
-            return;
-        }
-
-        UnityEditor.Events.UnityEventTools.AddVoidPersistentListener(vevValue, binding.ApplyVToVM);
-
-        scomp.ApplyModifiedProperties();
         sobj.ApplyModifiedProperties();
+    }
+
+    public static UnityEventBase GetEvent(Component component, SerializedProperty eventProperty)
+    {
+        string eventName = eventProperty.stringValue;
+
+        if (string.IsNullOrEmpty(eventName)) return null;
+
+        var type = component.GetType();
+        var evField = type.GetField(eventName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        if (evField != null && IsEventType(evField.FieldType))
+        {
+            return evField.GetValue(component) as UnityEventBase;
+        }
+
+        var evProp = type.GetProperty(eventName, typeof (UnityEventBase));
+        if (evProp != null)
+        {
+            return evProp.GetValue(component, null) as UnityEventBase;
+        }
+
+        var scomp = new SerializedObject(component);
+        var it = scomp.GetIterator();
+        //necessary to actually iterate over the properties of it.
+        it.Next(true);
+        var sep = FirstOrDefault(it, p => p.displayName == eventName);
+        
+        if (sep == null)
+        {
+            Debug.LogErrorFormat("Could not get event {0} on {1}", eventName, type);
+            return null;
+        }
+
+        evField = type.GetField(sep.name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        if (evField != null)
+        {
+            //need to update this, otherwise the things won't be able to bind
+            eventProperty.stringValue = sep.name;
+
+            return evField.GetValue(component) as UnityEventBase;
+        }
+
+        Debug.LogErrorFormat("Could not get event {0} on {1}", eventName, type);
+
+        return null;
+    }
+
+    static bool IsEventType(Type type)
+    {
+        return typeof (UnityEventBase).IsAssignableFrom(type);
     }
 
     private static void ListChildProperties(SerializedProperty prop)
@@ -172,31 +168,46 @@ class INPCBindingEditor : Editor
     /// <returns></returns>
     public static int DrawCrefEvents(SerializedProperty crefProperty, SerializedProperty eventProperty)
     {
+        var cprop = crefProperty.FindPropertyRelative("Component");
+        return DrawComponentEvents(cprop, eventProperty);
+    }
+
+    /// <summary>
+    /// Draw all UnityEventBase fields
+    /// </summary>
+    /// <param name="component"></param>
+    /// <param name="eventProperty"></param>
+    /// <returns></returns>
+    public static int DrawComponentEvents(SerializedProperty component, SerializedProperty eventProperty)
+    {
         int epropcount = 0;
-        if (crefProperty.FindPropertyRelative("Component").objectReferenceValue != null)
+        if (component.objectReferenceValue != null)
         {
-            var eprops =
-                crefProperty.FindPropertyRelative("Component")
-                    .objectReferenceValue.GetType()
-                    .GetProperties()
-                    .Where(p => typeof(UnityEventBase).IsAssignableFrom(p.PropertyType))
-                    .Select(p => p.Name).ToArray();
+            var eprops = component
+                .objectReferenceValue.GetType()
+                .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Where(
+                    f =>
+                        typeof (UnityEventBase).IsAssignableFrom(f.FieldType) && (f.IsPublic ||
+                        f.GetCustomAttributes(typeof (SerializeField), false).Length > 0)).ToArray();
+            var enames = eprops.Select(f => ObjectNames.NicifyVariableName(f.Name)).ToArray();
             epropcount = eprops.Length;
 
             if (eprops.Length > 0)
             {
                 EditorGUI.indentLevel++;
-                var fedx = Array.FindIndex(eprops, p => p == eventProperty.stringValue);
+                var fedx = Array.FindIndex(eprops, p => p.Name == eventProperty.stringValue);
                 var edx = fedx < 0 ? 0 : fedx;
-                var nedx = EditorGUILayout.Popup("Event", edx, eprops);
+                var nedx = EditorGUILayout.Popup("Event", edx, enames);
                 if (nedx != fedx && nedx >= 0 && nedx < eprops.Length)
-                    eventProperty.stringValue = eprops[nedx];
+                    eventProperty.stringValue = eprops[nedx].Name;
                 EditorGUI.indentLevel--;
             }
             else
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.LabelField("Event", "No available events");
+                eventProperty.stringValue = "";
                 EditorGUI.indentLevel--;
             }
         }

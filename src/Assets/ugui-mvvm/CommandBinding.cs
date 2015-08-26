@@ -42,7 +42,10 @@ namespace uguimvvm
             else
                 vmtype = _viewModel.Component.GetType();
 
-            _vmProp = vmtype.GetProperty(_viewModel.Property, typeof (ICommand));
+            _vmProp = vmtype.GetProperty(_viewModel.Property);
+            if (!typeof (ICommand).IsAssignableFrom(_vmProp.PropertyType))
+                _vmProp = null;
+
             if (_vmProp == null)
             {
                 Debug.LogWarningFormat("No property named {0} of type ICommand exists in {1}", _viewModel.Property, vmtype);

@@ -48,17 +48,17 @@ class DataContextEditor : Editor
             }
             else
             {
-                _cvis = EditorGUILayout.Foldout(_cvis, "Commands");
-                if (_cvis)
-                {
-                    EditorGUI.indentLevel++;
-                    var cprops = _tval.GetProperties().Where(p => p.PropertyType == typeof(ICommand));
-                    foreach (var prop in cprops)
-                    {
-                        GUILayout.Label(prop.Name);
-                    }
-                    EditorGUI.indentLevel--;
-                }
+                //_cvis = EditorGUILayout.Foldout(_cvis, "Commands");
+                //if (_cvis)
+                //{
+                //    EditorGUI.indentLevel++;
+                //    var cprops = _tval.GetProperties().Where(p => p.PropertyType == typeof(ICommand));
+                //    foreach (var prop in cprops)
+                //    {
+                //        GUILayout.Label(prop.Name);
+                //    }
+                //    EditorGUI.indentLevel--;
+                //}
             }
         }
         else

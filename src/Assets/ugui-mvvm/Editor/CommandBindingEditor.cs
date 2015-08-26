@@ -37,34 +37,22 @@ class CommandBindingEditor : Editor
     static void FigureViewBinding(CommandBinding binding)
     {
         var sobj = new SerializedObject(binding);
-        var vprop = sobj.FindProperty("_view");
+        var vcprop = sobj.FindProperty("_view");
         var veprop = sobj.FindProperty("_viewEvent");
         if (string.IsNullOrEmpty(veprop.stringValue))
             return;
-
-        var vcprop = vprop.FindPropertyRelative("Component");
 
         var vcomp = vcprop.objectReferenceValue as Component;
         if (vcomp == null)
             return;
 
-        var vctype = vcomp.GetType();
-        var vevprop = vctype.GetProperty(veprop.stringValue);
-
-        if (vevprop == null)
+        var @event = INPCBindingEditor.GetEvent(vcomp, veprop);
+        if (@event != null)
         {
-            Debug.LogWarningFormat("Could not find member {0} on {1}", veprop.stringValue, vctype);
-            return;
+            UnityEditor.Events.UnityEventTools.AddVoidPersistentListener(@event, binding.ExecuteCommand);
         }
 
-        if (!typeof(UnityEventBase).IsAssignableFrom(vevprop.PropertyType))
-        {
-            Debug.LogWarningFormat("Type {0} is not a UnityEventBase", vevprop.Name);
-        }
-
-        var vevValue = vevprop.GetValue(vcomp, null) as UnityEventBase;
-
-        UnityEditor.Events.UnityEventTools.AddVoidPersistentListener(vevValue, binding.ExecuteCommand);
+        sobj.ApplyModifiedProperties();
     }
     #endregion
 
@@ -80,8 +68,13 @@ class CommandBindingEditor : Editor
     {
         serializedObject.Update();
 
-        var vrect = EditorGUILayout.GetControlRect(true, INPCBindingEditor.GetCRefHeight(_vprop));
-        INPCBindingEditor.DrawCRefProp(vrect, _vprop, new GUIContent());
-        INPCBindingEditor.DrawCrefEvents(_vprop, _veprop);
+        EditorGUILayout.PropertyField(_vprop);
+        if (_vprop.objectReferenceValue != null)
+            INPCBindingEditor.DrawComponentEvents(_vprop, _veprop);
+
+        var rect = EditorGUILayout.GetControlRect(true, INPCBindingEditor.GetCRefHeight(_vmprop));
+        INPCBindingEditor.DrawCRefProp(rect, _vmprop, GUIContent.none, typeof(ICommand));
+
+        serializedObject.ApplyModifiedProperties();
     }
 }
