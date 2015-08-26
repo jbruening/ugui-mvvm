@@ -75,14 +75,34 @@ class CommandBindingEditor : Editor
         var rect = EditorGUILayout.GetControlRect(true, INPCBindingEditor.GetCRefHeight(_vmprop));
         INPCBindingEditor.DrawCRefProp(rect, _vmprop, GUIContent.none, typeof(ICommand));
 
-        rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight*2);
+        rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
         var label = EditorGUI.BeginProperty(rect, null, _parmprop);
-        
-        //EditorGUI.BeginChangeCheck();
-        //Debug.Log(_parmprop.propertyType);
-        //var strval = EditorGUI.TextField(rect, label, _parmprop.stringValue);
-        //if (EditorGUI.EndChangeCheck())
-        //    _parmprop.stringValue = strval;
+        GUI.Label(rect, label);
+
+        //parameter type
+        var typeProp = _parmprop.FindPropertyRelative("Type");
+        var trect = rect;
+        trect.x += EditorGUIUtility.labelWidth;
+        trect.width -= EditorGUIUtility.labelWidth;
+        EditorGUI.PropertyField(trect, typeProp);
+
+        //value field
+        var typeValue = (BindingParameterType)Enum.GetValues(typeof(BindingParameterType)).GetValue(typeProp.enumValueIndex);
+        SerializedProperty valueProp = null;
+        switch(typeValue)
+        {
+            case BindingParameterType.None:
+                break;
+            default:
+                valueProp = _parmprop.FindPropertyRelative(typeValue.ToString());
+                break;
+        }
+        if (valueProp != null)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(valueProp);
+            EditorGUI.indentLevel--;
+        }
 
         EditorGUI.EndProperty();
 

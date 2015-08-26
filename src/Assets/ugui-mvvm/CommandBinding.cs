@@ -18,7 +18,7 @@ namespace uguimvvm
         INPCBinding.ComponentPath _viewModel = null;
 
         [SerializeField]
-        private object _parameter = null;
+        private BindingParameter _parameter = null;
 
         PropertyInfo _vmProp;
         private ICommand _command;
@@ -114,8 +114,46 @@ namespace uguimvvm
         public void ExecuteCommand()
         {
             if (_command == null) return;
-
-            _command.Execute(_parameter);
+            _command.Execute(_parameter.GetValue());
         }
+    }
+
+    [Serializable]
+    public class BindingParameter
+    {
+        public BindingParameterType Type;
+        public UnityEngine.Object ObjectReference;
+        public string String;
+        public int Int;
+        public float Float;
+        public bool Bool;
+
+        public object GetValue()
+        {
+            switch(Type)
+            {
+                case BindingParameterType.Bool:
+                    return Bool;
+                case BindingParameterType.Float:
+                    return Float;
+                case BindingParameterType.Int:
+                    return Int;
+                case BindingParameterType.ObjectReference:
+                    return ObjectReference;
+                case BindingParameterType.String:
+                    return String;
+                default:
+                    return null;
+            }
+        }
+    }
+    public enum BindingParameterType
+    {
+        None,
+        ObjectReference,
+        String,
+        Int,
+        Float,
+        Bool,
     }
 }
