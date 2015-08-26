@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -80,7 +79,6 @@ namespace uguimvvm
                     RemoveItems(e.OldItems);
                     AddItems(e.NewItems);
                     break;
-                case NotifyCollectionChangedAction.Reset:
                 default:
                     ResetCollection();
                     break;

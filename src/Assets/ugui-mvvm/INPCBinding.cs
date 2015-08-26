@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Linq;
 using INotifyPropertyChanged = System.ComponentModel.INotifyPropertyChanged;
 using PropertyChangedEventArgs = System.ComponentModel.PropertyChangedEventArgs;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 namespace uguimvvm
