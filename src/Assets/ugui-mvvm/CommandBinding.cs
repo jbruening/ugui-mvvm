@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Component = UnityEngine.Component;
 
@@ -22,6 +23,15 @@ namespace uguimvvm
 
         PropertyInfo _vmProp;
         private ICommand _command;
+
+        void Reset()
+        {
+            var context = gameObject.GetComponentInParent(typeof(DataContext)) as DataContext;
+            if (context != null)
+                _viewModel = new INPCBinding.ComponentPath { Component = context };
+
+            _view = gameObject.GetComponent<UIBehaviour>();
+        }
 
         void Awake()
         {

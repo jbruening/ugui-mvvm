@@ -4,6 +4,8 @@ using System.Reflection;
 using System.Linq;
 using INotifyPropertyChanged = System.ComponentModel.INotifyPropertyChanged;
 using PropertyChangedEventArgs = System.ComponentModel.PropertyChangedEventArgs;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace uguimvvm
 {
@@ -35,6 +37,17 @@ namespace uguimvvm
         Type _vmType;
         PropertyInfo _vProp;
         PropertyInfo _vmProp;
+
+        void Reset()
+        {
+            var context = gameObject.GetComponentInParent(typeof(DataContext)) as DataContext;
+            if (context != null)
+                _viewModel = new ComponentPath { Component = context };
+
+            var view = gameObject.GetComponent<UIBehaviour>();
+            if (view != null)
+                _view = new ComponentPath { Component = view };
+        }
 
         void Awake()
         {
