@@ -2,6 +2,8 @@
 
 class ChildViewModel : AViewModel
 {
+    private readonly IParentVm _parent;
+
     #region properties
     string _testProperty;
     public string TestProperty
@@ -29,8 +31,9 @@ class ChildViewModel : AViewModel
     }
     #endregion
 
-    public ChildViewModel()
+    public ChildViewModel(IParentVm parent)
     {
+        _parent = parent;
         _testProperty = "";
         ToggleSomething = new RelayCommand(InternalToggleSomething, InternalCanToggleSomething);
     }
@@ -44,6 +47,11 @@ class ChildViewModel : AViewModel
     bool InternalCanToggleSomething()
     {
         return _canSomething;
+    }
+
+    public RelayCommand Delete
+    {
+        get { return new RelayCommand(() => _parent.RemoveChild(this)); }
     }
     #endregion
 }

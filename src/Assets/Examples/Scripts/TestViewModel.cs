@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using uguimvvm;
 
-class TestViewModel : ABehaviourViewModel
+class TestViewModel : ABehaviourViewModel, IParentVm
 {
     string _testProperty;
     public string TestProperty
@@ -19,12 +19,17 @@ class TestViewModel : ABehaviourViewModel
 
     public void AddChild()
     {
-        Children.Add(new ChildViewModel());
+        Children.Add(new ChildViewModel(this));
     }
 
     public void RemoveChild()
     {
         if (Children.Count == 0) return;
         Children.RemoveAt(Children.Count - 1);
+    }
+
+    public void RemoveChild(ChildViewModel child)
+    {
+        Children.Remove(child);
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -6,6 +8,18 @@ namespace uguimvvm
 {
     class ItemsControl : MonoBehaviour
     {
+        class ItemInfo
+        {
+            public readonly object Item;
+            public readonly GameObject Control;
+
+            public ItemInfo(object item, GameObject control)
+            {
+                Item = item;
+                Control = control;
+            }
+        }
+
         [SerializeField]
         private GameObject _itemTemplate;
         public GameObject ItemTemplate
@@ -33,6 +47,8 @@ namespace uguimvvm
             }
         }
 
+        private readonly List<ItemInfo> _items = new List<ItemInfo>();
+
         [SerializeField]
         private UnityEvent _itemsSourceChanged;
         public UnityEvent ItemsSourceChanged { get { return _itemsSourceChanged; } }
@@ -53,18 +69,17 @@ namespace uguimvvm
         {
             switch (e.Action)
             {
-                //todo:
-                //case NotifyCollectionChangedAction.Add:
-                //    AddItems(e.NewItems);
-                //    break;
-                //case NotifyCollectionChangedAction.Remove:
-                //    RemoveItems(e.OldItems);
-                //    break;
-                //case NotifyCollectionChangedAction.Move:
-                //case NotifyCollectionChangedAction.Replace:
-                //    RemoveItems(e.OldItems);
-                //    AddItems(e.NewItems);
-                //    break;
+                case NotifyCollectionChangedAction.Add:
+                    AddItems(e.NewItems);
+                    break;
+                case NotifyCollectionChangedAction.Remove:
+                    RemoveItems(e.OldItems);
+                    break;
+                case NotifyCollectionChangedAction.Move:
+                case NotifyCollectionChangedAction.Replace:
+                    RemoveItems(e.OldItems);
+                    AddItems(e.NewItems);
+                    break;
                 case NotifyCollectionChangedAction.Reset:
                 default:
                     ResetCollection();
@@ -72,15 +87,14 @@ namespace uguimvvm
             }
         }
 
-        private void ResetCollection()
+        private void AddItems(IEnumerable newItems)
         {
-            ClearChildren();
-
             var trans = transform;
-            foreach (var item in _itemsSource)
+            foreach (var item in newItems)
             {
                 var control = Instantiate(_itemTemplate);
                 control.SetActive(true);
+                _items.Add(new ItemInfo(item, control));
                 var rect = control.GetComponent<RectTransform>();
                 if (rect == null)
                     control.transform.parent = trans;
@@ -90,6 +104,24 @@ namespace uguimvvm
                 if (context == null) continue;
                 context.UpdateValue(item);
             }
+        }
+
+        private void RemoveItems(IEnumerable oldItems)
+        {
+            foreach (var item in oldItems)
+            {
+                var idx = _items.FindIndex(i => i.Item == item);
+                if (idx < 0) continue;
+                Destroy(_items[idx].Control);
+                _items.RemoveAt(idx);
+            }
+        }
+
+        private void ResetCollection()
+        {
+            _items.Clear();
+            ClearChildren();
+            AddItems(_itemsSource);
         }
 
         private void ClearChildren()

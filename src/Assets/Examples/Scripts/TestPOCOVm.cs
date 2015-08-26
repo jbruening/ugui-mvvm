@@ -2,7 +2,7 @@
 using UnityEngine;
 using System.Collections;
 
-class TestPOCOVm : AViewModel
+class TestPOCOVm : AViewModel, IParentVm
 {
     string _testString;
     public string TestString
@@ -64,7 +64,7 @@ class TestPOCOVm : AViewModel
     }
     void ImplAddChild()
     {
-        Children.Add(new ChildViewModel());
+        Children.Add(new ChildViewModel(this));
     }
     void ImplRemoveChild()
     {
@@ -80,4 +80,14 @@ class TestPOCOVm : AViewModel
     {
         return CanSaySomething;
     }
+
+    void IParentVm.RemoveChild(ChildViewModel child)
+    {
+        Children.Remove(child);
+    }
+}
+
+interface IParentVm
+{
+    void RemoveChild(ChildViewModel child);
 }
