@@ -14,6 +14,6 @@ Opening the example scene will show a mix of the ways the binding works.  There 
 ### Command binding
  Command binding is only necessary if you're using POCO viewmodels with DataContext. Otherwise, you can just do normal binding on the button's events to the viewmodel ![CommandBinding to POCO DataContext example](http://i.imgur.com/Emx3c45.png)
 
-### Collections  
+### Collections
   Collections can be done via ItemsControl components. The viewmodel collection must be an IEnumerable, with optionally implementing INotifyCollectionChanged.  Currently, collection changes are only handled via full resets.  
-  As it is difficult to easily create/remove components from a collection, it is recommended you use POCOs as collection items. ![ItemsControl example](http://i.imgur.com/hQcMymS.png)
+  Because the event binding gets set up at compile time meaning you have to use DataContexts for ItemsControl prefabs, as well as it being harder to create UnityEngine.Object types (cannot simply new()), it is recommended you use POCOs as collection items. ![ItemsControl example](http://i.imgur.com/hQcMymS.png)
