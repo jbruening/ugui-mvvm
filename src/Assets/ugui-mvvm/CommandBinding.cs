@@ -1,6 +1,9 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.UI;
+using Component = UnityEngine.Component;
 
 namespace uguimvvm
 {
@@ -18,6 +21,7 @@ namespace uguimvvm
         private object _parameter = null;
 
         PropertyInfo _vmProp;
+        private ICommand _command;
 
         void Awake()
         {
@@ -31,7 +35,10 @@ namespace uguimvvm
 
         private void ClearBindings()
         {
-            //todo: do we need to clean up unity bindings?
+            if (_viewModel.Component is INotifyPropertyChanged)
+                (_viewModel.Component as INotifyPropertyChanged).PropertyChanged -= OnPropertyChanged;
+            if (_command != null)
+                _command.CanExecuteChanged -= CommandOnCanExecuteChanged;
         }
 
         private void FigureBindings()
@@ -50,6 +57,14 @@ namespace uguimvvm
             {
                 Debug.LogWarningFormat("No property named {0} of type ICommand exists in {1}", _viewModel.Property, vmtype);
             }
+
+            if (_vmProp != null)
+            {
+                if (_viewModel.Component is INotifyPropertyChanged)
+                    (_viewModel.Component as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
+
+                BindCommand();
+            }
         }
 
         private object GetVmValue()
@@ -59,14 +74,48 @@ namespace uguimvvm
             return _vmProp.GetValue(_viewModel.Component, null);
         }
 
+        private void BindCommand()
+        {
+            var ncommand = GetVmValue() as ICommand;
+
+            if (_command != null)
+                _command.CanExecuteChanged -= CommandOnCanExecuteChanged;
+
+            _command = ncommand;
+
+            if (_command != null)
+            {
+                _command.CanExecuteChanged += CommandOnCanExecuteChanged;
+            }
+            CommandOnCanExecuteChanged(this, new EventArgs());
+        }
+
+        private void OnPropertyChanged(object sender, PropertyChangedEventArgs propertyChangedEventArgs)
+        {
+            if (propertyChangedEventArgs.PropertyName != "" &&
+                propertyChangedEventArgs.PropertyName != _viewModel.Property)
+                return;
+
+            BindCommand();
+        }
+
+        private void CommandOnCanExecuteChanged(object sender, EventArgs eventArgs)
+        {
+            //enable if we don't have a command, or whatever the command's canexecute is.
+            SetViewEnabledState(_command == null || _command.CanExecute(_parameter));
+        }
+
+        private void SetViewEnabledState(bool state)
+        {
+            if (_view is Selectable)
+                (_view as Selectable).interactable = state;
+        }
+
         public void ExecuteCommand()
         {
-            if (_vmProp == null) return;
+            if (_command == null) return;
 
-            var command = GetVmValue() as ICommand;
-            if (command == null) return;
-
-            command.Execute(_parameter);
+            _command.Execute(_parameter);
         }
     }
 }

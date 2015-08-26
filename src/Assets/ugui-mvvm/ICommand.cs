@@ -29,6 +29,12 @@ namespace uguimvvm
             _execute();
         }
 
+        public void RaiseCanExecuteChanged()
+        {
+            if (CanExecuteChanged != null)
+                CanExecuteChanged(this, EventArgs.Empty);
+        }
+
         public event EventHandler CanExecuteChanged;
         
         private readonly Action _execute;

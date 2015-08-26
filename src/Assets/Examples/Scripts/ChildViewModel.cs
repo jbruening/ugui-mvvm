@@ -2,6 +2,7 @@
 
 class ChildViewModel : AViewModel
 {
+    #region properties
     string _testProperty;
     public string TestProperty
     {
@@ -16,19 +17,33 @@ class ChildViewModel : AViewModel
         set { SetProperty("IsSomething", ref _isSomething, value); }
     }
 
+    private bool _canSomething = true;
+    public bool CanSomething
+    {
+        get { return _canSomething; }
+        set
+        {
+            if (SetProperty("CanSomething", ref _canSomething, value))
+                ToggleSomething.RaiseCanExecuteChanged();
+        }
+    }
+    #endregion
+
     public ChildViewModel()
     {
         _testProperty = "";
+        ToggleSomething = new RelayCommand(InternalToggleSomething, InternalCanToggleSomething);
     }
 
-    public RelayCommand ToggleSomething
+    #region commands
+    public RelayCommand ToggleSomething { get; private set; }
+    void InternalToggleSomething()
     {
-        get
-        {
-            return new RelayCommand(() =>
-            {
-                IsSomething = !IsSomething;
-            });
-        }
+        IsSomething = !IsSomething;
     }
+    bool InternalCanToggleSomething()
+    {
+        return _canSomething;
+    }
+    #endregion
 }

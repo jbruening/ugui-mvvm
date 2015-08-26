@@ -3,11 +3,20 @@ using System.ComponentModel;
 
 class AViewModel : INotifyPropertyChanged
 {
-    protected void SetProperty<T>(string propertyName, ref T backingStore, T value)
+    /// <summary>
+    /// Set the specified property and raise the PropertyChanged event if its different
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="propertyName"></param>
+    /// <param name="backingStore"></param>
+    /// <param name="value"></param>
+    /// <returns>true, if the property changed. Otherwise false</returns>
+    protected bool SetProperty<T>(string propertyName, ref T backingStore, T value)
     {
-        if (EqualityComparer<T>.Default.Equals(backingStore, value)) return;
+        if (EqualityComparer<T>.Default.Equals(backingStore, value)) return false;
         backingStore = value;
         RaisePropertyChanged(propertyName);
+        return true;
     }
 
     protected void RaisePropertyChanged(string path)
