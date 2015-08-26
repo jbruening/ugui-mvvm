@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using uguimvvm;
+﻿using uguimvvm;
 
 class ChildViewModel : AViewModel
 {
@@ -25,7 +21,7 @@ class ChildViewModel : AViewModel
         _testProperty = "";
     }
 
-    public ICommand ToggleSomething
+    public RelayCommand ToggleSomething
     {
         get
         {

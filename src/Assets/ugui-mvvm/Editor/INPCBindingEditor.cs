@@ -10,6 +10,7 @@ using uguimvvm;
 [CustomEditor(typeof(INPCBinding))]
 class INPCBindingEditor : Editor
 {
+    #region scene post processing
     [PostProcessScene(1)]
     public static void OnPostProcessScene()
     {
@@ -94,6 +95,7 @@ class INPCBindingEditor : Editor
             }
 
             vevValue = vevProp.GetValue(vcomp) as UnityEventBase;
+            #endregion
         }
 
         if (vevValue == null)
@@ -103,7 +105,6 @@ class INPCBindingEditor : Editor
         }
 
         UnityEditor.Events.UnityEventTools.AddVoidPersistentListener(vevValue, binding.ApplyVToVM);
-            #endregion
 
         scomp.ApplyModifiedProperties();
         sobj.ApplyModifiedProperties();
@@ -127,6 +128,7 @@ class INPCBindingEditor : Editor
         }
         return null;
     }
+    #endregion
 
     public override void OnInspectorGUI()
     {
@@ -141,34 +143,7 @@ class INPCBindingEditor : Editor
         var vrect = EditorGUILayout.GetControlRect(true, GetCRefHeight(vprop));
         DrawCRefProp(vrect, vprop, new GUIContent());
 
-        int epropcount = 0;
-        if (vprop.FindPropertyRelative("Component").objectReferenceValue != null)
-        {
-            var eprops =
-                vprop.FindPropertyRelative("Component")
-                    .objectReferenceValue.GetType()
-                    .GetProperties()
-                    .Where(p => typeof(UnityEventBase).IsAssignableFrom(p.PropertyType))
-                    .Select(p => p.Name).ToArray();
-            epropcount = eprops.Length;
-
-            if (eprops.Length > 0)
-            {
-                EditorGUI.indentLevel++;
-                var fedx = Array.FindIndex(eprops, p => p == veprop.stringValue);
-                var edx = fedx < 0 ? 0 : fedx;
-                var nedx = EditorGUILayout.Popup("Event", edx, eprops);
-                if (nedx != fedx && nedx >= 0 && nedx < eprops.Length)
-                    veprop.stringValue = eprops[nedx];
-                EditorGUI.indentLevel--;
-            }
-            else
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.LabelField("Event", "No available events");
-                EditorGUI.indentLevel--;
-            }
-        }
+        var epropcount = DrawCrefEvents(vprop, veprop);
 
         var vmrect = EditorGUILayout.GetControlRect(true, GetCRefHeight(vmprop));
         DrawCRefProp(vmrect, vmprop, new GUIContent());
@@ -189,7 +164,51 @@ class INPCBindingEditor : Editor
         serializedObject.ApplyModifiedProperties();
     }
 
-    float GetCRefHeight(SerializedProperty property)
+    /// <summary>
+    /// Draw all UnityEventBase 
+    /// </summary>
+    /// <param name="crefProperty"></param>
+    /// <param name="eventProperty"></param>
+    /// <returns></returns>
+    public static int DrawCrefEvents(SerializedProperty crefProperty, SerializedProperty eventProperty)
+    {
+        int epropcount = 0;
+        if (crefProperty.FindPropertyRelative("Component").objectReferenceValue != null)
+        {
+            var eprops =
+                crefProperty.FindPropertyRelative("Component")
+                    .objectReferenceValue.GetType()
+                    .GetProperties()
+                    .Where(p => typeof(UnityEventBase).IsAssignableFrom(p.PropertyType))
+                    .Select(p => p.Name).ToArray();
+            epropcount = eprops.Length;
+
+            if (eprops.Length > 0)
+            {
+                EditorGUI.indentLevel++;
+                var fedx = Array.FindIndex(eprops, p => p == eventProperty.stringValue);
+                var edx = fedx < 0 ? 0 : fedx;
+                var nedx = EditorGUILayout.Popup("Event", edx, eprops);
+                if (nedx != fedx && nedx >= 0 && nedx < eprops.Length)
+                    eventProperty.stringValue = eprops[nedx];
+                EditorGUI.indentLevel--;
+            }
+            else
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.LabelField("Event", "No available events");
+                EditorGUI.indentLevel--;
+            }
+        }
+        return epropcount;
+    }
+
+    /// <summary>
+    /// get the height of an INPCBinding.ComponentPath property
+    /// </summary>
+    /// <param name="property"></param>
+    /// <returns></returns>
+    public static float GetCRefHeight(SerializedProperty property)
     {
         var cprop = property.FindPropertyRelative("Component");
         if (cprop.objectReferenceValue != null)
@@ -197,7 +216,19 @@ class INPCBindingEditor : Editor
         return EditorGUIUtility.singleLineHeight * 2;
     }
 
-    void DrawCRefProp(Rect position, SerializedProperty property, GUIContent label)
+    public static void DrawCRefProp(Rect position, SerializedProperty property, GUIContent label)
+    {
+        DrawCRefProp(position, property, label, typeof(object));
+    }
+
+    /// <summary>
+    /// draw an INPCBinding.ComponentPath property
+    /// </summary>
+    /// <param name="position"></param>
+    /// <param name="property"></param>
+    /// <param name="label"></param>
+    /// <param name="filter"></param>
+    public static void DrawCRefProp(Rect position, SerializedProperty property, GUIContent label, Type filter)
     {
         EditorGUI.BeginProperty(position, label, property);
         EditorGUI.LabelField(position, property.displayName);
@@ -228,7 +259,11 @@ class INPCBindingEditor : Editor
             }
             else
             {
-                var props = ortype.GetProperties().Select(p => p.Name).ToArray();
+                var props =
+                    ortype.GetProperties()
+                        .Where(p => filter.IsAssignableFrom(p.PropertyType))
+                        .Select(p => p.Name)
+                        .ToArray();
                 var fidx = Array.FindIndex(props, p => p == pprop.stringValue);
                 var idx = fidx < 0 ? 0 : fidx;
 
