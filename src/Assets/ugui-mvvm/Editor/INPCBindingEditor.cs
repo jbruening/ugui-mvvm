@@ -19,7 +19,7 @@ class INPCBindingEditor : Editor
 
     private static void FigureViewBindings()
     {
-        var objects = (GameObject[])UnityEngine.Object.FindObjectsOfType(typeof(GameObject));
+        var objects = (GameObject[])FindObjectsOfType(typeof(GameObject));
         foreach (var obj in objects)
         {
             var bindings = obj.GetComponents<INPCBinding>();
@@ -32,16 +32,11 @@ class INPCBindingEditor : Editor
     {
         var sobj = new SerializedObject(binding);
         var viewProp = sobj.FindProperty("_view");
-        var vmProp = sobj.FindProperty("_viewModel");
         var viewEvProp = sobj.FindProperty("_viewEvent");
         if (string.IsNullOrEmpty(viewEvProp.stringValue))
             return;
 
         var vcprop = viewProp.FindPropertyRelative("Component");
-        var vmcprop = vmProp.FindPropertyRelative("Component");
-
-        var vpprop = viewProp.FindPropertyRelative("Property");
-        var vmpprop = vmProp.FindPropertyRelative("Property");
 
         var vcomp = vcprop.objectReferenceValue as Component;
         if (vcomp == null)
@@ -104,15 +99,6 @@ class INPCBindingEditor : Editor
     static bool IsEventType(Type type)
     {
         return typeof (UnityEventBase).IsAssignableFrom(type);
-    }
-
-    private static void ListChildProperties(SerializedProperty prop)
-    {
-        prop = prop.Copy();
-        while (prop.Next(true))
-        {
-            Debug.LogFormat("{0} - {1}", prop.propertyPath, prop.type);
-        }
     }
 
     static SerializedProperty FirstOrDefault(SerializedProperty prop, Predicate<SerializedProperty> predicate, bool descendIntoChildren = false)
