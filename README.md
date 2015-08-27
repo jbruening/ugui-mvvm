@@ -11,7 +11,7 @@ Opening the [example scene](https://github.com/jbruening/ugui-mvvm/tree/master/s
 As a reminder, both ways require implementing INotifyPropertyChanged to work. To greatly reduce INPC workload, it is recommended you use [UnityFody](https://github.com/jbruening/UnityFody) with the [PropertyChanged](https://github.com/jbruening/UnityFody/tree/master/src/Assets/Plugins/Editor/PropertyChanged) plugin.
 
 ### Referencing components in the binding fields.
-As referencing specific components on other objects in unity is pretty much impossible, There is a new menu item that can be accessed by clicking on any component's gear icon -> 'Copy Component Reference'. This will then cause a small square button to the right of component fields of INPCBinding and CommandBinding to show up. Pressing this button will then paste the reference to the component into the field.
+As referencing specific components on other objects in unity is pretty much impossible, There is a new menu item that can be accessed by clicking on any component's gear icon -> 'Copy Component Reference'. This will then cause a small square button to the right of component fields of INPCBinding and CommandBinding to show up. Pressing this button will then paste the reference to the component into the field. ![example](http://i.imgur.com/sVXgwIR.png)
 
 ## Binding
 
