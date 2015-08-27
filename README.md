@@ -22,13 +22,16 @@ As referencing specific components on other objects in unity is pretty much impo
  
 INPCBinding recognizes when a DataContext component is referenced as a viewmodel, and will display the DataContext's referenced type's properties, instead of the DataContext's type properties.
 
+#### Converters
+Converters work off of ScriptableObject child classes implementing IValueConverter.  Assign the asset of the scriptableobject (you'll need a separate tool to help you to create them) to the Converter field of INPCBinding
+
 ### Command binding
  Command binding is only necessary if you're using DataContext. Otherwise, you can just do normal binding on the button's events to the viewmodel.  Command binding is via properties returning ICommand, just like with WPF.
  
- While ICommand does show it having CanExecute and CanExecuteChanged, they are not currently used. Future support is planned for them to be bindable.  
- ![CommandBinding to POCO DataContext example](http://i.imgur.com/Emx3c45.png)
+ ICommand's CanExecute and CanExecuteChanged will cause the CommandBinding to modify the view's 'interactable' property (from type Selectable). This is shown in both example scenes with the 'Can Toggle' and 'Can Say Something' toggles.
+ ![CommandBinding to POCO DataContext example](http://i.imgur.com/Me30ba3.png)
 
 ### Collections
  Collections can be done via ItemsControl components. The viewmodel collection must be an IEnumerable, with optionally implementing INotifyCollectionChanged.  Currently, collection changes are only handled via full resets.  
 
-Because the event binding gets set up at compile time, as well as it being harder to create UnityEngine.Object types (cannot simply new()), it is recommended you use POCOs as collection items. ![ItemsControl example](http://i.imgur.com/hQcMymS.png)
+Because the event binding gets set up at compile time, as well as it being harder to create UnityEngine.Object types (cannot simply new()), it is recommended you use POCOs as collection items. ![ItemsControl example](http://i.imgur.com/l4LrN3S.png)
