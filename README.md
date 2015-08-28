@@ -32,6 +32,6 @@ Converters work off of ScriptableObject child classes implementing IValueConvert
  ![CommandBinding to POCO DataContext example](http://i.imgur.com/Me30ba3.png)
 
 ### Collections
- Collections can be done via ItemsControl components. The viewmodel collection must be an IEnumerable, with optionally implementing INotifyCollectionChanged.  Currently, collection changes are only handled via full resets.  
+ Collections can be done via ItemsControl components. The viewmodel collection must be an IEnumerable, with optionally implementing INotifyCollectionChanged.
 
 Because the event binding gets set up at compile time, as well as it being harder to create UnityEngine.Object types (cannot simply new()), it is recommended you use POCOs as collection items. ![ItemsControl example](http://i.imgur.com/l4LrN3S.png)
