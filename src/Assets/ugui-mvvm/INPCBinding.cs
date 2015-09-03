@@ -84,13 +84,13 @@ namespace uguimvvm
                 value = _ci.ConvertBack(value, _vmType, null, System.Threading.Thread.CurrentThread.CurrentCulture);
             else if (value != null)
                 value = System.Convert.ChangeType(value, _vmType);
-            else if (value == null)
+            else 
                 value = GetDefaultValue(_vmType);
 
-            if (value != null && value.GetType() != _vmType)
+            if (value is IDelayedValue)
             {
-                Debug.LogErrorFormat("Could not bind {0} to type {1}", value.GetType(), _vmType);
-                return;
+                if (!(value as IDelayedValue).ValueOrSubscribe(SetVmValue, ref value))
+                    return;
             }
 
             SetVmValue(value);
@@ -108,15 +108,26 @@ namespace uguimvvm
                 value = _ci.Convert(value, _vType, null, System.Threading.Thread.CurrentThread.CurrentCulture);
             else if (value != null)
             {
-                if (!_vType.IsAssignableFrom(value.GetType()))
+                if (!_vType.IsInstanceOfType(value))
                 {
                     value = System.Convert.ChangeType(value, _vType);
                 }
             }
-            else if (value == null)
+            else 
                 value = GetDefaultValue(_vType);
 
-            if (value != null && !_vType.IsAssignableFrom(value.GetType()))
+            if (value is IDelayedValue)
+            {
+                if (!(value as IDelayedValue).ValueOrSubscribe(SetVValue, ref value))
+                    return;
+            }
+
+            SetVValue(value);
+        }
+
+        private void SetVValue(object value)
+        {
+            if (value != null && !_vType.IsInstanceOfType(value))
             {
                 Debug.LogErrorFormat("Could not bind {0} to type {1}", value.GetType(), _vType);
                 return;
@@ -139,6 +150,12 @@ namespace uguimvvm
 
         private void SetVmValue(object value)
         {
+            if (value != null && value.GetType() != _vmType)
+            {
+                Debug.LogErrorFormat("Could not bind {0} to type {1}", value.GetType(), _vmType);
+                return;
+            }
+
             if (_viewModel.Component is DataContext)
                 (_viewModel.Component as DataContext).SetValue(value, _vmProp);
             else
