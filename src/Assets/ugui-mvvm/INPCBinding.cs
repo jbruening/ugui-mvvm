@@ -2,6 +2,7 @@
 using System;
 using System.Reflection;
 using System.Linq;
+using UnityEngine.UI;
 using INotifyPropertyChanged = System.ComponentModel.INotifyPropertyChanged;
 using PropertyChangedEventArgs = System.ComponentModel.PropertyChangedEventArgs;
 using UnityEngine.EventSystems;
@@ -43,9 +44,16 @@ namespace uguimvvm
             if (context != null)
                 _viewModel = new ComponentPath { Component = context };
 
-            var view = gameObject.GetComponent<UIBehaviour>();
+            var view = gameObject.GetComponents<UIBehaviour>().OrderBy((behaviour => OrderOnType(behaviour))).FirstOrDefault();
             if (view != null)
                 _view = new ComponentPath { Component = view };
+        }
+
+        private int OrderOnType(UIBehaviour item)
+        {
+            if (item is Button) return 0;
+            if (item is Text) return 1;
+            return 10;
         }
 
         void Awake()
