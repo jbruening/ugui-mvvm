@@ -5,7 +5,14 @@ namespace uguimvvm
     public class ContextMenu : MonoBehaviour
     {
         [SerializeField] 
+        [Tooltip("Timeout of the menu if Hide When Timeout is selected")]
         private float _keepAlive = 1f;
+        [SerializeField]
+        [Tooltip("Hide the menu if the mouse isn't over the menu after the Keep Alive time")]
+        private bool _hideWhenTimeout = false;
+        [SerializeField]
+        [Tooltip("Hide the menu if the user clicks off the menu")]
+        private bool _hideWhenOffClick = true;
 
         private RectTransform _rect;
         private readonly Vector3[] _worldCorners = new Vector3[4];
@@ -16,7 +23,6 @@ namespace uguimvvm
             _rect = transform as RectTransform;
         }
 
-        //todo: hide if user clicks on some other control, rather than/or timeout
         private void Update()
         {
             if (!IsMouseOverRect())
@@ -53,7 +59,11 @@ namespace uguimvvm
 
         private bool ShouldHide()
         {
-            return _dieTime <= Time.time;
+            if (_hideWhenOffClick && Input.GetMouseButtonUp(0))
+                return true;
+            if (_hideWhenTimeout)
+                return _dieTime <= Time.time;
+            return false;
         }
 
         private void RefreshDieTime()
