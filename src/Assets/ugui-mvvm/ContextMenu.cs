@@ -18,6 +18,8 @@ namespace uguimvvm
         private readonly Vector3[] _worldCorners = new Vector3[4];
         private float _dieTime;
 
+        public bool IsVisible { get { return gameObject.activeSelf; } }
+
         private void Awake()
         {
             _rect = transform as RectTransform;
@@ -47,6 +49,8 @@ namespace uguimvvm
 
         public void Show(Vector2 position, Component dataContext)
         {
+            if (IsVisible) return;
+
             _rect.position = new Vector3(position.x - 1, position.y + 1, _rect.position.z);
 
             RefreshDieTime();
