@@ -6,6 +6,7 @@ using UnityEditor.Callbacks;
 using System.Reflection;
 using System;
 using uguimvvm;
+using System.Collections.Generic;
 
 [CustomEditor(typeof(INPCBinding))]
 class INPCBindingEditor : Editor
@@ -58,7 +59,7 @@ class INPCBindingEditor : Editor
         if (string.IsNullOrEmpty(eventName)) return null;
 
         var type = component.GetType();
-        var evField = type.GetField(eventName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        var evField = GetField(type, eventName);
         if (evField != null && IsEventType(evField.FieldType))
         {
             return evField.GetValue(component) as UnityEventBase;
@@ -82,7 +83,7 @@ class INPCBindingEditor : Editor
             return null;
         }
 
-        evField = type.GetField(sep.name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        evField = GetField(type, sep.name);
         if (evField != null)
         {
             //need to update this, otherwise the things won't be able to bind
@@ -169,9 +170,7 @@ class INPCBindingEditor : Editor
         int epropcount = 0;
         if (component.objectReferenceValue != null)
         {
-            var eprops = component
-                .objectReferenceValue.GetType()
-                .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            var eprops = GetAllFields(component.objectReferenceValue.GetType())
                 .Where(
                     f =>
                         typeof (UnityEventBase).IsAssignableFrom(f.FieldType) && (f.IsPublic ||
@@ -200,6 +199,23 @@ class INPCBindingEditor : Editor
         return epropcount;
     }
 
+    public static IEnumerable<FieldInfo> GetAllFields(Type t)
+    {
+        if (t == null)
+            return Enumerable.Empty<FieldInfo>();
+        var flags = BindingFlags.Public | BindingFlags.NonPublic | 
+                    BindingFlags.Instance | BindingFlags.DeclaredOnly;
+        return t.GetFields(flags).Concat(GetAllFields(t.BaseType));
+    }
+
+    public static FieldInfo GetField(Type t, string name)
+    {
+        if (t == null)
+            return null;
+        var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+        return t.GetField(name, flags) ?? GetField(t.BaseType, name);
+    }
+
     /// <summary>
     /// get the height of an INPCBinding.ComponentPath property
     /// </summary>
@@ -213,9 +229,15 @@ class INPCBindingEditor : Editor
         return EditorGUIUtility.singleLineHeight * 2;
     }
 
-    public static void DrawCRefProp(Rect position, SerializedProperty property, GUIContent label)
+    public static void DrawCRefProp(Rect position, SerializedProperty property, GUIContent label, bool resolveDataContext = true)
     {
         DrawCRefProp(position, property, label, typeof(object));
+    }
+
+    public static void GetCPathProperties(SerializedProperty property, out SerializedProperty component, out SerializedProperty path)
+    {
+        component = property.FindPropertyRelative("Component");
+        path = property.FindPropertyRelative("Property");
     }
 
     /// <summary>
@@ -225,7 +247,7 @@ class INPCBindingEditor : Editor
     /// <param name="property"></param>
     /// <param name="label"></param>
     /// <param name="filter"></param>
-    public static void DrawCRefProp(Rect position, SerializedProperty property, GUIContent label, Type filter)
+    public static void DrawCRefProp(Rect position, SerializedProperty property, GUIContent label, Type filter, bool resolveDataContext = true)
     {
         EditorGUI.BeginProperty(position, label, property);
         EditorGUI.LabelField(position, property.displayName);
@@ -235,10 +257,10 @@ class INPCBindingEditor : Editor
         position = EditorGUI.IndentedRect(position);
         EditorGUI.indentLevel--;
         position.height = EditorGUIUtility.singleLineHeight;
-        var cprop = property.FindPropertyRelative("Component");
+        SerializedProperty cprop, pprop;
+        GetCPathProperties(property, out cprop, out pprop);
         ComponentReferenceDrawer.PropertyField(position, cprop);
-
-        var pprop = property.FindPropertyRelative("Property");
+        
         if (cprop.objectReferenceValue != null)
         {
             position.y += EditorGUIUtility.singleLineHeight;
@@ -246,7 +268,7 @@ class INPCBindingEditor : Editor
 
             var orv = cprop.objectReferenceValue;
             Type ortype;
-            if (orv is DataContext)
+            if (orv is DataContext && resolveDataContext)
                 ortype = (orv as DataContext).Type;
             else
                 ortype = orv.GetType();
@@ -267,7 +289,7 @@ class INPCBindingEditor : Editor
                 position.x += EditorGUIUtility.labelWidth;
                 position.xMax -= EditorGUIUtility.labelWidth;
                 var nidx = EditorGUI.Popup(position, idx, props.ToArray());
-                if (nidx != fidx)
+                if (nidx != fidx && nidx < props.Length)
                     pprop.stringValue = props[nidx];
             }
         }

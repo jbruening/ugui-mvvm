@@ -7,7 +7,7 @@ namespace uguimvvm
 {
     class ItemsControl : MonoBehaviour
     {
-        class ItemInfo
+        protected class ItemInfo
         {
             public readonly object Item;
             public readonly GameObject Control;
@@ -42,15 +42,21 @@ namespace uguimvvm
                 ResetBindings(_itemsSource, value);
                 _itemsSource = value;
                 ResetCollection();
-                ItemsSourceChanged.Invoke();
+                OnItemsSourceChanged();
             }
         }
 
-        private readonly List<ItemInfo> _items = new List<ItemInfo>();
+        protected readonly List<ItemInfo> _items = new List<ItemInfo>();
 
         [SerializeField]
         private UnityEvent _itemsSourceChanged;
         public UnityEvent ItemsSourceChanged { get { return _itemsSourceChanged; } }
+
+        public bool HasItems { get { return _items.Count > 0; } }
+
+        [SerializeField]
+        private UnityEvent _hasItemsChanged;
+        public UnityEvent HasItemsChanged { get { return _hasItemsChanged; } }
 
         private void ResetBindings(IEnumerable oldvalue, IEnumerable newvalue)
         {
@@ -64,7 +70,7 @@ namespace uguimvvm
             }
         }
 
-        private void CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        protected virtual void CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             switch (e.Action)
             {
@@ -102,6 +108,8 @@ namespace uguimvvm
                 if (context == null) continue;
                 context.UpdateValue(item);
             }
+
+            HasItemsChanged.Invoke();
         }
 
         private void RemoveItems(IEnumerable oldItems)
@@ -113,6 +121,13 @@ namespace uguimvvm
                 Destroy(_items[idx].Control);
                 _items.RemoveAt(idx);
             }
+
+            HasItemsChanged.Invoke();
+        }
+
+        protected virtual void OnItemsSourceChanged()
+        {
+            ItemsSourceChanged.Invoke();
         }
 
         private void ResetCollection()

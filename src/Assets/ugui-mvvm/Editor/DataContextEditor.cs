@@ -18,6 +18,7 @@ class DataContextEditor : Editor
 
         var tprop = serializedObject.FindProperty("_type");
         var iprop = serializedObject.FindProperty("_instantiateOnAwake");
+        var bprop = serializedObject.FindProperty("_propertyBinding");
 
         if (_tval == null && !string.IsNullOrEmpty(tprop.stringValue))
         {
@@ -34,7 +35,12 @@ class DataContextEditor : Editor
             if (typeof(UnityEngine.Object).IsAssignableFrom(_tval))
                 GUILayout.Label("Auto-instantiation not possible with UnityEngine.Object types");
             else
+            {
                 EditorGUILayout.PropertyField(iprop);
+
+                var rect = EditorGUILayout.GetControlRect(true, INPCBindingEditor.GetCRefHeight(bprop));
+                INPCBindingEditor.DrawCRefProp(rect, bprop, GUIContent.none);
+            }
         }
 
         if (_tval != null)
@@ -81,6 +87,16 @@ class DataContextEditor : Editor
             EditorGUILayout.EndScrollView();
         }
 
+
+
         serializedObject.ApplyModifiedProperties();
+
+        var dc = target as DataContext;
+        if (dc != null)
+        {
+            EditorGUI.BeginDisabledGroup(true);
+            EditorGUILayout.Toggle("Value?", dc.Value != null);
+            EditorGUI.EndDisabledGroup();
+        }
     }
 }

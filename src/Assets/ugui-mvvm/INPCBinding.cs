@@ -110,7 +110,7 @@ namespace uguimvvm
 
             if (_mode == BindingMode.OneWayToViewModel) return;
 
-            var value = GetVmValue();
+            var value = GetValue(_viewModel, _vmProp);
 
             if (_ci != null)
                 value = _ci.Convert(value, _vType, null, System.Threading.Thread.CurrentThread.CurrentCulture);
@@ -148,12 +148,12 @@ namespace uguimvvm
             _vProp.SetValue(_view.Component, value, null);
         }
 
-        private object GetVmValue()
+        public static object GetValue(ComponentPath path, PropertyInfo prop, bool resolveDataContext = true)
         {
-            if (_viewModel.Component is DataContext)
-                return (_viewModel.Component as DataContext).GetValue(_vmProp);
+            if (resolveDataContext && path.Component is DataContext)
+                return (path.Component as DataContext).GetValue(prop);
             else
-                return _vmProp.GetValue(_viewModel.Component, null);
+                return prop.GetValue(path.Component, null);
         }
 
         private void SetVmValue(object value)
@@ -172,26 +172,34 @@ namespace uguimvvm
 
         private void FigureBindings()
         {
+            _vmProp = FigureBinding(_viewModel, inpc_PropertyChanged, true);
             //post processing will have set up our _view.
-            Type vmtype;
-            if (_viewModel.Component is DataContext)
-                vmtype = (_viewModel.Component as DataContext).Type;
-            else
-                vmtype = _viewModel.Component.GetType();
-
-            _vmProp = vmtype.GetProperties().FirstOrDefault(p => string.Equals(p.Name, _viewModel.Property, StringComparison.OrdinalIgnoreCase));
-
-            _vProp = _view.Component.GetType().GetProperties().FirstOrDefault(p => string.Equals(p.Name, _view.Property, StringComparison.OrdinalIgnoreCase));
-            //Debug.LogFormat("vprop is {0}", _vProp);
+            _vProp = FigureBinding(_view, null, false);
 
             if (_vmProp != null)
                 _vmType = _vmProp.PropertyType;
             if (_vProp != null)
                 _vType = _vProp.PropertyType;
+        }
 
-            var inpc = _viewModel.Component as INotifyPropertyChanged;
-            if (inpc == null) return;
-            inpc.PropertyChanged += inpc_PropertyChanged;
+        public static PropertyInfo FigureBinding(ComponentPath path, System.ComponentModel.PropertyChangedEventHandler handler, bool resolveDataContext)
+        {
+            Type type;
+            if (resolveDataContext && path.Component is DataContext)
+                type = (path.Component as DataContext).Type;
+            else
+                type = path.Component.GetType();
+
+            var prop = type.GetProperties().FirstOrDefault(p => string.Equals(p.Name, path.Property, StringComparison.OrdinalIgnoreCase));
+
+            if (handler != null)
+            {
+                var inpc = path.Component as INotifyPropertyChanged;
+                if (inpc != null)
+                    inpc.PropertyChanged += handler;
+            }
+
+            return prop;
         }
 
         void inpc_PropertyChanged(object sender, PropertyChangedEventArgs e)

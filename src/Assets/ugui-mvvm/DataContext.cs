@@ -20,7 +20,12 @@ namespace uguimvvm
         public object Value
         {
             get { return _value; }
+            set { UpdateValue(value); }
         }
+
+        [SerializeField]
+        private INPCBinding.ComponentPath _propertyBinding = null;
+        private PropertyInfo _prop;
 
         [Tooltip("Instantiate the type on awake. This will not work for UnityEngine.Object types")]
         [SerializeField]
@@ -28,6 +33,11 @@ namespace uguimvvm
 
         void Awake()
         {
+            if (_propertyBinding != null && _propertyBinding.Component != null)
+                _prop = INPCBinding.FigureBinding(_propertyBinding, BindingPropertyChanged, true);
+
+            ApplyBindingToValue();
+
             if (!_instantiateOnAwake) return;
             if (Type == null)
             {
@@ -61,7 +71,7 @@ namespace uguimvvm
             _value = value;
 
             //update all properties
-            if (_value != null && PropertyChanged != null)
+            if (PropertyChanged != null)
                 PropertyChanged(_value, new PropertyChangedEventArgs(""));
         }
 
@@ -117,5 +127,23 @@ namespace uguimvvm
         {
             Command(commandName, null);
         }
+
+        #region property binding
+        private void BindingPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "" || e.PropertyName == _propertyBinding.Property)
+                ApplyBindingToValue();
+        }
+
+        private void ApplyBindingToValue()
+        {
+            if (_propertyBinding == null) return;
+            if (_propertyBinding.Component == null) return;
+            if (_prop == null) return;
+
+            var value = INPCBinding.GetValue(_propertyBinding, _prop);
+            UpdateValue(value);
+        }
+        #endregion
     }
 }
