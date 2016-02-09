@@ -43,19 +43,20 @@ namespace uguimvvm
                 _itemsSource = value;
                 ResetCollection();
                 OnItemsSourceChanged();
+                ItemsSourceChanged.Invoke();
             }
         }
 
         protected readonly List<ItemInfo> _items = new List<ItemInfo>();
 
         [SerializeField]
-        private UnityEvent _itemsSourceChanged;
+        private UnityEvent _itemsSourceChanged = null;
         public UnityEvent ItemsSourceChanged { get { return _itemsSourceChanged; } }
 
         public bool HasItems { get { return _items.Count > 0; } }
 
         [SerializeField]
-        private UnityEvent _hasItemsChanged;
+        private UnityEvent _hasItemsChanged = null;
         public UnityEvent HasItemsChanged { get { return _hasItemsChanged; } }
 
         private void ResetBindings(IEnumerable oldvalue, IEnumerable newvalue)
@@ -98,7 +99,8 @@ namespace uguimvvm
             {
                 var control = Instantiate(_itemTemplate);
                 control.SetActive(true);
-                _items.Add(new ItemInfo(item, control));
+                var info = new ItemInfo(item, control);
+                _items.Add(info);
                 var rect = control.GetComponent<RectTransform>();
                 if (rect == null)
                     control.transform.parent = trans;
@@ -107,45 +109,56 @@ namespace uguimvvm
                 var context = control.GetComponent<DataContext>();
                 if (context == null) continue;
                 context.UpdateValue(item);
+
+                OnItemAdded(info);
             }
 
             HasItemsChanged.Invoke();
         }
+
+        /// <summary>
+        /// After an item is added to the controls
+        /// </summary>
+        /// <param name="info"></param>
+        protected virtual void OnItemAdded(ItemInfo info) { }
 
         private void RemoveItems(IEnumerable oldItems)
         {
             foreach (var item in oldItems)
             {
-                var idx = _items.FindIndex(i => i.Item == item);
-                if (idx < 0) continue;
-                Destroy(_items[idx].Control);
-                _items.RemoveAt(idx);
+                RemoveAt(_items.FindIndex(i => i.Item == item));
             }
 
             HasItemsChanged.Invoke();
         }
 
-        protected virtual void OnItemsSourceChanged()
-        {
-            ItemsSourceChanged.Invoke();
-        }
+        /// <summary>
+        /// After an item is removed from controls
+        /// </summary>
+        /// <param name="info"></param>
+        protected virtual void OnItemRemoved(ItemInfo info) { }
 
         private void ResetCollection()
         {
-            _items.Clear();
-            ClearChildren();
+            for (var i = _items.Count - 1; i >= 0; i--)
+            {
+               RemoveAt(i);
+            }
             AddItems(_itemsSource);
         }
 
-        private void ClearChildren()
+        /// <summary>
+        /// Fired after the controls have re-created, before the ItemsSourceChanged event is invoked
+        /// </summary>
+        protected virtual void OnItemsSourceChanged() { }
+
+        void RemoveAt(int idx)
         {
-            var trans = transform;
-            var ci = trans.childCount;
-            for (int i = 0; i < ci; i++)
-            {
-                var child = trans.GetChild(i);
-                Destroy(child.gameObject);
-            }
+            if (idx < 0) return;
+            var item = _items[idx];
+            _items.RemoveAt(idx);
+            Destroy(item.Control);
+            OnItemRemoved(item);
         }
 
         void OnDestroy()
