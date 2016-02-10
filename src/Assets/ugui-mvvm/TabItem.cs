@@ -5,13 +5,13 @@ namespace uguimvvm
 {
     [RequireComponent(typeof(Image))]
     [AddComponentMenu("UI/Tabs/TabItem", 2)]
-    class TabItem : Button
+    public class TabItem : Button
     {
         private TabControl _tabs;
         private Image _image;
 
         [SerializeField]
-        private Sprite _active;
+        private UnityEngine.Sprite _active;
 
         private bool _isOnTab;
 

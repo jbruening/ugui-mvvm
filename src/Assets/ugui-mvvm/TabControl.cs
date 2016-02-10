@@ -30,39 +30,55 @@ namespace uguimvvm
         {
             if (_items.Count == 0)
             {
-                DeselectTab(_lastTab);
-                _lastTab = null;
+                SetTabsState(null);
                 return;
             }
 
             if (SelectedInfo != null)
                 return;
-            
-            SetSelected(_items.FirstOrDefault(i => i.Control == _lastTab) ?? _items[0]);
+
+            var info = _items.FirstOrDefault(i => i.Control == _lastTab) ?? _items[0];
+            SetSelected(info);
+            SetTabsState(info.Control);
         }
 
         protected override void OnSelectedChanged(bool fromProperty)
         {
             if (SelectedInfo == null)
             {
+                SetTabsState(null);
                 return;
             }
 
-            DeselectTab(_lastTab);
             _lastTab = SelectedInfo.Control;
             if (!fromProperty) return;
-            _lastTab.GetComponent<TabItem>().SetSelected(true);
+            SetTabsState(_lastTab);
         }
 
-        private void DeselectTab(GameObject lastTab)
+        private void SetTabsState(GameObject tab)
         {
-            if (lastTab == null) return;
-            lastTab.GetComponent<TabItem>().SetSelected(false);
+            var i = 0;
+            foreach (Transform child in transform)
+            {
+                if (i == 0 && tab == null)
+                    SetTabSelected(child.gameObject, true);
+                else
+                    SetTabSelected(child.gameObject, tab == child.gameObject);
+                i++;
+            }
+        }
+
+        private void SetTabSelected(GameObject tab, bool state)
+        {
+            if (tab == null) return;
+            tab.GetComponent<TabItem>().SetSelected(state);
         }
 
         internal void SelectTab(TabItem item)
         {
             SetSelected(_items.FirstOrDefault(i => i.Control == item.gameObject));
+            if (_items.Count == 0)
+                SetTabsState(item.gameObject);
         }
     }
 }
