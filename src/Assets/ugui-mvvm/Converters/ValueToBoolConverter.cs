@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace uguimvvm.Converters
 {
-    public abstract class EnumToBoolConverter<T> : ScriptableObject, IValueConverter
+    public abstract class ValueToBoolConverter<T> : ScriptableObject, IValueConverter
     {
         protected abstract T TrueValue { get; }
         protected abstract T FalseValue { get; }
