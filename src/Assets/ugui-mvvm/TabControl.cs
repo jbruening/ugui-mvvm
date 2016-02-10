@@ -10,7 +10,7 @@ using UnityEngine.EventSystems;
 namespace uguimvvm
 {
     [AddComponentMenu("UI/Tabs/TabControl", 1)]
-    class TabControl : Selector
+    public class TabControl : Selector
     {
         private GameObject _lastTab;
 

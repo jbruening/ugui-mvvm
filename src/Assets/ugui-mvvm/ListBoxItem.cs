@@ -2,7 +2,7 @@
 
 namespace uguimvvm
 {
-    class ListBoxItem : Selectable
+    public class ListBoxItem : Selectable
     {
         public bool IsSelected()
         {

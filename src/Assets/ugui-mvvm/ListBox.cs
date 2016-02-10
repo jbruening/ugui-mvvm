@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 
 namespace uguimvvm
 {
-    class ListBox : Primitives.Selector
+    public class ListBox : Primitives.Selector
     {        
         private GameObject _lastSelected;
         private static Func<ListBoxItem, bool> _selectionState = s => s == null ? false : s.IsSelected();

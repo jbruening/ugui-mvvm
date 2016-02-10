@@ -4,7 +4,7 @@ using UnityEngine.Events;
 
 namespace uguimvvm.Primitives
 {
-    abstract class Selector : ItemsControl
+    public abstract class Selector : ItemsControl
     {
         protected ItemInfo SelectedInfo { get; private set; }
 

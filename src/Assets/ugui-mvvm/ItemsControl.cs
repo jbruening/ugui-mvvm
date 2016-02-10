@@ -5,7 +5,7 @@ using UnityEngine.Events;
 
 namespace uguimvvm
 {
-    class ItemsControl : MonoBehaviour
+    public class ItemsControl : MonoBehaviour
     {
         protected class ItemInfo
         {
