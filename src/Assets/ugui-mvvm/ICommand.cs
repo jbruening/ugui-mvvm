@@ -18,10 +18,7 @@ namespace uguimvvm
         }
         public bool CanExecute(object parameter)
         {
-            if (_canExecute != null)
-                return _canExecute();
-            else
-                return true;
+            return _canExecute == null || _canExecute();
         }
 
         public void Execute(object parameter)
@@ -39,5 +36,40 @@ namespace uguimvvm
         
         private readonly Action _execute;
         private readonly Func<bool> _canExecute;
+    }
+
+    public class RelayCommand<T> : ICommand
+    {
+        private readonly Action<T> _execute;
+        private readonly Func<T, bool> _canExecute;
+
+        public RelayCommand(Action<T> execute, Func<T, bool> canExecute = null)
+        {
+            _execute = execute;
+            _canExecute = canExecute;
+        }
+
+        public bool CanExecute(object parameter)
+        {
+            if (_canExecute == null) return true;
+            
+            if (parameter is T)
+                return _canExecute((T) parameter);
+            return false;
+        }
+
+        public void Execute(object parameter)
+        {
+            if (parameter is T)
+                _execute((T) parameter);
+        }
+
+        public void RaiseCanExecuteChanged()
+        {
+            if (CanExecuteChanged != null)
+                CanExecuteChanged(this, EventArgs.Empty);
+        }
+
+        public event EventHandler CanExecuteChanged;
     }
 }
