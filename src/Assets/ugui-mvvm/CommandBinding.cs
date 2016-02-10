@@ -21,7 +21,7 @@ namespace uguimvvm
         [SerializeField]
         private BindingParameter _parameter = null;
 
-        PropertyInfo _vmProp;
+        INPCBinding.PropertyPath _vmProp;
         private ICommand _command;
 
         void Reset()
@@ -59,7 +59,7 @@ namespace uguimvvm
             else
                 vmtype = _viewModel.Component.GetType();
 
-            _vmProp = vmtype.GetProperty(_viewModel.Property);
+            _vmProp = new INPCBinding.PropertyPath(_viewModel.Property, vmtype);
             if (!typeof (ICommand).IsAssignableFrom(_vmProp.PropertyType))
                 _vmProp = null;
 
@@ -68,7 +68,7 @@ namespace uguimvvm
                 Debug.LogWarningFormat("No property named {0} of type ICommand exists in {1}", _viewModel.Property, vmtype);
             }
 
-            if (_vmProp != null)
+            if (_vmProp != null && _vmProp.IsValid)
             {
                 if (_viewModel.Component is INotifyPropertyChanged)
                     (_viewModel.Component as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;

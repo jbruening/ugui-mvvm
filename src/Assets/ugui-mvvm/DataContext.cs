@@ -25,7 +25,7 @@ namespace uguimvvm
 
         [SerializeField]
         private INPCBinding.ComponentPath _propertyBinding = null;
-        private PropertyInfo _prop;
+        private INPCBinding.PropertyPath _prop;
 
         [Tooltip("Instantiate the type on awake. This will not work for UnityEngine.Object types")]
         [SerializeField]
@@ -91,7 +91,7 @@ namespace uguimvvm
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        internal object GetValue(PropertyInfo property)
+        internal object GetValue(INPCBinding.PropertyPath property)
         {
             if (_value == null)
             {
@@ -102,7 +102,7 @@ namespace uguimvvm
             return property.GetValue(_value, null);
         }
 
-        internal void SetValue(object value, PropertyInfo property)
+        internal void SetValue(object value, INPCBinding.PropertyPath property)
         {
             if (_value == null)
             {

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using System;
 using System.Reflection;
 using System.Linq;
@@ -18,6 +19,80 @@ namespace uguimvvm
             public string Property;
         }
 
+        public class PropertyPath
+        {
+            private readonly PropertyInfo[] _pPath;
+            public PropertyInfo[] PPath { get { return _pPath; } }
+
+            public PropertyPath(string path, Type type)
+            {
+                var parts = path.Split('.');
+                Path = "INVALID - " + path;
+                var pinfos = new PropertyInfo[parts.Length];
+                for (var i = 0; i < parts.Length; i++)
+                {
+                    var part = parts[i];
+                    var info =
+                        type.GetProperties()
+                            .FirstOrDefault(p => string.Equals(p.Name, part, StringComparison.OrdinalIgnoreCase));
+                    if (info == null)
+                    {
+                        Debug.LogWarningFormat("Could not resolve property {0} on type {1}", part, type);
+                        return;
+                    }
+
+                    pinfos[i] = info;
+
+                    type = info.PropertyType;
+                }
+
+                PropertyType = type;
+                _pPath = pinfos;
+                IsValid = true;
+                Path = path;
+            }
+
+            public string Path { get; private set; }
+            public bool IsValid { get; private set; }
+            public Type PropertyType { get; private set; }
+
+            /// <summary>
+            /// Resolve the value by traversing the property path
+            /// </summary>
+            /// <param name="root"></param>
+            /// <param name="index"></param>
+            /// <returns></returns>
+            public object GetValue(object root, object[] index)
+            {
+                if (_pPath == null)
+                    return null;
+
+// ReSharper disable once ForCanBeConvertedToForeach - unity has bad foreach handling
+                for (int i = 0; i < _pPath.Length; i++)
+                {
+                    var part = _pPath[i];
+                    root = part.GetValue(root, null);
+                }
+
+                return root;
+            }
+
+            public void SetValue(object root, object value, object[] index)
+            {
+                if (_pPath == null)
+                    return;
+
+                var i = 0;
+                for (;i < _pPath.Length - 1; i++)
+                {
+                    var part = _pPath[i];
+                    root = part.GetValue(root, null);
+                }
+
+                _pPath[i].SetValue(root, value, index);
+            }
+        }
+
         [SerializeField]
         ComponentPath _view;
         [SerializeField]
@@ -35,8 +110,8 @@ namespace uguimvvm
         IValueConverter _ci;
         Type _vType;
         Type _vmType;
-        PropertyInfo _vProp;
-        PropertyInfo _vmProp;
+        PropertyPath _vProp;
+        PropertyPath _vmProp;
 
         void Reset()
         {
@@ -148,7 +223,7 @@ namespace uguimvvm
             _vProp.SetValue(_view.Component, value, null);
         }
 
-        public static object GetValue(ComponentPath path, PropertyInfo prop, bool resolveDataContext = true)
+        public static object GetValue(ComponentPath path, PropertyPath prop, bool resolveDataContext = true)
         {
             if (resolveDataContext && path.Component is DataContext)
                 return (path.Component as DataContext).GetValue(prop);
@@ -176,13 +251,13 @@ namespace uguimvvm
             //post processing will have set up our _view.
             _vProp = FigureBinding(_view, null, false);
 
-            if (_vmProp != null)
+            if (_vmProp.IsValid)
                 _vmType = _vmProp.PropertyType;
-            if (_vProp != null)
+            if (_vProp.IsValid)
                 _vType = _vProp.PropertyType;
         }
 
-        public static PropertyInfo FigureBinding(ComponentPath path, System.ComponentModel.PropertyChangedEventHandler handler, bool resolveDataContext)
+        public static PropertyPath FigureBinding(ComponentPath path, System.ComponentModel.PropertyChangedEventHandler handler, bool resolveDataContext)
         {
             Type type;
             if (resolveDataContext && path.Component is DataContext)
@@ -190,7 +265,7 @@ namespace uguimvvm
             else
                 type = path.Component.GetType();
 
-            var prop = type.GetProperties().FirstOrDefault(p => string.Equals(p.Name, path.Property, StringComparison.OrdinalIgnoreCase));
+            var prop = new PropertyPath(path.Property, type);
 
             if (handler != null)
             {
