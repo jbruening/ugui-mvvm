@@ -59,7 +59,7 @@ namespace uguimvvm
             else
                 vmtype = _viewModel.Component.GetType();
 
-            _vmProp = new INPCBinding.PropertyPath(_viewModel.Property, vmtype);
+            _vmProp = new INPCBinding.PropertyPath(_viewModel.Property, vmtype, true);
             if (!typeof (ICommand).IsAssignableFrom(_vmProp.PropertyType))
                 _vmProp = null;
 

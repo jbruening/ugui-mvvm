@@ -23,33 +23,33 @@ namespace uguimvvm
         {
             private readonly PropertyInfo[] _pPath;
             public PropertyInfo[] PPath { get { return _pPath; } }
+            public string[] Parts { get; private set; }
 
-            public PropertyPath(string path, Type type)
+            public PropertyPath(string path, Type type, bool warnOnFailure = false)
             {
-                var parts = path.Split('.');
-                Path = "INVALID - " + path;
-                var pinfos = new PropertyInfo[parts.Length];
-                for (var i = 0; i < parts.Length; i++)
+                Parts = path.Split('.');
+                Path = path;
+                _pPath = new PropertyInfo[Parts.Length];
+                for (var i = 0; i < Parts.Length; i++)
                 {
-                    var part = parts[i];
+                    var part = Parts[i];
                     var info =
                         type.GetProperties()
                             .FirstOrDefault(p => string.Equals(p.Name, part, StringComparison.OrdinalIgnoreCase));
                     if (info == null)
                     {
-                        Debug.LogWarningFormat("Could not resolve property {0} on type {1}", part, type);
+                        if (warnOnFailure)
+                            Debug.LogWarningFormat("Could not resolve property {0} on type {1}", part, type);
                         return;
                     }
 
-                    pinfos[i] = info;
+                    _pPath[i] = info;
 
                     type = info.PropertyType;
                 }
 
                 PropertyType = type;
-                _pPath = pinfos;
                 IsValid = true;
-                Path = path;
             }
 
             public string Path { get; private set; }
@@ -64,7 +64,7 @@ namespace uguimvvm
             /// <returns></returns>
             public object GetValue(object root, object[] index)
             {
-                if (_pPath == null)
+                if (!IsValid)
                     return null;
 
 // ReSharper disable once ForCanBeConvertedToForeach - unity has bad foreach handling
@@ -79,7 +79,7 @@ namespace uguimvvm
 
             public void SetValue(object root, object value, object[] index)
             {
-                if (_pPath == null)
+                if (!IsValid)
                     return;
 
                 var i = 0;
@@ -265,7 +265,7 @@ namespace uguimvvm
             else
                 type = path.Component.GetType();
 
-            var prop = new PropertyPath(path.Property, type);
+            var prop = new PropertyPath(path.Property, type, true);
 
             if (handler != null)
             {

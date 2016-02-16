@@ -38,8 +38,7 @@ class DataContextEditor : Editor
             {
                 EditorGUILayout.PropertyField(iprop);
 
-                var rect = EditorGUILayout.GetControlRect(true, INPCBindingEditor.GetCRefHeight(bprop));
-                INPCBindingEditor.DrawCRefProp(rect, bprop, GUIContent.none);
+                INPCBindingEditor.DrawCRefProp(bprop, GUIContent.none);
             }
         }
 

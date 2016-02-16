@@ -123,13 +123,11 @@ class INPCBindingEditor : Editor
         var cprop = serializedObject.FindProperty("_converter");
         var mprop = serializedObject.FindProperty("_mode");
 
-        var vrect = EditorGUILayout.GetControlRect(true, GetCRefHeight(vprop));
-        DrawCRefProp(vrect, vprop, new GUIContent());
+        DrawCRefProp(vprop, new GUIContent());
 
         var epropcount = DrawCrefEvents(vprop, veprop);
 
-        var vmrect = EditorGUILayout.GetControlRect(true, GetCRefHeight(vmprop));
-        DrawCRefProp(vmrect, vmprop, new GUIContent());
+        DrawCRefProp(vmprop, new GUIContent());
 
         EditorGUILayout.PropertyField(mprop, false);
         if (epropcount == 0)
@@ -216,22 +214,9 @@ class INPCBindingEditor : Editor
         return t.GetField(name, flags) ?? GetField(t.BaseType, name);
     }
 
-    /// <summary>
-    /// get the height of an INPCBinding.ComponentPath property
-    /// </summary>
-    /// <param name="property"></param>
-    /// <returns></returns>
-    public static float GetCRefHeight(SerializedProperty property)
+    public static void DrawCRefProp(SerializedProperty property, GUIContent label, bool resolveDataContext = true)
     {
-        var cprop = property.FindPropertyRelative("Component");
-        if (cprop.objectReferenceValue != null)
-            return EditorGUIUtility.singleLineHeight * 3;
-        return EditorGUIUtility.singleLineHeight * 2;
-    }
-
-    public static void DrawCRefProp(Rect position, SerializedProperty property, GUIContent label, bool resolveDataContext = true)
-    {
-        DrawCRefProp(position, property, label, typeof(object));
+        DrawCRefProp(property, label, typeof(object));
     }
 
     public static void GetCPathProperties(SerializedProperty property, out SerializedProperty component, out SerializedProperty path)
@@ -247,24 +232,28 @@ class INPCBindingEditor : Editor
     /// <param name="property"></param>
     /// <param name="label"></param>
     /// <param name="filter"></param>
-    public static void DrawCRefProp(Rect position, SerializedProperty property, GUIContent label, Type filter, bool resolveDataContext = true)
+    public static void DrawCRefProp(SerializedProperty property, GUIContent label, Type filter, bool resolveDataContext = true)
     {
-        EditorGUI.BeginProperty(position, label, property);
-        EditorGUI.LabelField(position, property.displayName);
+        EditorGUILayout.LabelField(property.displayName);
 
-        position.y += EditorGUIUtility.singleLineHeight;
-        EditorGUI.indentLevel++;
-        position = EditorGUI.IndentedRect(position);
-        EditorGUI.indentLevel--;
-        position.height = EditorGUIUtility.singleLineHeight;
+        //position.y += EditorGUIUtility.singleLineHeight;
+        //EditorGUI.indentLevel++;
+        //position = EditorGUI.IndentedRect(position);
+        //EditorGUI.indentLevel--;
+        //position.height = EditorGUIUtility.singleLineHeight;
         SerializedProperty cprop, pprop;
         GetCPathProperties(property, out cprop, out pprop);
+
+        EditorGUI.indentLevel++;
+        var position = EditorGUILayout.GetControlRect(true);
         ComponentReferenceDrawer.PropertyField(position, cprop);
         
         if (cprop.objectReferenceValue != null)
         {
-            position.y += EditorGUIUtility.singleLineHeight;
-            EditorGUI.LabelField(position, "Property");
+            //EditorGUILayout.BeginHorizontal();
+            //EditorGUILayout.LabelField("Property");
+            GUI.SetNextControlName("propfield");
+            EditorGUILayout.PropertyField(pprop);
 
             var orv = cprop.objectReferenceValue;
             Type ortype;
@@ -272,30 +261,49 @@ class INPCBindingEditor : Editor
                 ortype = (orv as DataContext).Type;
             else
                 ortype = orv.GetType();
+            
             if (ortype == null)
             {
                 pprop.stringValue = null;
+                EditorGUILayout.EndHorizontal();
             }
             else
             {
-                var props =
-                    ortype.GetProperties()
-                        .Where(p => filter.IsAssignableFrom(p.PropertyType))
-                        .Select(p => p.Name)
-                        .ToArray();
-                var fidx = Array.FindIndex(props, p => p == pprop.stringValue);
-                var idx = fidx < 0 ? 0 : fidx;
+                var path = new INPCBinding.PropertyPath(pprop.stringValue, ortype);
+                Type rtype;
+                var idx = Array.FindIndex(path.PPath, p => p == null);
+                if (path.IsValid)
+                {
+                    rtype = path.PPath.Length == 1 ? ortype : path.PPath[path.PPath.Length - 1].PropertyType;
+                }
+                else
+                    rtype = idx - 1 < 0 ? ortype : path.PPath[idx - 1].PropertyType;
 
-                position.x += EditorGUIUtility.labelWidth;
-                position.xMax -= EditorGUIUtility.labelWidth;
-                var nidx = EditorGUI.Popup(position, idx, props.ToArray());
-                if (nidx != fidx && nidx < props.Length)
-                    pprop.stringValue = props[nidx];
+
+                var lrect = GUILayoutUtility.GetLastRect();
+                EditorGUI.Toggle(new Rect(lrect.x + EditorGUIUtility.fieldWidth + 5, lrect.y, lrect.width, lrect.height), path.IsValid);
+
+                var props = rtype.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+
+                
+                //pprop.stringValue = EditorGUILayout.TextField(pprop.stringValue);
+                //EditorGUILayout.EndHorizontal();
+
+                if (GUI.GetNameOfFocusedControl() == "propfield")
+                {
+                    var propNames = props.Select(p => p.Name)
+                        .OrderByDescending(
+                            s => s.IndexOf(path.Parts.LastOrDefault() ?? "", StringComparison.OrdinalIgnoreCase) == 0)
+                        .ToArray();
+                    
+                    var propstring = string.Join("\n",propNames);
+                    EditorGUILayout.HelpBox(propstring, MessageType.None);
+                }
             }
         }
         else
             pprop.stringValue = null;
 
-        EditorGUI.EndProperty();
+        EditorGUI.indentLevel--;
     }
 }

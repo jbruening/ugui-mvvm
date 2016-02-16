@@ -72,10 +72,9 @@ class CommandBindingEditor : Editor
         if (_vprop.objectReferenceValue != null)
             INPCBindingEditor.DrawComponentEvents(_vprop, _veprop);
 
-        var rect = EditorGUILayout.GetControlRect(true, INPCBindingEditor.GetCRefHeight(_vmprop));
-        INPCBindingEditor.DrawCRefProp(rect, _vmprop, GUIContent.none, typeof(ICommand));
+        INPCBindingEditor.DrawCRefProp(_vmprop, GUIContent.none, typeof(ICommand));
 
-        rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
+        var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
         var label = EditorGUI.BeginProperty(rect, null, _parmprop);
         GUI.Label(rect, label);
 
