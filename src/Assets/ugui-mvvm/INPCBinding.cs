@@ -33,9 +33,7 @@ namespace uguimvvm
                 for (var i = 0; i < Parts.Length; i++)
                 {
                     var part = Parts[i];
-                    var info =
-                        type.GetProperties()
-                            .FirstOrDefault(p => string.Equals(p.Name, part, StringComparison.OrdinalIgnoreCase));
+                    var info = GetProperty(type, part);
                     if (info == null)
                     {
                         if (warnOnFailure)
@@ -70,7 +68,11 @@ namespace uguimvvm
 // ReSharper disable once ForCanBeConvertedToForeach - unity has bad foreach handling
                 for (int i = 0; i < _pPath.Length; i++)
                 {
-                    var part = _pPath[i];
+                    var part = _pPath[i] ?? GetProperty(root.GetType(), Parts[i]);
+
+                    if (part == null)
+                        return null;
+
                     root = part.GetValue(root, null);
                 }
 
@@ -85,11 +87,31 @@ namespace uguimvvm
                 var i = 0;
                 for (;i < _pPath.Length - 1; i++)
                 {
-                    var part = _pPath[i];
+                    var part = _pPath[i] ?? GetProperty(root.GetType(), Parts[i]);
+
+                    if (part == null)
+                        return;
+
                     root = part.GetValue(root, null);
                 }
 
                 _pPath[i].SetValue(root, value, index);
+            }
+
+            private PropertyInfo GetProperty(Type type, string name)
+            {
+                try
+                {
+                    return type.GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
+                }
+                catch (AmbiguousMatchException)
+                {
+                    PropertyInfo result;
+                    for (result = null; result == null && type != null; type = type.BaseType)
+                        result = type.GetProperty(name,
+                            BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                    return result;
+                }
             }
         }
 
