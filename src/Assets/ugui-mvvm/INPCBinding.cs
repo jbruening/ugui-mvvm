@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEngine.UI;
 using INotifyPropertyChanged = System.ComponentModel.INotifyPropertyChanged;
 using PropertyChangedEventArgs = System.ComponentModel.PropertyChangedEventArgs;
+using PropertyChangedEventHandler = System.ComponentModel.PropertyChangedEventHandler;
 using UnityEngine.EventSystems;
 
 namespace uguimvvm
@@ -21,7 +22,16 @@ namespace uguimvvm
 
         public class PropertyPath
         {
+            class Notifier
+            {
+                public INotifyPropertyChanged Object;
+                public PropertyChangedEventHandler Handler;
+                public int Idx;
+            }
+
             private readonly PropertyInfo[] _pPath;
+            private readonly Notifier[] _notifies;
+            private PropertyChangedEventHandler _handler;
             public PropertyInfo[] PPath { get { return _pPath; } }
             public string[] Parts { get; private set; }
 
@@ -30,6 +40,7 @@ namespace uguimvvm
                 Parts = path.Split('.');
                 Path = path;
                 _pPath = new PropertyInfo[Parts.Length];
+                _notifies = new Notifier[Parts.Length];
                 for (var i = 0; i < Parts.Length; i++)
                 {
                     var part = Parts[i];
@@ -65,10 +76,22 @@ namespace uguimvvm
                 if (!IsValid)
                     return null;
 
+                if (root == null)
+                {
+                    Debug.LogWarningFormat("Cannot get value to {0} on a null object", Path);
+                    return null;
+                }
+
 // ReSharper disable once ForCanBeConvertedToForeach - unity has bad foreach handling
                 for (int i = 0; i < _pPath.Length; i++)
                 {
-                    var part = _pPath[i] ?? GetProperty(root.GetType(), Parts[i]);
+                    if (root == null)
+                    {
+                        Debug.LogWarningFormat("value of {0} was null when getting {1}", Parts[i - 1], Path);
+                        return null;
+                    }
+
+                    var part = GetIdxProperty(i, root);
 
                     if (part == null)
                         return null;
@@ -87,15 +110,91 @@ namespace uguimvvm
                 var i = 0;
                 for (;i < _pPath.Length - 1; i++)
                 {
-                    var part = _pPath[i] ?? GetProperty(root.GetType(), Parts[i]);
+                    var part = GetIdxProperty(i, root);
 
                     if (part == null)
                         return;
 
                     root = part.GetValue(root, null);
+                    if (root == null)
+                    {
+                        Debug.LogWarningFormat("value of {0} was null when attempting to set {1}", part.Name, Path);
+                        return;
+                    }
                 }
 
                 _pPath[i].SetValue(root, value, index);
+            }
+
+            public void AddHandler(object root, PropertyChangedEventHandler handler)
+            {
+                for (var i = 0; i < _pPath.Length; i++)
+                {
+                    var part = GetIdxProperty(i, root);
+                    if (part == null) return;
+
+                    TrySubscribe(root, i);
+
+                    if (root != null)
+                        root = part.GetValue(root, null);
+                    else
+                        break;
+                }
+
+                _handler = handler;
+            }
+
+            internal void TriggerHandler(object sender)
+            {
+                _handler(sender, new PropertyChangedEventArgs(Path));
+            }
+
+            private void OnPropertyChanged(object sender, PropertyChangedEventArgs args, Notifier notifier)
+            {
+                if (args.PropertyName != "" && args.PropertyName != Parts[notifier.Idx])
+                    return;
+
+                //get rid of old subscriptions, just in case the objects aren't fully cleaned up
+                for (var i = notifier.Idx + 1; i < _notifies.Length; i++)
+                {
+                    var ni = _notifies[i];
+                    if (ni == null) continue;
+                    ni.Object.PropertyChanged -= ni.Handler;
+                    _notifies[i] = null;
+                }
+
+                //and now re-subscribe to the new 'tree'
+                object root = notifier.Object;
+                for (var i = notifier.Idx; i < _notifies.Length; i++)
+                {
+                    var part = GetIdxProperty(i, root);
+                    if (part == null) return; //nope. invalid path.
+
+                    root = part.GetValue(root, null);
+
+                    if (root == null) return; //nope. new tree is lacking value somewhere
+
+                    if (i+1 < _notifies.Length)
+                        TrySubscribe(root, i+1);
+                }
+
+                _handler(sender, new PropertyChangedEventArgs(Path));
+            }
+
+            private void TrySubscribe(object root, int idx)
+            {
+                if (root is INotifyPropertyChanged)
+                {
+                    var notifier = new Notifier { Object = root as INotifyPropertyChanged, Idx = idx };
+                    notifier.Handler = (sender, args) => OnPropertyChanged(sender, args, notifier);
+                    notifier.Object.PropertyChanged += notifier.Handler;
+                    _notifies[idx] = notifier;
+                }
+            }
+
+            private PropertyInfo GetIdxProperty(int idx, object root)
+            {
+                return _pPath[idx] ?? GetProperty(root.GetType(), Parts[idx]);
             }
 
             private PropertyInfo GetProperty(Type type, string name)
@@ -112,6 +211,18 @@ namespace uguimvvm
                             BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
                     return result;
                 }
+            }
+
+            public void ClearHandlers()
+            {
+                for (var i = 0; i < _notifies.Length; i++)
+                {
+                    var n = _notifies[i];
+                    _notifies[i] = null;
+                    if (n == null) continue;
+                    n.Object.PropertyChanged -= n.Handler;
+                }
+                _handler = null;
             }
         }
 
@@ -279,7 +390,7 @@ namespace uguimvvm
                 _vType = _vProp.PropertyType;
         }
 
-        public static PropertyPath FigureBinding(ComponentPath path, System.ComponentModel.PropertyChangedEventHandler handler, bool resolveDataContext)
+        public static PropertyPath FigureBinding(ComponentPath path, PropertyChangedEventHandler handler, bool resolveDataContext)
         {
             Type type;
             if (resolveDataContext && path.Component is DataContext)
@@ -291,9 +402,10 @@ namespace uguimvvm
 
             if (handler != null)
             {
-                var inpc = path.Component as INotifyPropertyChanged;
-                if (inpc != null)
-                    inpc.PropertyChanged += handler;
+                if (resolveDataContext && path.Component is DataContext)
+                    (path.Component as DataContext).AddDependentProperty(prop, handler);
+                else
+                    prop.AddHandler(path.Component, handler);
             }
 
             return prop;

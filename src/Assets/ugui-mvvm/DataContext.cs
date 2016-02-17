@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
 using UnityEngine;
+using Component = UnityEngine.Component;
 
 namespace uguimvvm
 {
@@ -25,11 +27,14 @@ namespace uguimvvm
 
         [SerializeField]
         private INPCBinding.ComponentPath _propertyBinding = null;
+        public Component Component { get { return _propertyBinding.Component; } }
         private INPCBinding.PropertyPath _prop;
 
         [Tooltip("Instantiate the type on awake. This will not work for UnityEngine.Object types")]
         [SerializeField]
         bool _instantiateOnAwake = false;
+
+        private readonly List<DependentProperty> _dependents = new List<DependentProperty>();
 
         void Awake()
         {
@@ -57,18 +62,19 @@ namespace uguimvvm
         {
             if (value == _value) return;
 
-            //subtraction is performed first, in case we're somehow updating with the same value
-            if (_value is INotifyPropertyChanged)
-            {
-                (_value as INotifyPropertyChanged).PropertyChanged -= ValuePropertyChanged;
-            }
-
-            if (value is INotifyPropertyChanged)
-            {
-                (value as INotifyPropertyChanged).PropertyChanged += ValuePropertyChanged;
-            }
-
             _value = value;
+
+// ReSharper disable once ForCanBeConvertedToForeach
+            for (int i = 0; i < _dependents.Count; i++)
+            {
+                var item = _dependents[i];
+                item.Prop.ClearHandlers();
+                if (_value != null)
+                {
+                    item.Prop.AddHandler(_value, item.Handler);
+                    item.Prop.TriggerHandler(_value);
+                }
+            }
 
             //update all properties
             if (PropertyChanged != null)
@@ -145,5 +151,22 @@ namespace uguimvvm
             UpdateValue(value);
         }
         #endregion
+
+        public void AddDependentProperty(INPCBinding.PropertyPath prop, PropertyChangedEventHandler handler)
+        {
+            _dependents.Add(new DependentProperty(prop, handler));
+        }
+
+        public class DependentProperty
+        {
+            public INPCBinding.PropertyPath Prop { get; private set; }
+            public PropertyChangedEventHandler Handler { get; private set; }
+
+            public DependentProperty(INPCBinding.PropertyPath prop, PropertyChangedEventHandler handler)
+            {
+                Prop = prop;
+                Handler = handler;
+            }
+        }
     }
 }
