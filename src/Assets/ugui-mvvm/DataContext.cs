@@ -64,7 +64,7 @@ namespace uguimvvm
 
             _value = value;
 
-// ReSharper disable once ForCanBeConvertedToForeach
+// ReSharper disable once ForCanBeConvertedToForeach foreach generates garbage
             for (int i = 0; i < _dependents.Count; i++)
             {
                 var item = _dependents[i];
@@ -83,16 +83,12 @@ namespace uguimvvm
 
         void OnDestroy()
         {
-            if (_value is INotifyPropertyChanged)
+// ReSharper disable once ForCanBeConvertedToForeach foreach generates garbage
+            for (int i = 0; i < _dependents.Count; i++)
             {
-                (_value as INotifyPropertyChanged).PropertyChanged -= ValuePropertyChanged;
+                var d = _dependents[i];
+                d.Prop.ClearHandlers();
             }
-        }
-
-        void ValuePropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (PropertyChanged == null) return;
-            PropertyChanged(sender, e);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

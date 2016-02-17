@@ -22,6 +22,15 @@ namespace uguimvvm
 
         public class PropertyPath
         {
+            /// <summary>
+            /// Emit warnings when GetValue fails due to nulls in the path
+            /// </summary>
+            public static bool WarnOnGetValue = false;
+            /// <summary>
+            /// Emit warnings when SetValue fails due to nulls in the path
+            /// </summary>
+            public static bool WarnOnSetValue = false;
+
             class Notifier
             {
                 public INotifyPropertyChanged Object;
@@ -78,7 +87,8 @@ namespace uguimvvm
 
                 if (root == null)
                 {
-                    Debug.LogWarningFormat("Cannot get value to {0} on a null object", Path);
+                    if (WarnOnGetValue)
+                        Debug.LogWarningFormat("Cannot get value to {0} on a null object", Path);
                     return null;
                 }
 
@@ -87,7 +97,8 @@ namespace uguimvvm
                 {
                     if (root == null)
                     {
-                        Debug.LogWarningFormat("value of {0} was null when getting {1}", Parts[i - 1], Path);
+                        if (WarnOnGetValue)
+                            Debug.LogWarningFormat("value of {0} was null when getting {1}", Parts[i - 1], Path);
                         return null;
                     }
 
@@ -118,7 +129,8 @@ namespace uguimvvm
                     root = part.GetValue(root, null);
                     if (root == null)
                     {
-                        Debug.LogWarningFormat("value of {0} was null when attempting to set {1}", part.Name, Path);
+                        if (WarnOnSetValue)
+                            Debug.LogWarningFormat("value of {0} was null when attempting to set {1}", part.Name, Path);
                         return;
                     }
                 }
