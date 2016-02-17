@@ -236,11 +236,6 @@ class INPCBindingEditor : Editor
     {
         EditorGUILayout.LabelField(property.displayName);
 
-        //position.y += EditorGUIUtility.singleLineHeight;
-        //EditorGUI.indentLevel++;
-        //position = EditorGUI.IndentedRect(position);
-        //EditorGUI.indentLevel--;
-        //position.height = EditorGUIUtility.singleLineHeight;
         SerializedProperty cprop, pprop;
         GetCPathProperties(property, out cprop, out pprop);
 
@@ -250,9 +245,8 @@ class INPCBindingEditor : Editor
         
         if (cprop.objectReferenceValue != null)
         {
-            //EditorGUILayout.BeginHorizontal();
-            //EditorGUILayout.LabelField("Property");
-            GUI.SetNextControlName("propfield");
+            var name = "propfield" + (GUIUtility.GetControlID(FocusType.Keyboard) + 1);
+            GUI.SetNextControlName(name);
             EditorGUILayout.PropertyField(pprop);
 
             var orv = cprop.objectReferenceValue;
@@ -265,7 +259,6 @@ class INPCBindingEditor : Editor
             if (ortype == null)
             {
                 pprop.stringValue = null;
-                EditorGUILayout.EndHorizontal();
             }
             else
             {
@@ -286,10 +279,7 @@ class INPCBindingEditor : Editor
                 var props = rtype.GetProperties(BindingFlags.Instance | BindingFlags.Public);
 
                 
-                //pprop.stringValue = EditorGUILayout.TextField(pprop.stringValue);
-                //EditorGUILayout.EndHorizontal();
-
-                if (GUI.GetNameOfFocusedControl() == "propfield")
+                if (GUI.GetNameOfFocusedControl() == name)
                 {
                     var propNames = props.Select(p => p.Name)
                         .OrderByDescending(
