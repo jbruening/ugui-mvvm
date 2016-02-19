@@ -38,6 +38,9 @@ namespace uguimvvm
                 public int Idx;
             }
 
+            private Func<object, object> _getter;
+            private Action<object, object> _setter;
+
             private readonly PropertyInfo[] _pPath;
             private readonly Notifier[] _notifies;
             private PropertyChangedEventHandler _handler;
@@ -92,6 +95,9 @@ namespace uguimvvm
                     return null;
                 }
 
+                if (PropertyPathAccessors.ValidateGetter(_pPath, ref _getter))
+                    return _getter(root);
+
 // ReSharper disable once ForCanBeConvertedToForeach - unity has bad foreach handling
                 for (int i = 0; i < _pPath.Length; i++)
                 {
@@ -117,6 +123,12 @@ namespace uguimvvm
             {
                 if (!IsValid)
                     return;
+
+                if (PropertyPathAccessors.ValidateSetter(_pPath, ref _setter))
+                {
+                    _setter(root, value);
+                    return;
+                }
 
                 var i = 0;
                 for (;i < _pPath.Length - 1; i++)
@@ -209,7 +221,7 @@ namespace uguimvvm
                 return _pPath[idx] ?? GetProperty(root.GetType(), Parts[idx]);
             }
 
-            private PropertyInfo GetProperty(Type type, string name)
+            public static PropertyInfo GetProperty(Type type, string name)
             {
                 try
                 {
