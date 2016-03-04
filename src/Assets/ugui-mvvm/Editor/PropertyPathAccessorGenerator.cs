@@ -88,7 +88,7 @@ public class PropertyPathAccessorGenerator
 
     private static void CreateHeader(StringBuilder sw)
     {
-        sw.AppendLine(@"#region GENERATED
+        sw.AppendLine(@"#region GENERATED. Regenerate by menu item Assets/Generate PropertyPathGen
 using uguimvvm;
 using ppa = uguimvvm.PropertyPathAccessors;
 

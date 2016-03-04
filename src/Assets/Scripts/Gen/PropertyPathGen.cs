@@ -1,4 +1,4 @@
-#region GENERATED
+#region GENERATED. Regenerate by menu item Assets/Generate PropertyPathGen
 using uguimvvm;
 using ppa = uguimvvm.PropertyPathAccessors;
 
@@ -167,6 +167,38 @@ static void Register()
     (obj, value) =>
     {
         ((TestViewModel)obj).Selected = (ChildViewModel)value;
+    });
+
+  ppa.Register(
+    new[]
+    {
+        INPCBinding.PropertyPath.GetProperty(typeof(uguimvvm.ItemsControl), "ItemsSource")
+    },
+    obj => 
+    {
+        if(obj == null) return null; 
+        var v0 = ((uguimvvm.ItemsControl)obj).ItemsSource;
+        return v0;
+    },
+    (obj, value) =>
+    {
+        ((uguimvvm.ItemsControl)obj).ItemsSource = (System.Collections.IEnumerable)value;
+    });
+
+  ppa.Register(
+    new[]
+    {
+        INPCBinding.PropertyPath.GetProperty(typeof(uguimvvm.Primitives.Selector), "Selected")
+    },
+    obj => 
+    {
+        if(obj == null) return null; 
+        var v0 = ((uguimvvm.Primitives.Selector)obj).Selected;
+        return v0;
+    },
+    (obj, value) =>
+    {
+        ((uguimvvm.Primitives.Selector)obj).Selected = (System.Object)value;
     });
 
   ppa.Initialize();
