@@ -12,6 +12,8 @@ namespace uguimvvm
 
         [SerializeField]
         private UnityEngine.Sprite _active;
+        [SerializeField]
+        private Color _activeColor = Color.white;
 
         private bool _isOnTab;
 
@@ -40,11 +42,17 @@ namespace uguimvvm
 
         public void SetSelected(bool state)
         {
+            //we're getting information before awake?
+            if (_image == null) return;
+
             _isOnTab = state;
             switch (transition)
             {
                 case Transition.ColorTint:
-                    _image.CrossFadeColor(colors.highlightedColor, 0, true, true);
+                    if (state)
+                        _image.CrossFadeColor(_activeColor, 0, true, true);
+                    else
+                        _image.CrossFadeColor(colors.normalColor, 0, true, true);
                     break;
                 default:
                     _image.overrideSprite = state ? _active : null;
@@ -57,7 +65,15 @@ namespace uguimvvm
         {
             base.DoStateTransition(state, instant);
 
-            SetSelected(_isOnTab);
+            if (transition == Transition.ColorTint)
+            {
+                if (state == SelectionState.Normal && _isOnTab)
+                    SetSelected(_isOnTab);
+                if (state == SelectionState.Highlighted && _isOnTab)
+                    SetSelected(_isOnTab);
+            }
+            else
+                SetSelected(_isOnTab);
         }
 
         protected override void InstantClearState()
