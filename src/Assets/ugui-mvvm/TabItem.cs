@@ -26,6 +26,12 @@ namespace uguimvvm
             onClick.AddListener(OnClick);
         }
 
+        protected override void OnTransformParentChanged()
+        {
+            base.OnTransformParentChanged();
+            _tabs = GetComponentInParent<TabControl>();
+        }
+
         private void OnClick()
         {
             _tabs.SelectTab(this);
@@ -37,6 +43,9 @@ namespace uguimvvm
             _isOnTab = state;
             switch (transition)
             {
+                case Transition.ColorTint:
+                    _image.CrossFadeColor(colors.highlightedColor, 0, true, true);
+                    break;
                 default:
                     _image.overrideSprite = state ? _active : null;
                     break;

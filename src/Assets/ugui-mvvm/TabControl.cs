@@ -51,20 +51,18 @@ namespace uguimvvm
             }
 
             _lastTab = SelectedInfo.Control;
-            if (!fromProperty) return;
             SetTabsState(_lastTab);
         }
 
         private void SetTabsState(GameObject tab)
         {
-            var i = 0;
-            foreach (Transform child in transform)
+            for(var i = 0; i < transform.childCount; i++)
             {
+                var child = transform.GetChild(i).gameObject;
                 if (i == 0 && tab == null)
-                    SetTabSelected(child.gameObject, true);
+                    SetTabSelected(child, true);
                 else
-                    SetTabSelected(child.gameObject, tab == child.gameObject);
-                i++;
+                    SetTabSelected(child, tab == child);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -32,6 +33,10 @@ namespace uguimvvm
             }
         }
 
+        [Tooltip("When Awaking, destroy any children that are not part of the ItemsSource or the prefab.\nThis is useful where you want to view the items control as it would be with example objects, but don't actually want them to be children at runtime")]
+        [SerializeField]
+        private bool _destroyChildrenOnAwake = false;
+
         private IEnumerable _itemsSource;
         public IEnumerable ItemsSource
         {
@@ -58,6 +63,21 @@ namespace uguimvvm
         [SerializeField]
         private UnityEvent _hasItemsChanged = null;
         public UnityEvent HasItemsChanged { get { return _hasItemsChanged; } }
+
+        void Awake()
+        {
+            if (_destroyChildrenOnAwake)
+            {
+                for (var i = transform.childCount - 1; i >= 0; i--)
+                {
+                    var cg = transform.GetChild(i).gameObject;
+                    if (cg == ItemTemplate)
+                        cg.SetActive(false);
+                    else if (_items.All(c => c.Control != cg))
+                        Destroy(cg);
+                }
+            }
+        }
 
         private void ResetBindings(IEnumerable oldvalue, IEnumerable newvalue)
         {
@@ -99,16 +119,19 @@ namespace uguimvvm
             {
                 var control = Instantiate(_itemTemplate);
                 control.SetActive(true);
+
                 var info = new ItemInfo(item, control);
                 _items.Add(info);
+
                 var rect = control.GetComponent<RectTransform>();
                 if (rect == null)
                     control.transform.parent = trans;
                 else
                     rect.SetParent(trans, false);
+
                 var context = control.GetComponent<DataContext>();
-                if (context == null) continue;
-                context.UpdateValue(item);
+                if (context != null)
+                    context.UpdateValue(item);
 
                 OnItemAdded(info);
             }
@@ -142,7 +165,7 @@ namespace uguimvvm
         {
             for (var i = _items.Count - 1; i >= 0; i--)
             {
-               RemoveAt(i);
+                RemoveAt(i);
             }
             AddItems(_itemsSource);
         }
