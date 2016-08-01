@@ -79,7 +79,7 @@ class INPCBindingEditor : Editor
         
         if (sep == null)
         {
-            Debug.LogErrorFormat("Could not get event {0} on {1}", eventName, type);
+            Debug.LogErrorFormat(component, "Could not get event {0} on {1}.  Something probably changed event names, so you need to fix it. {2}", eventName, type, PathTo(component));
             return null;
         }
 
@@ -92,9 +92,19 @@ class INPCBindingEditor : Editor
             return evField.GetValue(component) as UnityEventBase;
         }
 
-        Debug.LogErrorFormat("Could not get event {0} on {1}", eventName, type);
+        Debug.LogErrorFormat(component, "Could not get event {0} on {1}. Something probably changed event names, so you need to fix it. {2}", eventName, type, PathTo(component));
 
         return null;
+    }
+
+    private static string PathTo(Component component)
+    {
+        return PathTo(component.transform) + " Component " + component.name;
+    }
+
+    private static string PathTo(Transform transform)
+    {
+        return (transform.parent != null ? PathTo(transform.parent) : "Scene " + EditorApplication.currentScene) + "->" + transform.name;
     }
 
     static bool IsEventType(Type type)
