@@ -7,6 +7,7 @@ using System.Text;
 using uguimvvm;
 using UnityEditor;
 using UnityEditor.Callbacks;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 public class PropertyPathAccessorGenerator
@@ -24,7 +25,7 @@ public class PropertyPathAccessorGenerator
         const string title = "Generating propery accessors";
         EditorUtility.DisplayProgressBar(title, "", 0);
 
-        var currentLevel = EditorApplication.currentScene;
+        var currentLevel = EditorSceneManager.GetActiveScene();
 
         _contents = new StringBuilder();
         _paths.Clear();
@@ -38,10 +39,13 @@ public class PropertyPathAccessorGenerator
         {
             var level = scenes[i];
             EditorUtility.DisplayProgressBar(title, "Opening scene " + level, i / total);
-            EditorApplication.OpenScene(level);
+            var scene = EditorSceneManager.OpenScene(level);
+            EditorSceneManager.SetActiveScene(scene);
 
             EditorUtility.DisplayProgressBar(title, "Adding paths in " + level, i/total);
             BuildPathsInScene(_contents);
+
+            EditorSceneManager.CloseScene(scene, true);
         }
 
         EditorUtility.DisplayProgressBar(title, "Generating for prefabs", total - 0.5f / total);
@@ -50,7 +54,7 @@ public class PropertyPathAccessorGenerator
         FinishContents(_contents);
 
         EditorUtility.DisplayProgressBar(title, "Reopening original", 1);
-        EditorApplication.OpenScene(currentLevel);
+        EditorSceneManager.SetActiveScene(currentLevel);
 
         var contents = _contents.ToString();
         if (!ValidateContents(contents))

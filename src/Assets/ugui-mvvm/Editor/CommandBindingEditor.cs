@@ -25,7 +25,7 @@ class CommandBindingEditor : Editor
 
     private static void FigureViewBindings()
     {
-        var objects = (GameObject[])FindObjectsOfType(typeof(GameObject));
+        var objects = Resources.FindObjectsOfTypeAll<GameObject>();
         foreach (var obj in objects)
         {
             var bindings = obj.GetComponents<CommandBinding>();
@@ -72,7 +72,7 @@ class CommandBindingEditor : Editor
         if (_vprop.objectReferenceValue != null)
             INPCBindingEditor.DrawComponentEvents(_vprop, _veprop);
 
-        INPCBindingEditor.DrawCRefProp(_vmprop, GUIContent.none, typeof(ICommand));
+        INPCBindingEditor.DrawCRefProp(serializedObject.targetObject.GetInstanceID(), _vmprop, GUIContent.none, typeof(ICommand));
 
         var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
         var label = EditorGUI.BeginProperty(rect, null, _parmprop);

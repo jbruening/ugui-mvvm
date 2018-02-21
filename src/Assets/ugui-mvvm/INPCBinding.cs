@@ -49,6 +49,17 @@ namespace uguimvvm
 
             public PropertyPath(string path, Type type, bool warnOnFailure = false)
             {
+                if (path == "this")
+                {
+                    Path = path;
+                    Parts = new[] { path };
+                    PropertyType = type;
+                    IsValid = true;
+                    _pPath = new PropertyInfo[0];
+                    _notifies = new Notifier[0];
+                    return;
+                }
+
                 Parts = path.Split('.');
                 Path = path;
                 _pPath = new PropertyInfo[Parts.Length];
@@ -170,7 +181,8 @@ namespace uguimvvm
 
             internal void TriggerHandler(object sender)
             {
-                _handler(sender, new PropertyChangedEventArgs(Path));
+                if (_handler != null)
+                    _handler(sender, new PropertyChangedEventArgs(Path));
             }
 
             private void OnPropertyChanged(object sender, PropertyChangedEventArgs args, Notifier notifier)
@@ -223,6 +235,8 @@ namespace uguimvvm
 
             public static PropertyInfo GetProperty(Type type, string name)
             {
+                if (type == null)
+                    return null;
                 try
                 {
                     return type.GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
@@ -260,6 +274,7 @@ namespace uguimvvm
 
         [SerializeField]
         BindingMode _mode = BindingMode.TwoWay;
+        public BindingMode Mode { get { return _mode; } }
 
         [SerializeField]
         ScriptableObject _converter;
@@ -318,6 +333,10 @@ namespace uguimvvm
 
             if (_mode == BindingMode.OneWayToView) return;
 
+            if (_view.Component == null) return;
+
+            if (!enabled) return;
+
             var value = _vProp.GetValue(_view.Component, null);
 
             if (_ci != null)
@@ -341,6 +360,10 @@ namespace uguimvvm
             if (_vmProp == null || _vProp == null) return;
 
             if (_mode == BindingMode.OneWayToViewModel) return;
+
+            if (_viewModel.Component == null) return;
+
+            if (!enabled) return;
 
             var value = GetValue(_viewModel, _vmProp);
 

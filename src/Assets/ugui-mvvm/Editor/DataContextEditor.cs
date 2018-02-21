@@ -38,7 +38,7 @@ class DataContextEditor : Editor
             {
                 EditorGUILayout.PropertyField(iprop);
 
-                INPCBindingEditor.DrawCRefProp(bprop, GUIContent.none);
+                INPCBindingEditor.DrawCRefProp(serializedObject.targetObject.GetInstanceID(), bprop, GUIContent.none);
             }
         }
 

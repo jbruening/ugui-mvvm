@@ -20,7 +20,7 @@ class INPCBindingEditor : Editor
 
     private static void FigureViewBindings()
     {
-        var objects = (GameObject[])FindObjectsOfType(typeof(GameObject));
+        var objects = Resources.FindObjectsOfTypeAll<GameObject>();
         foreach (var obj in objects)
         {
             var bindings = obj.GetComponents<INPCBinding>();
@@ -31,6 +31,12 @@ class INPCBindingEditor : Editor
 
     static void FigureViewBinding(INPCBinding binding)
     {
+        if (binding.Mode == BindingMode.OneWayToView)
+        {
+            Debug.LogFormat(binding, "Skipping {0}, as it is onewaytoview", binding.name);
+            return;
+        }
+
         var sobj = new SerializedObject(binding);
         var viewProp = sobj.FindProperty("_view");
         var viewEvProp = sobj.FindProperty("_viewEvent");
@@ -133,11 +139,11 @@ class INPCBindingEditor : Editor
         var cprop = serializedObject.FindProperty("_converter");
         var mprop = serializedObject.FindProperty("_mode");
 
-        DrawCRefProp(vprop, new GUIContent());
+        DrawCRefProp(serializedObject.targetObject.GetInstanceID(), vprop, new GUIContent());
 
         var epropcount = DrawCrefEvents(vprop, veprop);
 
-        DrawCRefProp(vmprop, new GUIContent());
+        DrawCRefProp(serializedObject.targetObject.GetInstanceID(), vmprop, new GUIContent());
 
         EditorGUILayout.PropertyField(mprop, false);
         if (epropcount == 0)
@@ -224,9 +230,9 @@ class INPCBindingEditor : Editor
         return t.GetField(name, flags) ?? GetField(t.BaseType, name);
     }
 
-    public static void DrawCRefProp(SerializedProperty property, GUIContent label, bool resolveDataContext = true)
+    public static void DrawCRefProp(int targetId, SerializedProperty property, GUIContent label, bool resolveDataContext = true)
     {
-        DrawCRefProp(property, label, typeof(object));
+        DrawCRefProp(targetId, property, label, typeof(object));
     }
 
     public static void GetCPathProperties(SerializedProperty property, out SerializedProperty component, out SerializedProperty path)
@@ -238,11 +244,12 @@ class INPCBindingEditor : Editor
     /// <summary>
     /// draw an INPCBinding.ComponentPath property
     /// </summary>
-    /// <param name="position"></param>
+    /// <param name="targetId"></param>
     /// <param name="property"></param>
     /// <param name="label"></param>
     /// <param name="filter"></param>
-    public static void DrawCRefProp(SerializedProperty property, GUIContent label, Type filter, bool resolveDataContext = true)
+    /// <param name="resolveDataContext"></param>
+    public static void DrawCRefProp(int targetId, SerializedProperty property, GUIContent label, Type filter, bool resolveDataContext = true)
     {
         EditorGUILayout.LabelField(property.displayName);
 
@@ -255,9 +262,10 @@ class INPCBindingEditor : Editor
         
         if (cprop.objectReferenceValue != null)
         {
-            var name = "propfield" + (GUIUtility.GetControlID(FocusType.Keyboard) + 1);
+            var name = "prop_" + property.propertyPath + "_" + targetId;
             GUI.SetNextControlName(name);
             EditorGUILayout.PropertyField(pprop);
+            var focused = GUI.GetNameOfFocusedControl();
 
             var orv = cprop.objectReferenceValue;
             Type ortype;
@@ -277,7 +285,7 @@ class INPCBindingEditor : Editor
                 var idx = Array.FindIndex(path.PPath, p => p == null);
                 if (path.IsValid)
                 {
-                    rtype = path.PPath.Length == 1 ? ortype : path.PPath[path.PPath.Length - 1].PropertyType;
+                    rtype = path.PropertyType;
                 }
                 else
                     rtype = idx - 1 < 0 ? ortype : path.PPath[idx - 1].PropertyType;
@@ -289,7 +297,7 @@ class INPCBindingEditor : Editor
                 var props = rtype.GetProperties(BindingFlags.Instance | BindingFlags.Public);
 
                 
-                if (GUI.GetNameOfFocusedControl() == name)
+                if (focused == name)
                 {
                     var propNames = props.Select(p => p.Name)
                         .OrderByDescending(
