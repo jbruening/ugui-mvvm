@@ -12,11 +12,13 @@ namespace uguimvvm
         {
             public readonly object Item;
             public readonly GameObject Control;
+            public readonly RectTransform Rect;
 
-            public ItemInfo(object item, GameObject control)
+            public ItemInfo(object item, GameObject control, RectTransform rect)
             {
                 Item = item;
                 Control = control;
+                Rect = rect;
             }
         }
 
@@ -101,15 +103,28 @@ namespace uguimvvm
                 case NotifyCollectionChangedAction.Remove:
                     RemoveItems(e.OldItems);
                     break;
-                case NotifyCollectionChangedAction.Move:
                 case NotifyCollectionChangedAction.Replace:
                     RemoveItems(e.OldItems);
                     AddItems(e.NewItems);
+                    break;
+                case NotifyCollectionChangedAction.Move:
+                    MoveItem(e.OldStartingIndex, e.NewStartingIndex);
                     break;
                 default:
                     ResetCollection();
                     break;
             }
+        }
+
+        private void MoveItem(int oldIndex, int newIndex)
+        {
+            var item = _items[oldIndex];
+            //not using RemoveAt, because we can just move the control around.
+            _items.RemoveAt(oldIndex);
+            _items.Insert(newIndex, item);
+            //we just need to change this object's position in the children
+            var rect = item.Rect;
+            rect.SetSiblingIndex(newIndex);
         }
 
         private void AddItems(IEnumerable newItems)
@@ -120,14 +135,14 @@ namespace uguimvvm
                 var control = Instantiate(_itemTemplate);
                 control.SetActive(true);
 
-                var info = new ItemInfo(item, control);
-                _items.Add(info);
-
                 var rect = control.GetComponent<RectTransform>();
                 if (rect == null)
                     control.transform.parent = trans;
                 else
                     rect.SetParent(trans, false);
+
+                var info = new ItemInfo(item, control, rect);
+                _items.Add(info);
 
                 var context = control.GetComponent<DataContext>();
                 if (context != null)

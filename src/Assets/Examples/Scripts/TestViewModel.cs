@@ -40,4 +40,12 @@ class TestViewModel : ABehaviourViewModel, IParentVm
     {
         Children.Remove(child);
     }
+
+    public void MoveSelectedToFirst()
+    {
+        if (Children.Count == 0) return;
+        if (Selected == null) return;
+        var selIdx = Children.IndexOf(Selected);
+        Children.Move(selIdx, 0);
+    }
 }

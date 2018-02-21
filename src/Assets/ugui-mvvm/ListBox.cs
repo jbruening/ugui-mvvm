@@ -16,6 +16,11 @@ namespace uguimvvm
         {
             var selected = EventSystem.current.currentSelectedGameObject;
             if (selected == _lastSelected) return;
+
+            //we only update selection if it's a child of a selector.  Prevents things like buttons/textboxes setting our selection to null.
+            if (selected == null) return;
+            if (selected.transform.GetComponentInParent<Primitives.Selector>() == null) return;
+
             _lastSelected = selected;
             
             //verify that our 'last' actual control is still selected
