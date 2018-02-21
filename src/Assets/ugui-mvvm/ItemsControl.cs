@@ -133,7 +133,6 @@ namespace uguimvvm
             foreach (var item in newItems)
             {
                 var control = Instantiate(_itemTemplate);
-                control.SetActive(true);
 
                 var rect = control.GetComponent<RectTransform>();
                 if (rect == null)
@@ -143,6 +142,8 @@ namespace uguimvvm
 
                 var info = new ItemInfo(item, control, rect);
                 _items.Add(info);
+
+                control.SetActive(true);
 
                 var context = control.GetComponent<DataContext>();
                 if (context != null)
