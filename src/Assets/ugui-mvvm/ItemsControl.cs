@@ -8,6 +8,10 @@ namespace uguimvvm
 {
     public class ItemsControl : MonoBehaviour
     {
+        [SerializeField]
+        [Tooltip("When a Reset event happens, reuse controls rather than just completely Destroy/Instantiate everything")]
+        protected bool _reuseControlsForReset = false;
+
         protected class ItemInfo
         {
             public readonly object Item;
@@ -31,7 +35,7 @@ namespace uguimvvm
             {
                 if (_itemTemplate == value) return;
                 _itemTemplate = value;
-                ResetCollection();
+                ResetCollection(false);
             }
         }
 
@@ -48,7 +52,7 @@ namespace uguimvvm
                 if (_itemsSource == value) return;
                 ResetBindings(_itemsSource, value);
                 _itemsSource = value;
-                ResetCollection();
+                ResetCollection(true);
                 OnItemsSourceChanged();
                 ItemsSourceChanged.Invoke();
             }
@@ -111,7 +115,7 @@ namespace uguimvvm
                     MoveItem(e.OldStartingIndex, e.NewStartingIndex);
                     break;
                 default:
-                    ResetCollection();
+                    ResetCollection(true);
                     break;
             }
         }
@@ -127,29 +131,35 @@ namespace uguimvvm
             rect.SetSiblingIndex(newIndex);
         }
 
-        private void AddItems(IEnumerable newItems)
+        private ItemInfo AddItem(object item)
         {
             var trans = transform;
+            var control = Instantiate(_itemTemplate);
+
+            var rect = control.GetComponent<RectTransform>();
+            if (rect == null)
+                control.transform.parent = trans;
+            else
+                rect.SetParent(trans, false);
+
+            var info = new ItemInfo(item, control, rect);
+            _items.Add(info);
+
+            control.SetActive(true);
+
+            var context = control.GetComponent<DataContext>();
+            if (context != null)
+                context.UpdateValue(item);
+
+            OnItemAdded(info);
+            return info;
+        }
+
+        private void AddItems(IEnumerable newItems)
+        {
             foreach (var item in newItems)
             {
-                var control = Instantiate(_itemTemplate);
-
-                var rect = control.GetComponent<RectTransform>();
-                if (rect == null)
-                    control.transform.parent = trans;
-                else
-                    rect.SetParent(trans, false);
-
-                var info = new ItemInfo(item, control, rect);
-                _items.Add(info);
-
-                control.SetActive(true);
-
-                var context = control.GetComponent<DataContext>();
-                if (context != null)
-                    context.UpdateValue(item);
-
-                OnItemAdded(info);
+                AddItem(item);
             }
 
             HasItemsChanged.Invoke();
@@ -177,13 +187,68 @@ namespace uguimvvm
         /// <param name="info"></param>
         protected virtual void OnItemRemoved(ItemInfo info) { }
 
-        private void ResetCollection()
+        private void ResetCollection(bool allowControlReuse)
         {
-            for (var i = _items.Count - 1; i >= 0; i--)
+            if (_reuseControlsForReset && allowControlReuse)
             {
-                RemoveAt(i);
+                //first, we'll solidify the item source.
+                var source = new List<object>();
+                foreach (var item in _itemsSource)
+                    source.Add(item);
+
+                var oldItems = _items.ToArray();
+                _items.Clear();
+                var toRemove = new List<ItemInfo>(oldItems);
+
+                //lookup for old item -> old control index
+                var oldLookup = new Dictionary<object, int>(oldItems.Length);
+                for (var i = 0; i < oldItems.Length; i++)
+                    oldLookup[oldItems[i].Item] = i;
+
+                for(var i = 0; i < source.Count; i++)
+                {
+                    //i will be the correct index in _items once it's added, as well as source
+
+                    //try and get the old item control
+                    int oldIdx;
+                    if (!oldLookup.TryGetValue(source[i], out oldIdx))
+                    {
+                        //brand new! add it.
+                        var item = AddItem(source[i]);
+                        //force to the correct position, because old ones aren't removed yet.
+                        item.Rect.SetSiblingIndex(i);
+                    }
+                    else
+                    {
+                        //in case of duplicate items, we only want to use the first
+                        //we'll just make new controls for the rest
+                        oldLookup.Remove(source[i]);
+
+                        //we need to move the old control to correct spot.
+                        var oldItem = oldItems[oldIdx];
+                        toRemove.Remove(oldItem);
+                        _items.Add(oldItem);
+                        oldItem.Rect.SetSiblingIndex(i);
+
+                        //should we enable this? I'm not sure really.
+                        //OnItemAdded(oldItem);
+                    }
+                }
+
+                //leftovers need to be removed.
+                foreach (var item in toRemove)
+                    Destroy(item.Control);
+
+                HasItemsChanged.Invoke();
             }
-            AddItems(_itemsSource);
+            else
+            {
+                for (var i = _items.Count - 1; i >= 0; i--)
+                {
+                    RemoveAt(i);
+                }
+                AddItems(_itemsSource);
+            }
         }
 
         /// <summary>

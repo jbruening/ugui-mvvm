@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using uguimvvm;
+using System.Linq;
 
 class TestViewModel : ABehaviourViewModel, IParentVm
 {
@@ -18,7 +19,12 @@ class TestViewModel : ABehaviourViewModel, IParentVm
         set { SetProperty("Selected", ref _selected, value); }
     }
 
-    public ObservableCollection<ChildViewModel> Children { get; set; }
+    private ObservableCollection<ChildViewModel> _children;
+    public ObservableCollection<ChildViewModel> Children
+    {
+        get { return _children; }
+        set { SetProperty("Children", ref _children, value); }
+    }
 
     public TestViewModel()
     {
@@ -47,5 +53,15 @@ class TestViewModel : ABehaviourViewModel, IParentVm
         if (Selected == null) return;
         var selIdx = Children.IndexOf(Selected);
         Children.Move(selIdx, 0);
+    }
+
+    public void TestReset()
+    {
+        var childs = Children.ToList();
+
+        childs.RemoveAt(0);
+        childs.Add(new ChildViewModel(this));
+
+        Children = new ObservableCollection<ChildViewModel>(childs);
     }
 }
