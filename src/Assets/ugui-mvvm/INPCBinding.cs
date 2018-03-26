@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Globalization;
 using System.Reflection;
 using System.Linq;
 using UnityEngine.UI;
@@ -11,6 +12,27 @@ using UnityEngine.EventSystems;
 
 namespace uguimvvm
 {
+    public static class TypeExtensions
+    {
+        public static bool IsValueType(this Type type)
+        {
+#if UNITY_WSA && ENABLE_DOTNET && !UNITY_EDITOR
+            return type.GetTypeInfo().IsValueType;
+#else
+            return type.IsValueType;
+#endif
+        }
+
+        public static Type BaseType(this Type type)
+        {
+#if UNITY_WSA && ENABLE_DOTNET && !UNITY_EDITOR
+            return type.GetTypeInfo().BaseType;
+#else
+            return type.BaseType;
+#endif
+        }
+    }
+
     public class INPCBinding : MonoBehaviour
     {
         [Serializable]
@@ -244,9 +266,11 @@ namespace uguimvvm
                 catch (AmbiguousMatchException)
                 {
                     PropertyInfo result;
-                    for (result = null; result == null && type != null; type = type.BaseType)
+                    for (result = null; result == null && type != null; type = type.BaseType())
+                    {
                         result = type.GetProperty(name,
                             BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                    }
                     return result;
                 }
             }
@@ -340,7 +364,10 @@ namespace uguimvvm
             var value = _vProp.GetValue(_view.Component, null);
 
             if (_ci != null)
-                value = _ci.ConvertBack(value, _vmType, null, System.Threading.Thread.CurrentThread.CurrentCulture);
+            {
+                var currentCulture = CultureInfo.CurrentCulture;
+                value = _ci.ConvertBack(value, _vmType, null, currentCulture);
+            }
             else if (value != null)
                 value = System.Convert.ChangeType(value, _vmType);
             else 
@@ -368,7 +395,10 @@ namespace uguimvvm
             var value = GetValue(_viewModel, _vmProp);
 
             if (_ci != null)
-                value = _ci.Convert(value, _vType, null, System.Threading.Thread.CurrentThread.CurrentCulture);
+            {
+                var currentCulture = CultureInfo.CurrentCulture;
+                value = _ci.Convert(value, _vType, null, currentCulture);
+            }
             else if (value != null)
             {
                 if (!_vType.IsInstanceOfType(value))
@@ -474,8 +504,10 @@ namespace uguimvvm
 
         object GetDefaultValue(Type t)
         {
-            if (t.IsValueType)
+            if (t.IsValueType())
+            {
                 return Activator.CreateInstance(t);
+            }
 
             return null;
         }
