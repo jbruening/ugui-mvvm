@@ -1,0 +1,10 @@
+{
+    "name": "ugui-mvvmEditor",
+    "references": [
+        "ugui-mvvm"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}
