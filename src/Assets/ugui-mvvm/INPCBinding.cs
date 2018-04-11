@@ -370,7 +370,7 @@ namespace uguimvvm
             }
             else if (value != null)
                 value = System.Convert.ChangeType(value, _vmType);
-            else 
+            else
                 value = GetDefaultValue(_vmType);
 
             if (value is IDelayedValue)
@@ -406,7 +406,7 @@ namespace uguimvvm
                     value = System.Convert.ChangeType(value, _vType);
                 }
             }
-            else 
+            else
                 value = GetDefaultValue(_vType);
 
             if (value is IDelayedValue)
@@ -462,9 +462,28 @@ namespace uguimvvm
             _vProp = FigureBinding(_view, null, false);
 
             if (_vmProp.IsValid)
+            // MRMW_CHANGE - BEGIN: Improve handling of invalid DataContext types
+            {
                 _vmType = _vmProp.PropertyType;
+            }
+            else
+            {
+                Debug.LogErrorFormat("INPCBinding: Invalid ViewModel property in \"{0}\".",
+                    gameObject.GetParentNameHierarchy());
+            }
+            // MRMW_CHANGE - END: Improve handling of invalid DataContext types
+
             if (_vProp.IsValid)
+            // MRMW_CHANGE - BEGIN: Improve handling of invalid DataContext types
+            {
                 _vType = _vProp.PropertyType;
+            }
+            else
+            {
+                Debug.LogErrorFormat("INPCBinding: Invalid View property in \"{0}\".",
+                    gameObject.GetParentNameHierarchy());
+            }
+            // MRMW_CHANGE - END: Improve handling of invalid DataContext types
         }
 
         public static PropertyPath FigureBinding(ComponentPath path, PropertyChangedEventHandler handler, bool resolveDataContext)

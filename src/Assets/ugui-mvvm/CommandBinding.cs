@@ -60,6 +60,15 @@ namespace uguimvvm
                 vmtype = _viewModel.Component.GetType();
 
             _vmProp = new INPCBinding.PropertyPath(_viewModel.Property, vmtype, true);
+
+            // MRMW_CHANGE - BEGIN: Improve handling of invalid DataContext types
+            if (!_vmProp.IsValid)
+            {
+                Debug.LogErrorFormat("CommandBinding: Invalid ViewModel property in \"{0}\".",
+                    gameObject.GetParentNameHierarchy());
+            }
+            // MRMW_CHANGE - END: Improve handling of invalid DataContext types
+
             if (!typeof (ICommand).IsAssignableFrom(_vmProp.PropertyType))
                 _vmProp = null;
 
