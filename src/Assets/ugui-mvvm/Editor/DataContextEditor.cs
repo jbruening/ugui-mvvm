@@ -25,8 +25,14 @@ class DataContextEditor : Editor
             _tval = Type.GetType(tprop.stringValue);
             if (_tval == null) //invalid type name. Clear it so we don't keep looking for an invalid type.
             {
-                tprop.stringValue = null;
-                iprop.boolValue = false;
+                // MRMW_CHANGE - BEGIN: Improve handling of invalid DataContext types
+                var style = new GUIStyle(EditorStyles.textField);
+                style.normal.textColor = Color.red;
+
+                EditorGUILayout.TextField(string.Format("Error: Invalid type \"{0}\"",
+                    tprop.stringValue),
+                    style);
+                // MRMW_CHANGE - END: Improve handling of invalid DataContext types
             }
         }
 

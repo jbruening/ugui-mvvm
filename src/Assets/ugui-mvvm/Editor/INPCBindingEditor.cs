@@ -82,7 +82,7 @@ class INPCBindingEditor : Editor
         //necessary to actually iterate over the properties of it.
         it.Next(true);
         var sep = FirstOrDefault(it, p => p.displayName == eventName);
-        
+
         if (sep == null)
         {
             Debug.LogErrorFormat(component, "Could not get event {0} on {1}.  Something probably changed event names, so you need to fix it. {2}", eventName, type, PathTo(component));
@@ -162,7 +162,7 @@ class INPCBindingEditor : Editor
     }
 
     /// <summary>
-    /// Draw all UnityEventBase 
+    /// Draw all UnityEventBase
     /// </summary>
     /// <param name="crefProperty"></param>
     /// <param name="eventProperty"></param>
@@ -217,7 +217,7 @@ class INPCBindingEditor : Editor
     {
         if (t == null)
             return Enumerable.Empty<FieldInfo>();
-        var flags = BindingFlags.Public | BindingFlags.NonPublic | 
+        var flags = BindingFlags.Public | BindingFlags.NonPublic |
                     BindingFlags.Instance | BindingFlags.DeclaredOnly;
         return t.GetFields(flags).Concat(GetAllFields(t.BaseType));
     }
@@ -259,7 +259,7 @@ class INPCBindingEditor : Editor
         EditorGUI.indentLevel++;
         var position = EditorGUILayout.GetControlRect(true);
         ComponentReferenceDrawer.PropertyField(position, cprop);
-        
+
         if (cprop.objectReferenceValue != null)
         {
             var name = "prop_" + property.propertyPath + "_" + targetId;
@@ -273,10 +273,22 @@ class INPCBindingEditor : Editor
                 ortype = (orv as DataContext).Type;
             else
                 ortype = orv.GetType();
-            
+
             if (ortype == null)
             {
-                pprop.stringValue = null;
+                // MRMW_CHANGE - BEGIN: Improve handling of invalid DataContext types
+                if (!string.IsNullOrEmpty(pprop.stringValue))
+                {
+                    var style = new GUIStyle(EditorStyles.textField);
+                    style.normal.textColor = Color.red;
+
+                    EditorGUILayout.TextField(string.Format("Error: {0}/{1} is bound to property \"{2}\" of an invalid DataContext Type.",
+                        property.displayName,
+                        pprop.displayName,
+                        pprop.stringValue),
+                        style);
+                }
+                // MRMW_CHANGE - END: Improve handling of invalid DataContext types
             }
             else
             {
@@ -296,21 +308,35 @@ class INPCBindingEditor : Editor
 
                 var props = rtype.GetProperties(BindingFlags.Instance | BindingFlags.Public);
 
-                
+
                 if (focused == name)
                 {
                     var propNames = props.Select(p => p.Name)
                         .OrderByDescending(
                             s => s.IndexOf(path.Parts.LastOrDefault() ?? "", StringComparison.OrdinalIgnoreCase) == 0)
                         .ToArray();
-                    
+
                     var propstring = string.Join("\n",propNames);
                     EditorGUILayout.HelpBox(propstring, MessageType.None);
                 }
             }
         }
         else
-            pprop.stringValue = null;
+        {
+            // MRMW_CHANGE - BEGIN: Improve handling of invalid DataContext types
+            if (!string.IsNullOrEmpty(pprop.stringValue))
+            {
+                var style = new GUIStyle(EditorStyles.textField);
+                style.normal.textColor = Color.red;
+
+                EditorGUILayout.TextField(string.Format("Error: {0}/{1} is bound to property \"{2}\" of an invalid component object reference.",
+                        property.displayName,
+                        pprop.displayName,
+                        pprop.stringValue),
+                        style);
+            }
+            // MRMW_CHANGE - END: Improve handling of invalid DataContext types
+        }
 
         EditorGUI.indentLevel--;
     }
