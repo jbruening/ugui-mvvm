@@ -49,6 +49,20 @@ class CommandBindingEditor : Editor
         var @event = INPCBindingEditor.GetEvent(vcomp, veprop);
         if (@event != null)
         {
+            // MRMW_CHANGE - Begin - Fixing adding multiple command binding event handlers when using prefabs
+            // There is an issue with Prefabs not reverting the changes correctly
+            var eventCount = @event.GetPersistentEventCount();
+            for(var idx = 0; idx < eventCount; idx++)
+            {
+                var perTarget = @event.GetPersistentTarget(idx);
+                // if we find a duplicate event skip over adding it
+                if (perTarget == binding)
+                {
+                    return;
+                }
+            }
+            // MRMW_CHANGE - END - Fixing adding multiple command binding event handlers when using prefabs
+            
             UnityEditor.Events.UnityEventTools.AddVoidPersistentListener(@event, binding.ExecuteCommand);
         }
 
