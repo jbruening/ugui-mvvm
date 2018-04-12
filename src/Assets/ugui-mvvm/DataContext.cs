@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Reflection;
 // MRMW_CHANGE - BEGIN: Replacing uguimvvm.ICommand with ICommand
 using System.Windows.Input;
 // MRMW_CHANGE - END: Replacing uguimvvm.ICommand with ICommand
