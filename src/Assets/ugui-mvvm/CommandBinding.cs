@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Reflection;
+// MRMW_CHANGE - BEGIN: Replacing uguimvvm.ICommand with ICommand
+using System.Windows.Input;
+// MRMW_CHANGE - END: Replacing uguimvvm.ICommand with ICommand
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;

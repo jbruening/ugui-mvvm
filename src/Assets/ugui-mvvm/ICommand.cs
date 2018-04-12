@@ -1,14 +1,10 @@
 ﻿using System;
+// MRMW_CHANGE - BEGIN: Replacing uguimvvm.ICommand with ICommand
+using System.Windows.Input;
+// MRMW_CHANGE - END: Replacing uguimvvm.ICommand with ICommand
 
 namespace uguimvvm
 {
-    public interface ICommand
-    {
-        bool CanExecute(object parameter);
-        void Execute(object parameter);
-        event EventHandler CanExecuteChanged;
-    }
-
     public class RelayCommand : ICommand
     {
         public RelayCommand(Action execute, Func<bool> canExecute = null)
@@ -33,7 +29,7 @@ namespace uguimvvm
         }
 
         public event EventHandler CanExecuteChanged;
-        
+
         private readonly Action _execute;
         private readonly Func<bool> _canExecute;
     }
@@ -52,7 +48,7 @@ namespace uguimvvm
         public bool CanExecute(object parameter)
         {
             if (_canExecute == null) return true;
-            
+
             if (parameter is T)
                 return _canExecute((T) parameter);
             return false;

@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+// MRMW_CHANGE - BEGIN: Replacing uguimvvm.ICommand with ICommand
+using System.Windows.Input;
+// MRMW_CHANGE - END: Replacing uguimvvm.ICommand with ICommand
 using uguimvvm;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
-using UnityEngine.Events;
 
 [CustomEditor(typeof (CommandBinding))]
 class CommandBindingEditor : Editor
