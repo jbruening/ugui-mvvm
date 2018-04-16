@@ -124,7 +124,9 @@ namespace uguimvvm
         private void CommandOnCanExecuteChanged(object sender, EventArgs eventArgs)
         {
             //enable if we don't have a command, or whatever the command's canexecute is.
-            SetViewEnabledState(_command == null || _command.CanExecute(_parameter));
+            // MRMW_CHANGE - BEGIN: Adding Binding support for Command Paramater
+            SetViewEnabledState(_command == null || _command.CanExecute(GetCommandParamater()));
+            // MRMW_CHANGE - END: Adding Binding support for Command Paramater
         }
 
         private void SetViewEnabledState(bool state)
@@ -136,8 +138,37 @@ namespace uguimvvm
         public void ExecuteCommand()
         {
             if (_command == null) return;
-            _command.Execute(_parameter.GetValue());
+            // MRMW_CHANGE - BEGIN: Adding Binding support for Command Paramater
+            _command.Execute(GetCommandParamater());
+            // MRMW_CHANGE - END: Adding Binding support for Command Paramater
         }
+
+        // MRMW_CHANGE - BEGIN: Adding Binding support for Command Paramater
+        private object GetCommandParamater()
+        {
+            object val = null;
+            if (_parameter.Type == BindingParameterType.Binding)
+            {
+                var param = (string)_parameter.GetValue();
+
+                Type vmtype = _viewModel.Component is DataContext ?
+                                        (_viewModel.Component as DataContext).Type
+                                        : _viewModel.Component.GetType();
+
+                var paramPath = new INPCBinding.PropertyPath(param, vmtype, true);
+
+                val = _viewModel.Component is DataContext ?
+                            (_viewModel.Component as DataContext).GetValue(paramPath)
+                            : paramPath.GetValue(_viewModel.Component, null);
+            }
+            else
+            {
+                val = _parameter.GetValue();
+            }
+
+            return val;
+        }
+        // MRMW_CHANGE - END: Adding Binding support for Command Paramater
     }
 
     [Serializable]
@@ -149,6 +180,9 @@ namespace uguimvvm
         public int Int;
         public float Float;
         public bool Bool;
+        // MRMW_CHANGE - BEGIN: Adding Binding support for Command Paramater
+        public string PropertyPath;
+        // MRMW_CHANGE - END: Adding Binding support for Command Paramater
 
         public object GetValue()
         {
@@ -164,6 +198,10 @@ namespace uguimvvm
                     return ObjectReference;
                 case BindingParameterType.String:
                     return String;
+                // MRMW_CHANGE - BEGIN: Adding Binding support for Command Paramater
+                case BindingParameterType.Binding:
+                    return PropertyPath;
+                // MRMW_CHANGE - END: Adding Binding support for Command Paramater
                 default:
                     return null;
             }
@@ -177,5 +215,8 @@ namespace uguimvvm
         Int,
         Float,
         Bool,
+        // MRMW_CHANGE - BEGIN: Adding Binding support for Command Paramater
+        Binding,
+        // MRMW_CHANGE - END: Adding Binding support for Command Paramater
     }
 }
