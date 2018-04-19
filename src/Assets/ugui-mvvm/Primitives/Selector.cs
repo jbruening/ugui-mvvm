@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿// MRMW_CHANGE - BEGIN: Replacing uguimvvm ObservableCollection<T> and INotifyCollectionChanged with System variants.
+using System.Collections.Specialized;
+// MRMW_CHANGE - END: Replacing uguimvvm ObservableCollection<T> and INotifyCollectionChanged with System variants.
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
