@@ -300,7 +300,19 @@ class INPCBindingEditor : Editor
                     rtype = path.PropertyType;
                 }
                 else
+                {
                     rtype = idx - 1 < 0 ? ortype : path.PPath[idx - 1].PropertyType;
+                    // MRMW_CHANGE - BEGIN: Improve handling of invalid DataContext types
+                    var style = new GUIStyle(EditorStyles.textField);
+                    style.normal.textColor = Color.red;
+                    EditorGUILayout.TextField(string.Format("Error: {0}/{1} invalid property \"{2}\" of an valid DataContext.",
+                        property.displayName,
+                        pprop.displayName,
+                        pprop.stringValue),
+                        style);
+                    // MRMW_CHANGE - END: Improve handling of invalid DataContext types
+                }
+
 
 
                 var lrect = GUILayoutUtility.GetLastRect();
