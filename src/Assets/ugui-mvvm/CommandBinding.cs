@@ -161,6 +161,16 @@ namespace uguimvvm
                             (_viewModel.Component as DataContext).GetValue(paramPath)
                             : paramPath.GetValue(_viewModel.Component, null);
             }
+            else if (_parameter.Type == BindingParameterType.ViewBinding)
+            {
+                var param = (string)_parameter.GetValue();
+
+                Type vtype = _view.GetType();
+
+                var paramPath = new INPCBinding.PropertyPath(param, vtype, true);
+
+                val = paramPath.GetValue(_view, null);
+            }
             else
             {
                 val = _parameter.GetValue();
@@ -200,6 +210,7 @@ namespace uguimvvm
                     return String;
                 // MRMW_CHANGE - BEGIN: Adding Binding support for Command Paramater
                 case BindingParameterType.Binding:
+                case BindingParameterType.ViewBinding:
                     return PropertyPath;
                 // MRMW_CHANGE - END: Adding Binding support for Command Paramater
                 default:
@@ -217,6 +228,7 @@ namespace uguimvvm
         Bool,
         // MRMW_CHANGE - BEGIN: Adding Binding support for Command Paramater
         Binding,
+        ViewBinding,
         // MRMW_CHANGE - END: Adding Binding support for Command Paramater
     }
 }
