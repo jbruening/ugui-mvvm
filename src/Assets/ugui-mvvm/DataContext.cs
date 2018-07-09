@@ -12,10 +12,12 @@ namespace uguimvvm
 {
     public class DataContext : MonoBehaviour, INotifyPropertyChanged
     {
+// MRMW_CHANGE - BEGIN: supress CS0649 warning since the assignment is done in the unity inspector
 #pragma warning disable 0649
         [SerializeField]
         string _type;
 #pragma warning restore 0649
+// MRMW_CHANGE - END: supress CS0649 warning since the assignment is done in the unity inspector
 
         private Type _rtype;
         public Type Type
