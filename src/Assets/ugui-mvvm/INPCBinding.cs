@@ -300,8 +300,10 @@ namespace uguimvvm
         BindingMode _mode = BindingMode.TwoWay;
         public BindingMode Mode { get { return _mode; } }
 
+#pragma warning disable 0649
         [SerializeField]
         ScriptableObject _converter;
+#pragma warning restore 0649
 
         IValueConverter _ci;
         Type _vType;

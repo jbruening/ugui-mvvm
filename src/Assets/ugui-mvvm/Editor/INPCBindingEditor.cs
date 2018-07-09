@@ -7,6 +7,7 @@ using System.Reflection;
 using System;
 using uguimvvm;
 using System.Collections.Generic;
+using UnityEditor.SceneManagement;
 
 [CustomEditor(typeof(INPCBinding))]
 class INPCBindingEditor : Editor
@@ -110,7 +111,7 @@ class INPCBindingEditor : Editor
 
     private static string PathTo(Transform transform)
     {
-        return (transform.parent != null ? PathTo(transform.parent) : "Scene " + EditorApplication.currentScene) + "->" + transform.name;
+        return (transform.parent != null ? PathTo(transform.parent) : "Scene " + EditorSceneManager.GetActiveScene().name) + "->" + transform.name;
     }
 
     static bool IsEventType(Type type)

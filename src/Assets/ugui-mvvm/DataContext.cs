@@ -12,8 +12,10 @@ namespace uguimvvm
 {
     public class DataContext : MonoBehaviour, INotifyPropertyChanged
     {
+#pragma warning disable 0649
         [SerializeField]
         string _type;
+#pragma warning restore 0649
 
         private Type _rtype;
         public Type Type
