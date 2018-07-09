@@ -300,8 +300,12 @@ namespace uguimvvm
         BindingMode _mode = BindingMode.TwoWay;
         public BindingMode Mode { get { return _mode; } }
 
+// MRMW_CHANGE - BEGIN: supress CS0649 warning since the assignment is done in the unity inspector
+#pragma warning disable 0649
         [SerializeField]
         ScriptableObject _converter;
+#pragma warning restore 0649
+// MRMW_CHANGE - END: supress CS0649 warning since the assignment is done in the unity inspector
 
         IValueConverter _ci;
         Type _vType;

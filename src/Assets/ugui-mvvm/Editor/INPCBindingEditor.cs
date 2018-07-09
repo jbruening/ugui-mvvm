@@ -7,6 +7,9 @@ using System.Reflection;
 using System;
 using uguimvvm;
 using System.Collections.Generic;
+// MRMW_CHANGE - BEGIN: EditorApplication.currentScene is deprecated, using EditorSceneManager.GetActiveScene() instead
+using UnityEditor.SceneManagement;
+// MRMW_CHANGE - END: EditorApplication.currentScene is deprecated, using EditorSceneManager.GetActiveScene() instead
 
 [CustomEditor(typeof(INPCBinding))]
 class INPCBindingEditor : Editor
@@ -110,7 +113,9 @@ class INPCBindingEditor : Editor
 
     private static string PathTo(Transform transform)
     {
-        return (transform.parent != null ? PathTo(transform.parent) : "Scene " + EditorApplication.currentScene) + "->" + transform.name;
+        // MRMW_CHANGE - BEGIN: EditorApplication.currentScene is deprecated, using EditorSceneManager.GetActiveScene() instead
+        return (transform.parent != null ? PathTo(transform.parent) : "Scene " + EditorSceneManager.GetActiveScene().name) + "->" + transform.name;
+        // MRMW_CHANGE - END: EditorApplication.currentScene is deprecated, using EditorSceneManager.GetActiveScene() instead
     }
 
     static bool IsEventType(Type type)
