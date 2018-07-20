@@ -23,6 +23,12 @@ namespace uguimvvm
         [SerializeField]
         string _viewEvent;
 
+// MRMW_CHANGE - BEGIN: supress CS0169 warning
+#if !UNITY_EDITOR
+#pragma warning restore 0169
+#endif
+// MRMW_CHANGE - END: supress CS0169 warning
+
         [SerializeField]
         INPCBinding.ComponentPath _viewModel = null;
 
