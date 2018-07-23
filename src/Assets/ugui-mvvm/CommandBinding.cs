@@ -38,6 +38,14 @@ namespace uguimvvm
         INPCBinding.PropertyPath _vmProp;
         private ICommand _command;
 
+        public INPCBinding.ComponentPath GetViewModel
+        {
+            get
+            {
+                return _viewModel;
+            }
+        }
+
         void Reset()
         {
             var context = gameObject.GetComponentInParent(typeof(DataContext)) as DataContext;
