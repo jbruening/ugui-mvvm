@@ -46,7 +46,7 @@ namespace uguimvvm
                 return _viewModel;
             }
         }
-//MRMW_CHANGE - BEGIN: Used to bind voice commands for now, looking at adding voice option to command binding
+//MRMW_CHANGE - END: Used to bind voice commands for now, looking at adding voice option to command binding
 
         void Reset()
         {
