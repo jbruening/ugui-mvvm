@@ -38,6 +38,7 @@ namespace uguimvvm
         INPCBinding.PropertyPath _vmProp;
         private ICommand _command;
 
+//MRMW_CHANGE - BEGIN: Used to bind voice commands for now, looking at adding voice option to command binding
         public INPCBinding.ComponentPath GetViewModel
         {
             get
@@ -45,6 +46,7 @@ namespace uguimvvm
                 return _viewModel;
             }
         }
+//MRMW_CHANGE - BEGIN: Used to bind voice commands for now, looking at adding voice option to command binding
 
         void Reset()
         {
