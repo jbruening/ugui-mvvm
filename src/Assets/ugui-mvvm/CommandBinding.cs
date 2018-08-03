@@ -38,6 +38,16 @@ namespace uguimvvm
         INPCBinding.PropertyPath _vmProp;
         private ICommand _command;
 
+//MRMW_CHANGE - BEGIN: Used to bind voice commands for now, looking at adding voice option to command binding
+        public INPCBinding.ComponentPath ViewModel
+        {
+            get
+            {
+                return _viewModel;
+            }
+        }
+//MRMW_CHANGE - END: Used to bind voice commands for now, looking at adding voice option to command binding
+
         void Reset()
         {
             var context = gameObject.GetComponentInParent(typeof(DataContext)) as DataContext;
