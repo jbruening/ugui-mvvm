@@ -36,7 +36,9 @@ class INPCBindingEditor : Editor
     {
         if (binding.Mode == BindingMode.OneWayToView)
         {
-            Debug.LogFormat(binding, "Skipping {0}, as it is onewaytoview", binding.name);
+            // MRMW BEGIN - Disable Message
+            // Debug.LogFormat(binding, "Skipping {0}, as it is onewaytoview", binding.name);
+            // MRMW END - Disable Message
             return;
         }
 
