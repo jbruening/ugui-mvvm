@@ -1,6 +1,7 @@
-﻿using UnityEngine;
-using uguimvvm;
-using System.Linq;
+﻿using System.Linq;
+// MRMW Change Start - Fix Build Errors
+using System.Collections.ObjectModel;
+// MRMW Change End - Fix Build Errors
 
 class TestViewModel : ABehaviourViewModel, IParentVm
 {

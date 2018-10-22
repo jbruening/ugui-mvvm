@@ -42,6 +42,21 @@ namespace uguimvvm
             }
         }
 
+        // MRMW Change Start - Add Prefab selector support
+        [SerializeField]
+        private BasePrefabSelector _prefabSelector;
+        public BasePrefabSelector PrefabSelector
+        {
+            get { return _prefabSelector; }
+            set
+            {
+                if (_prefabSelector == value) return;
+                _prefabSelector = value;
+                ResetCollection(false);
+            }
+        }
+        // MRMW Change End - Add Prefab Selector Support
+
         [Tooltip("When Awaking, destroy any children that are not part of the ItemsSource or the prefab.\nThis is useful where you want to view the items control as it would be with example objects, but don't actually want them to be children at runtime")]
         [SerializeField]
         private bool _destroyChildrenOnAwake = false;
@@ -80,7 +95,7 @@ namespace uguimvvm
                 for (var i = transform.childCount - 1; i >= 0; i--)
                 {
                     var cg = transform.GetChild(i).gameObject;
-                    if (cg == ItemTemplate)
+                    if (cg == ItemTemplate) // MRMW TODO: What is the expected behaviour here?
                         cg.SetActive(false);
                     else if (_items.All(c => c.Control != cg))
                         Destroy(cg);
@@ -137,7 +152,10 @@ namespace uguimvvm
         private ItemInfo AddItem(object item)
         {
             var trans = transform;
-            var control = Instantiate(_itemTemplate);
+// MRMW Start Change - Prefab Selector support
+            var itemTemplate = _prefabSelector != null ? _prefabSelector.SelectPrefab(item) : _itemTemplate;
+            var control = Instantiate(itemTemplate);
+// MRMW End Change - Prefab Selector support
 
             var rect = control.GetComponent<RectTransform>();
             if (rect == null)

@@ -1,6 +1,7 @@
 ﻿using uguimvvm;
-using UnityEngine;
-using System.Collections;
+// MRMW Change Start - Fix Build Error
+using System.Collections.ObjectModel;
+// MRMW Change End - Fix Build Error
 
 class TestPOCOVm : AViewModel, IParentVm
 {

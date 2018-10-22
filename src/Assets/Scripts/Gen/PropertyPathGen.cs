@@ -1,4 +1,5 @@
 #region GENERATED. Regenerate by menu item Assets/Generate PropertyPathGen
+using System.Collections.ObjectModel;
 using uguimvvm;
 using ppa = uguimvvm.PropertyPathAccessors;
 
@@ -134,7 +135,7 @@ static void Register()
     },
     (obj, value) =>
     {
-        ((TestViewModel)obj).Children = (uguimvvm.ObservableCollection<ChildViewModel>)value;
+        ((TestViewModel)obj).Children = (ObservableCollection<ChildViewModel>)value;
     });
 
   ppa.Register(
