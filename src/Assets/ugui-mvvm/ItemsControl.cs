@@ -44,14 +44,14 @@ namespace uguimvvm
 
         // MRMW Change Start - Add Prefab selector support
         [SerializeField]
-        private BasePrefabSelector _prefabSelector;
+        private Component _prefabSelector;
         public BasePrefabSelector PrefabSelector
         {
-            get { return _prefabSelector; }
+            get { return _prefabSelector as BasePrefabSelector; }
             set
             {
                 if (_prefabSelector == value) return;
-                _prefabSelector = value;
+                _prefabSelector = value as BasePrefabSelector;
                 ResetCollection(false);
             }
         }
@@ -153,7 +153,7 @@ namespace uguimvvm
         {
             var trans = transform;
 // MRMW Start Change - Prefab Selector support
-            var itemTemplate = _prefabSelector != null ? _prefabSelector.SelectPrefab(item) : _itemTemplate;
+            var itemTemplate = PrefabSelector != null ? PrefabSelector.SelectPrefab(item) : _itemTemplate;
             var control = Instantiate(itemTemplate);
 // MRMW End Change - Prefab Selector support
 
