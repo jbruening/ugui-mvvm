@@ -3,12 +3,17 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using uguimvvm;
+using System.Collections.Generic;
 
 [CustomEditor(typeof(DataContext))]
 class DataContextEditor : Editor
 {
     bool _searching;
     string _searchString;
+    // MRMW_CHANGE - BEGIN: Improve searching
+    string _previousSearchString = String.Empty;
+    private IEnumerable<Type> types;
+    // MRMW_CHANGE - END: Improve searching
     private Vector2 _scrollPos;
     private Type _tval;
     private bool _cvis;
@@ -74,22 +79,40 @@ class DataContextEditor : Editor
         }
         else
         {
+            GUI.SetNextControlName("SearchField");
             _searchString = EditorGUILayout.TextField(_searchString);
         }
 
         if (_tval == null && !string.IsNullOrEmpty(_searchString))
         {
-            var types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()).Where(t => t.Name.IndexOf(_searchString, StringComparison.OrdinalIgnoreCase) >= 0);
-            _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.Height(100));
-            foreach (var type in types)
+            // MRMW_CHANGE - BEGIN: Improve searching
+            if (!_previousSearchString.Equals(_searchString))
             {
-                if (GUILayout.Button(type.FullName))
-                {
-                    _tval = type;
-                    tprop.stringValue = _tval.AssemblyQualifiedName;
-                }
+                _previousSearchString = _searchString;
+                types = null;
             }
-            EditorGUILayout.EndScrollView();
+
+            if (types == null && GUILayout.Button("Search"))
+            {
+                types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()).Where(t => t.AssemblyQualifiedName.IndexOf(_searchString, StringComparison.OrdinalIgnoreCase) >= 0).Take(4);
+            }
+
+            EditorGUI.FocusTextInControl("SearchField");
+
+            if (types != null)
+            {
+                _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.Height(100));
+                foreach (var type in types)
+                {
+                    if (GUILayout.Button(type.FullName))
+                    {
+                        _tval = type;
+                        tprop.stringValue = _tval.AssemblyQualifiedName;
+                    }
+                }
+                EditorGUILayout.EndScrollView();
+            }
+            // MRMW_CHANGE - END: Improve searching
         }
 
 
