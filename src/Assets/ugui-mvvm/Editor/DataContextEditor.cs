@@ -79,6 +79,7 @@ class DataContextEditor : Editor
         }
         else
         {
+            GUI.SetNextControlName("SearchField");
             _searchString = EditorGUILayout.TextField(_searchString);
         }
 
@@ -96,7 +97,9 @@ class DataContextEditor : Editor
                 types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()).Where(t => t.AssemblyQualifiedName.IndexOf(_searchString, StringComparison.OrdinalIgnoreCase) >= 0).Take(4);
             }
 
-            if(types != null)
+            EditorGUI.FocusTextInControl("SearchField");
+
+            if (types != null)
             {
                 _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.Height(100));
                 foreach (var type in types)
