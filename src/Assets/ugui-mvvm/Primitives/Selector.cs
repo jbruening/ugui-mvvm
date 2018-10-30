@@ -27,6 +27,13 @@ namespace uguimvvm.Primitives
             }
         }
 
+        // MRMW_CHANGE - BEGIN: Expose the gameobject of the selected item
+        public GameObject SelectedControl
+        {
+            get { return SelectedInfo?.Control; }
+        }
+        // MRMW_CHANGE - END: Expose the gameobject of the selected item
+
         [SerializeField]
         private UnityEvent _selectedChanged = null;
         public UnityEvent SelectedChanged { get { return _selectedChanged; } }
