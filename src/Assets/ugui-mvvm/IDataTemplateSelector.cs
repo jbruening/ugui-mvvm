@@ -2,14 +2,14 @@
 // MRMW BEGIN CHANGE - Added IPrefabSelector
 namespace uguimvvm
 {
-    public interface IPrefabSelector
+    public interface IDataTemplateSelector
     {
         /// <summary>
-        /// Select Prefab is used to decide which prefab should be used for a given data context.
+        /// SelectTemplate is used to decide which prefab should be used for a given data context.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        GameObject SelectPrefab(object data);
+        GameObject SelectTemplate(object data);
     }
 }
 // MRMW END CHANGE - Added IPrefabSelector
