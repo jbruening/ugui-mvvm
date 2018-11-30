@@ -42,7 +42,7 @@ namespace uguimvvm
             }
         }
 
-        // MRMW Change Start - Add ItemTemplate selector support
+        // MRMW Change Start - Add ItemTemplateSelector support
         [SerializeField]
         private DataTemplateSelector _itemTemplateSelector;
         public DataTemplateSelector ItemTemplateSelector
@@ -55,7 +55,7 @@ namespace uguimvvm
                 ResetCollection(false);
             }
         }
-        // MRMW Change End - Add Prefab Selector Support
+        // MRMW Change End - Add ItemTemplateSelector Support
 
         [Tooltip("When Awaking, destroy any children that are not part of the ItemsSource or the prefab.\nThis is useful where you want to view the items control as it would be with example objects, but don't actually want them to be children at runtime")]
         [SerializeField]
