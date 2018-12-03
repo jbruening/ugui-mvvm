@@ -42,20 +42,20 @@ namespace uguimvvm
             }
         }
 
-        // MRMW Change Start - Add Prefab selector support
+        // MRMW Change Start - Add ItemTemplateSelector support
         [SerializeField]
-        private Component _prefabSelector;
-        public BasePrefabSelector PrefabSelector
+        private DataTemplateSelector _itemTemplateSelector;
+        public DataTemplateSelector ItemTemplateSelector
         {
-            get { return _prefabSelector as BasePrefabSelector; }
+            get { return _itemTemplateSelector; }
             set
             {
-                if (_prefabSelector == value) return;
-                _prefabSelector = value as BasePrefabSelector;
+                if (_itemTemplateSelector == value) return;
+                _itemTemplateSelector = value;
                 ResetCollection(false);
             }
         }
-        // MRMW Change End - Add Prefab Selector Support
+        // MRMW Change End - Add ItemTemplateSelector Support
 
         [Tooltip("When Awaking, destroy any children that are not part of the ItemsSource or the prefab.\nThis is useful where you want to view the items control as it would be with example objects, but don't actually want them to be children at runtime")]
         [SerializeField]
@@ -153,7 +153,7 @@ namespace uguimvvm
         {
             var trans = transform;
 // MRMW Start Change - Prefab Selector support
-            var itemTemplate = PrefabSelector != null ? PrefabSelector.SelectPrefab(item) : _itemTemplate;
+            var itemTemplate = ItemTemplateSelector != null ? ItemTemplateSelector.SelectTemplate(item) : _itemTemplate;
             var control = Instantiate(itemTemplate);
 // MRMW End Change - Prefab Selector support
 
