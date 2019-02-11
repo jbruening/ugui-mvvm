@@ -437,7 +437,7 @@ namespace uguimvvm
         {
             if (value != null && !_vType.IsInstanceOfType(value))
             {
-                Debug.LogErrorFormat("Could not bind {0} to type {1}", value.GetType(), _vType);
+                Debug.LogErrorFormat(this, "Could not bind {0} to type {1}", value.GetType(), _vType);
                 return;
             }
 
@@ -460,7 +460,7 @@ namespace uguimvvm
         {
             if (value != null && value.GetType() != _vmType)
             {
-                Debug.LogErrorFormat("Could not bind {0} to type {1}", value.GetType(), _vmType);
+                Debug.LogErrorFormat(this, "Could not bind {0} to type {1}", value.GetType(), _vmType);
                 return;
             }
 
@@ -483,7 +483,7 @@ namespace uguimvvm
             }
             else
             {
-                Debug.LogErrorFormat("INPCBinding: Invalid ViewModel property in \"{0}\".",
+                Debug.LogErrorFormat(this, "INPCBinding: Invalid ViewModel property in \"{0}\".",
                     gameObject.GetParentNameHierarchy());
             }
             // MRMW_CHANGE - END: Improve handling of invalid DataContext types
@@ -495,7 +495,7 @@ namespace uguimvvm
             }
             else
             {
-                Debug.LogErrorFormat("INPCBinding: Invalid View property in \"{0}\".",
+                Debug.LogErrorFormat(this, "INPCBinding: Invalid View property in \"{0}\".",
                     gameObject.GetParentNameHierarchy());
             }
             // MRMW_CHANGE - END: Improve handling of invalid DataContext types

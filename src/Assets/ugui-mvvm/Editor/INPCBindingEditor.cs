@@ -239,7 +239,7 @@ class INPCBindingEditor : Editor
 
     public static void DrawCRefProp(int targetId, SerializedProperty property, GUIContent label, bool resolveDataContext = true)
     {
-        DrawCRefProp(targetId, property, label, typeof(object));
+        DrawCRefProp(targetId, property, label, typeof(object), resolveDataContext);
     }
 
     public static void GetCPathProperties(SerializedProperty property, out SerializedProperty component, out SerializedProperty path)

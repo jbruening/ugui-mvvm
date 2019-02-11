@@ -88,7 +88,7 @@ namespace uguimvvm
             // MRMW_CHANGE - BEGIN: Improve handling of invalid DataContext types
             if (!_vmProp.IsValid)
             {
-                Debug.LogErrorFormat("CommandBinding: Invalid ViewModel property in \"{0}\".",
+                Debug.LogErrorFormat(this, "CommandBinding: Invalid ViewModel property in \"{0}\".",
                     gameObject.GetParentNameHierarchy());
             }
             // MRMW_CHANGE - END: Improve handling of invalid DataContext types
@@ -98,7 +98,7 @@ namespace uguimvvm
 
             if (_vmProp == null)
             {
-                Debug.LogWarningFormat("No property named {0} of type ICommand exists in {1}", _viewModel.Property, vmtype);
+                Debug.LogWarningFormat(this, "No property named {0} of type ICommand exists in {1}", _viewModel.Property, vmtype);
             }
 
             if (_vmProp != null && _vmProp.IsValid)

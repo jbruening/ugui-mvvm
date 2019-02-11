@@ -53,12 +53,12 @@ namespace uguimvvm
             if (!_instantiateOnAwake) return;
             if (Type == null)
             {
-                Debug.LogError("Set to instantiate on awake, but type is not defined, or is not valid");
+                Debug.LogError("Set to instantiate on awake, but type is not defined, or is not valid", this);
                 return;
             }
             if (typeof(UnityEngine.Object).IsAssignableFrom(Type))
             {
-                Debug.LogErrorFormat("Cannot automatically instantiate type {0}, as it derives from UnityEngine.Object", Type);
+                Debug.LogErrorFormat(this, "Cannot automatically instantiate type {0}, as it derives from UnityEngine.Object", Type);
                 return;
             }
 
