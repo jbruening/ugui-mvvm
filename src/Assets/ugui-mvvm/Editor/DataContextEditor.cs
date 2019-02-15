@@ -8,15 +8,19 @@ using System.Collections.Generic;
 [CustomEditor(typeof(DataContext))]
 class DataContextEditor : Editor
 {
-    bool _searching;
-    string _searchString;
+    private static readonly string SearchFieldLabel = "Type name";
+    private static readonly string SearchFieldControlName = "SearchField";
+
+    private bool _searching;
+    private string _searchString;
     // MRMW_CHANGE - BEGIN: Improve searching
-    string _previousSearchString = String.Empty;
-    private IEnumerable<Type> types;
+    private string _previousSearchString = String.Empty;
+    private IEnumerable<Type> _types;
     // MRMW_CHANGE - END: Improve searching
     private Vector2 _scrollPos;
     private Type _tval;
     private bool _cvis;
+
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
@@ -44,7 +48,9 @@ class DataContextEditor : Editor
         if (_tval != null)
         {
             if (typeof(UnityEngine.Object).IsAssignableFrom(_tval))
+            {
                 GUILayout.Label("Auto-instantiation not possible with UnityEngine.Object types");
+            }
             else
             {
                 EditorGUILayout.PropertyField(iprop);
@@ -55,7 +61,7 @@ class DataContextEditor : Editor
 
         if (_tval != null)
         {
-            _searchString = EditorGUILayout.TextField(_tval.FullName);
+            _searchString = EditorGUILayout.TextField(SearchFieldLabel, _tval.FullName);
             if (_searchString != _tval.FullName)
             {
                 tprop.stringValue = null;
@@ -79,8 +85,9 @@ class DataContextEditor : Editor
         }
         else
         {
-            GUI.SetNextControlName("SearchField");
-            _searchString = EditorGUILayout.TextField(_searchString);
+
+            GUI.SetNextControlName(SearchFieldControlName);
+            _searchString = EditorGUILayout.TextField(SearchFieldLabel, _searchString);
         }
 
         if (_tval == null && !string.IsNullOrEmpty(_searchString))
@@ -89,20 +96,23 @@ class DataContextEditor : Editor
             if (!_previousSearchString.Equals(_searchString))
             {
                 _previousSearchString = _searchString;
-                types = null;
+                _types = null;
             }
 
-            if (types == null && GUILayout.Button("Search"))
+            if (_types == null && GUILayout.Button("Search"))
             {
-                types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()).Where(t => t.AssemblyQualifiedName.IndexOf(_searchString, StringComparison.OrdinalIgnoreCase) >= 0).Take(4);
+                var typeQuery = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()).Where(t => t.AssemblyQualifiedName.IndexOf(_searchString, StringComparison.OrdinalIgnoreCase) >= 0);
+
+                // Calling ToList forces the query to execute this one time, instead of executing every single time "types" is enumerated.
+                _types = typeQuery.ToList();
             }
 
-            EditorGUI.FocusTextInControl("SearchField");
+            EditorGUI.FocusTextInControl(SearchFieldControlName);
 
-            if (types != null)
+            if (_types != null)
             {
                 _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.Height(100));
-                foreach (var type in types)
+                foreach (var type in _types)
                 {
                     if (GUILayout.Button(type.FullName))
                     {
@@ -115,15 +125,13 @@ class DataContextEditor : Editor
             // MRMW_CHANGE - END: Improve searching
         }
 
-
-
         serializedObject.ApplyModifiedProperties();
 
         var dc = target as DataContext;
         if (dc != null)
         {
             EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.Toggle("Value?", dc.Value != null);
+            EditorGUILayout.Toggle("Value is non-null?", dc.Value != null);
             EditorGUI.EndDisabledGroup();
         }
     }
