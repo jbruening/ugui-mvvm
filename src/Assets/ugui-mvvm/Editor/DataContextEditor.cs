@@ -101,7 +101,16 @@ class DataContextEditor : Editor
 
             if (_types == null && GUILayout.Button("Search"))
             {
-                var typeQuery = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()).Where(t => t.AssemblyQualifiedName.IndexOf(_searchString, StringComparison.OrdinalIgnoreCase) >= 0);
+                var typeQuery = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a =>
+                {
+                    try
+                    {
+                        return a.GetTypes();
+                    } catch (Exception)
+                    {
+                        return new Type[] { };
+                    }
+                 }.Where(t => t.AssemblyQualifiedName.IndexOf(_searchString, StringComparison.OrdinalIgnoreCase) >= 0).Take(4);
 
                 // Calling ToList forces the query to execute this one time, instead of executing every single time "types" is enumerated.
                 _types = typeQuery.ToList();
