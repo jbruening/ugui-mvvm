@@ -110,7 +110,7 @@ class DataContextEditor : Editor
                     {
                         return new Type[] { };
                     }
-                 }).Where(t => t.AssemblyQualifiedName.IndexOf(_searchString, StringComparison.OrdinalIgnoreCase) >= 0).Take(4);
+                 }).Where(t => t.AssemblyQualifiedName.IndexOf(_searchString, StringComparison.OrdinalIgnoreCase) >= 0);
 
                 // Calling ToList forces the query to execute this one time, instead of executing every single time "types" is enumerated.
                 _types = typeQuery.ToList();
