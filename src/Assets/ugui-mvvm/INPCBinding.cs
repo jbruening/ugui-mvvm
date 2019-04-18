@@ -308,7 +308,7 @@ namespace uguimvvm
         ComponentPath _viewModel;
 
         [SerializeField]
-        BindingMode _mode = BindingMode.TwoWay;
+        BindingMode _mode = BindingMode.OneWayToView;
         public BindingMode Mode { get { return _mode; } }
 
 // MRMW_CHANGE - BEGIN: supress CS0649 warning since the assignment is done in the unity inspector
