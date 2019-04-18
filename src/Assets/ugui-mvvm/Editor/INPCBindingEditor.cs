@@ -57,6 +57,18 @@ class INPCBindingEditor : Editor
         var vevValue = GetEvent(vcomp, viewEvProp);
         if (vevValue != null)
         {
+            var eventCount = vevValue.GetPersistentEventCount();
+
+            for (var idx = 0; idx < eventCount; idx++)
+            {
+                var perTarget = vevValue.GetPersistentTarget(idx);
+                // if we find a duplicate event skip over adding it
+                if (perTarget == binding)
+                {
+                    return;
+                }
+            }
+
             UnityEditor.Events.UnityEventTools.AddVoidPersistentListener(vevValue, binding.ApplyVToVM);
         }
 
