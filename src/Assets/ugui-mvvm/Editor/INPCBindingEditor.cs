@@ -14,11 +14,68 @@ using UnityEditor.SceneManagement;
 [CustomEditor(typeof(INPCBinding))]
 class INPCBindingEditor : Editor
 {
+    private static List<INPCBinding> cachedBindings = new List<INPCBinding>();
+
     #region scene post processing
     [PostProcessScene(1)]
     public static void OnPostProcessScene()
     {
+        EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         FigureViewBindings();
+    }
+
+    private static void OnPlayModeStateChanged(PlayModeStateChange state)
+    {
+        // adding this workaround because a lot of the bindings don't get cleaned up by the editor after quitting the scene 
+        if (state == PlayModeStateChange.ExitingPlayMode)
+        {
+            foreach (var binding in cachedBindings)
+            {
+                if (binding.Mode != BindingMode.OneWayToView)
+                {
+                    RemoveViewBinding(binding);
+                }
+            }
+            cachedBindings.Clear();
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+        }
+    }
+
+    static void RemoveViewBinding(INPCBinding binding)
+    {
+        var sobj = new SerializedObject(binding);
+        var vevValue = GetViewEventValue(sobj);
+        if (vevValue != null)
+        {
+            var eventCount = vevValue.GetPersistentEventCount();
+            for (var idx = 0; idx < eventCount; idx++)
+            {
+                var perTarget = vevValue.GetPersistentTarget(idx);
+                // this was a binding we added, let's remove it
+                if (perTarget == binding)
+                {
+                    UnityEditor.Events.UnityEventTools.RemovePersistentListener(vevValue, idx);
+                    eventCount--;
+                    sobj.ApplyModifiedProperties();
+                }
+            }
+        }
+    }
+
+    private static UnityEventBase GetViewEventValue(SerializedObject sobj)
+    {
+        var viewEvProp = sobj.FindProperty("_viewEvent");
+        if (string.IsNullOrEmpty(viewEvProp.stringValue))
+            return null;
+
+        var viewProp = sobj.FindProperty("_view");
+        var vcprop = viewProp.FindPropertyRelative("Component");
+
+        var vcomp = vcprop.objectReferenceValue as Component;
+        if (vcomp == null)
+            return null;
+
+        return GetEvent(vcomp, viewEvProp);
     }
 
     private static void FigureViewBindings()
@@ -36,27 +93,14 @@ class INPCBindingEditor : Editor
     {
         if (binding.Mode == BindingMode.OneWayToView)
         {
-            // MRMW BEGIN - Disable Message
-            // Debug.LogFormat(binding, "Skipping {0}, as it is onewaytoview", binding.name);
-            // MRMW END - Disable Message
             return;
         }
 
         var sobj = new SerializedObject(binding);
-        var viewProp = sobj.FindProperty("_view");
-        var viewEvProp = sobj.FindProperty("_viewEvent");
-        if (string.IsNullOrEmpty(viewEvProp.stringValue))
-            return;
-
-        var vcprop = viewProp.FindPropertyRelative("Component");
-
-        var vcomp = vcprop.objectReferenceValue as Component;
-        if (vcomp == null)
-            return;
-
-        var vevValue = GetEvent(vcomp, viewEvProp);
+        var vevValue = GetViewEventValue(sobj);
         if (vevValue != null)
         {
+            cachedBindings.Add(binding);
             var eventCount = vevValue.GetPersistentEventCount();
 
             for (var idx = 0; idx < eventCount; idx++)
