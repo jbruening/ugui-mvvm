@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-// MRMW BEGIN CHANGE - Added IDataTemplateSelector
+
 namespace uguimvvm
 {
     public interface IDataTemplateSelector
@@ -12,4 +12,4 @@ namespace uguimvvm
         GameObject SelectTemplate(object data);
     }
 }
-// MRMW END CHANGE - Added IDataTemplateSelector
+

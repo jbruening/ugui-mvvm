@@ -7,7 +7,9 @@ using System.Text;
 using uguimvvm;
 using UnityEditor;
 using UnityEditor.Callbacks;
+#if UNITY_5_3_OR_NEWER
 using UnityEditor.SceneManagement;
+#endif
 using UnityEngine;
 
 public class PropertyPathAccessorGenerator
@@ -25,8 +27,11 @@ public class PropertyPathAccessorGenerator
         const string title = "Generating propery accessors";
         EditorUtility.DisplayProgressBar(title, "", 0);
 
+#if UNITY_5_3_OR_NEWER
         var currentLevel = EditorSceneManager.GetActiveScene();
-
+#else
+        var currentLevel = EditorApplication.currentScene;
+#endif
         _contents = new StringBuilder();
         _paths.Clear();
         EditorUtility.DisplayProgressBar(title, "Creating header", 0);
@@ -39,13 +44,17 @@ public class PropertyPathAccessorGenerator
         {
             var level = scenes[i];
             EditorUtility.DisplayProgressBar(title, "Opening scene " + level, i / total);
+#if UNITY_5_3_OR_NEWER
             var scene = EditorSceneManager.OpenScene(level);
             EditorSceneManager.SetActiveScene(scene);
-
+#else
+            EditorApplication.OpenScene(level);
+#endif
             EditorUtility.DisplayProgressBar(title, "Adding paths in " + level, i/total);
             BuildPathsInScene(_contents);
-
+#if UNITY_5_3_OR_NEWER
             EditorSceneManager.CloseScene(scene, true);
+#endif
         }
 
         EditorUtility.DisplayProgressBar(title, "Generating for prefabs", total - 0.5f / total);
@@ -54,8 +63,9 @@ public class PropertyPathAccessorGenerator
         FinishContents(_contents);
 
         EditorUtility.DisplayProgressBar(title, "Reopening original", 1);
+#if UNITY_5_3_OR_NEWER
         EditorSceneManager.SetActiveScene(currentLevel);
-
+#endif
         var contents = _contents.ToString();
         if (!ValidateContents(contents))
         {
@@ -93,8 +103,13 @@ public class PropertyPathAccessorGenerator
     private static void CreateHeader(StringBuilder sw)
     {
         sw.AppendLine(@"#region GENERATED. Regenerate by menu item Assets/Generate PropertyPathGen
-using uguimvvm;
+using INPCBinding = uguimvvm.INPCBinding;
 using ppa = uguimvvm.PropertyPathAccessors;
+#if UNITY_WSA || !NET_LEGACY
+using System.Collections.ObjectModel;
+#else
+using uguimvvm;
+#endif
 
 class PropertyPathGen
 {

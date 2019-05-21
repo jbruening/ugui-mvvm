@@ -1,9 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Reflection;
-// MRMW_CHANGE - BEGIN: Replacing uguimvvm.ICommand with ICommand
+#if UNITY_WSA || !NET_LEGACY
 using System.Windows.Input;
-// MRMW_CHANGE - END: Replacing uguimvvm.ICommand with ICommand
+#endif
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -16,19 +16,13 @@ namespace uguimvvm
         [SerializeField]
         Component _view;
 
-// MRMW_CHANGE - BEGIN: supress CS0169 warning
 #pragma warning disable 0169
-// MRMW_CHANGE - END: supress CS0169 warning
-
         [SerializeField]
         string _viewEvent;
 
-// MRMW_CHANGE - BEGIN: supress CS0169 warning
 #if !UNITY_EDITOR
 #pragma warning restore 0169
 #endif
-// MRMW_CHANGE - END: supress CS0169 warning
-
         [SerializeField]
         INPCBinding.ComponentPath _viewModel = null;
 
@@ -38,7 +32,6 @@ namespace uguimvvm
         INPCBinding.PropertyPath _vmProp;
         private ICommand _command;
 
-//MRMW_CHANGE - BEGIN: Used to bind voice commands for now, looking at adding voice option to command binding
         public INPCBinding.ComponentPath ViewModel
         {
             get
@@ -46,7 +39,6 @@ namespace uguimvvm
                 return _viewModel;
             }
         }
-//MRMW_CHANGE - END: Used to bind voice commands for now, looking at adding voice option to command binding
 
         void Reset()
         {
@@ -85,13 +77,11 @@ namespace uguimvvm
 
             _vmProp = new INPCBinding.PropertyPath(_viewModel.Property, vmtype, true);
 
-            // MRMW_CHANGE - BEGIN: Improve handling of invalid DataContext types
             if (!_vmProp.IsValid)
             {
                 Debug.LogErrorFormat(this, "CommandBinding: Invalid ViewModel property in \"{0}\".",
                     gameObject.GetParentNameHierarchy());
             }
-            // MRMW_CHANGE - END: Improve handling of invalid DataContext types
 
             if (!typeof (ICommand).IsAssignableFrom(_vmProp.PropertyType))
                 _vmProp = null;
@@ -145,9 +135,7 @@ namespace uguimvvm
         private void CommandOnCanExecuteChanged(object sender, EventArgs eventArgs)
         {
             //enable if we don't have a command, or whatever the command's canexecute is.
-            // MRMW_CHANGE - BEGIN: Adding Binding support for Command Paramater
             SetViewEnabledState(_command == null || _command.CanExecute(GetCommandParamater()));
-            // MRMW_CHANGE - END: Adding Binding support for Command Paramater
         }
 
         private void SetViewEnabledState(bool state)
@@ -159,12 +147,9 @@ namespace uguimvvm
         public void ExecuteCommand()
         {
             if (_command == null) return;
-            // MRMW_CHANGE - BEGIN: Adding Binding support for Command Paramater
             _command.Execute(GetCommandParamater());
-            // MRMW_CHANGE - END: Adding Binding support for Command Paramater
         }
 
-        // MRMW_CHANGE - BEGIN: Adding Binding support for Command Paramater
         private object GetCommandParamater()
         {
             object val = null;
@@ -199,7 +184,6 @@ namespace uguimvvm
 
             return val;
         }
-        // MRMW_CHANGE - END: Adding Binding support for Command Paramater
     }
 
     [Serializable]
@@ -211,9 +195,7 @@ namespace uguimvvm
         public int Int;
         public float Float;
         public bool Bool;
-        // MRMW_CHANGE - BEGIN: Adding Binding support for Command Paramater
         public string PropertyPath;
-        // MRMW_CHANGE - END: Adding Binding support for Command Paramater
 
         public object GetValue()
         {
@@ -229,11 +211,9 @@ namespace uguimvvm
                     return ObjectReference;
                 case BindingParameterType.String:
                     return String;
-                // MRMW_CHANGE - BEGIN: Adding Binding support for Command Paramater
                 case BindingParameterType.Binding:
                 case BindingParameterType.ViewBinding:
                     return PropertyPath;
-                // MRMW_CHANGE - END: Adding Binding support for Command Paramater
                 default:
                     return null;
             }
@@ -247,9 +227,7 @@ namespace uguimvvm
         Int,
         Float,
         Bool,
-        // MRMW_CHANGE - BEGIN: Adding Binding support for Command Paramater
         Binding,
         ViewBinding,
-        // MRMW_CHANGE - END: Adding Binding support for Command Paramater
     }
 }

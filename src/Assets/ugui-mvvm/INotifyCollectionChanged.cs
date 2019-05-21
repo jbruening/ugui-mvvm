@@ -1,5 +1,4 @@
-﻿// MRMW_CHANGE - BEGIN: Replacing uguimvvm ObservableCollection<T> and INotifyCollectionChanged with System variants.
-/*
+﻿#if !(UNITY_WSA || !NET_LEGACY)
 using System;
 using System.Collections;
 
@@ -288,5 +287,4 @@ namespace uguimvvm
         Reset,
     }
 }
-*/
-// MRMW_CHANGE - END: Replacing uguimvvm ObservableCollection<T> and INotifyCollectionChanged with System variants.
+#endif

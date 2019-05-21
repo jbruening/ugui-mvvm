@@ -291,18 +291,14 @@ namespace uguimvvm
         [SerializeField]
         ComponentPath _view;
 
-// MRMW_CHANGE - BEGIN: supress CS0169 warning
 #pragma warning disable 0169
-// MRMW_CHANGE - END: supress CS0169 warning
 
         [SerializeField]
         string _viewEvent;
 
-// MRMW_CHANGE - BEGIN: supress CS0169 warning
 #if !UNITY_EDITOR
 #pragma warning restore 0169
 #endif
-// MRMW_CHANGE - END: supress CS0169 warning
 
         [SerializeField]
         ComponentPath _viewModel;
@@ -311,12 +307,10 @@ namespace uguimvvm
         BindingMode _mode = BindingMode.OneWayToView;
         public BindingMode Mode { get { return _mode; } }
 
-// MRMW_CHANGE - BEGIN: supress CS0649 warning since the assignment is done in the unity inspector
 #pragma warning disable 0649
         [SerializeField]
         ScriptableObject _converter;
 #pragma warning restore 0649
-// MRMW_CHANGE - END: supress CS0649 warning since the assignment is done in the unity inspector
 
         IValueConverter _ci;
         Type _vType;
@@ -477,7 +471,6 @@ namespace uguimvvm
             _vProp = FigureBinding(_view, null, false);
 
             if (_vmProp.IsValid)
-            // MRMW_CHANGE - BEGIN: Improve handling of invalid DataContext types
             {
                 _vmType = _vmProp.PropertyType;
             }
@@ -486,10 +479,8 @@ namespace uguimvvm
                 Debug.LogErrorFormat(this, "INPCBinding: Invalid ViewModel property in \"{0}\".",
                     gameObject.GetParentNameHierarchy());
             }
-            // MRMW_CHANGE - END: Improve handling of invalid DataContext types
 
             if (_vProp.IsValid)
-            // MRMW_CHANGE - BEGIN: Improve handling of invalid DataContext types
             {
                 _vType = _vProp.PropertyType;
             }
@@ -498,7 +489,6 @@ namespace uguimvvm
                 Debug.LogErrorFormat(this, "INPCBinding: Invalid View property in \"{0}\".",
                     gameObject.GetParentNameHierarchy());
             }
-            // MRMW_CHANGE - END: Improve handling of invalid DataContext types
         }
 
         public static PropertyPath FigureBinding(ComponentPath path, PropertyChangedEventHandler handler, bool resolveDataContext)

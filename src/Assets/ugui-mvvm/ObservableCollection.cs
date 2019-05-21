@@ -1,5 +1,4 @@
-﻿// MRMW_CHANGE - BEGIN: Replacing uguimvvm ObservableCollection<T> and INotifyCollectionChanged with System variants.
-/*
+﻿#if !(UNITY_WSA || !NET_LEGACY)
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -23,7 +22,7 @@ namespace uguimvvm
         //
         //-----------------------------------------------------
 
-        #region Constructors
+#region Constructors
         /// <summary>
         /// Initializes a new instance of ObservableCollection that is empty and has default initial capacity.
         /// </summary>
@@ -60,7 +59,7 @@ namespace uguimvvm
             }
         }
 
-        #endregion Constructors
+#endregion Constructors
 
 
         //------------------------------------------------------
@@ -69,7 +68,7 @@ namespace uguimvvm
         //
         //-----------------------------------------------------
 
-        #region Public Methods
+#region Public Methods
 
         /// <summary>
         /// Move item at oldIndex to newIndex.
@@ -79,7 +78,7 @@ namespace uguimvvm
             MoveItem(oldIndex, newIndex);
         }
 
-        #endregion Public Methods
+#endregion Public Methods
 
 
         //------------------------------------------------------
@@ -88,10 +87,10 @@ namespace uguimvvm
         //
         //------------------------------------------------------
 
-        #region Public Events
+#region Public Events
 
         //-----------------------------------------------------
-        #region INotifyPropertyChanged implementation
+#region INotifyPropertyChanged implementation
 
         /// <summary>
         /// PropertyChanged event (per <see cref="INotifyPropertyChanged">).
@@ -107,7 +106,7 @@ namespace uguimvvm
                 PropertyChanged -= value;
             }
         }
-        #endregion INotifyPropertyChanged implementation
+#endregion INotifyPropertyChanged implementation
 
 
         //------------------------------------------------------
@@ -119,7 +118,7 @@ namespace uguimvvm
         /// </seealso></remarks>
         public virtual event NotifyCollectionChangedEventHandler CollectionChanged;
 
-        #endregion Public Events
+#endregion Public Events
 
 
         //-----------------------------------------------------
@@ -128,7 +127,7 @@ namespace uguimvvm
         //
         //-----------------------------------------------------
 
-        #region Protected Methods
+#region Protected Methods
 
         /// <summary>
         /// Called by base class Collection<T> when the list is being cleared;
@@ -276,7 +275,7 @@ namespace uguimvvm
             }
         }
 
-        #endregion Protected Methods
+#endregion Protected Methods
 
 
         //-----------------------------------------------------
@@ -285,7 +284,7 @@ namespace uguimvvm
         //
         //------------------------------------------------------
 
-        #region Private Methods
+#region Private Methods
         /// <summary>
         /// Helper to raise a PropertyChanged event  />).
         /// </summary>
@@ -325,7 +324,7 @@ namespace uguimvvm
         {
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
-        #endregion Private Methods
+#endregion Private Methods
 
         //-----------------------------------------------------
         //
@@ -333,7 +332,7 @@ namespace uguimvvm
         //
         //------------------------------------------------------
 
-        #region Private Types
+#region Private Types
 
         // this class helps prevent reentrant calls
         [Serializable()]
@@ -354,7 +353,7 @@ namespace uguimvvm
             int _busyCount;
         }
 
-        #endregion Private Types
+#endregion Private Types
 
         //------------------------------------------------------
         //
@@ -362,7 +361,7 @@ namespace uguimvvm
         //
         //-----------------------------------------------------
 
-        #region Private Fields
+#region Private Fields
 
         private const string CountString = "Count";
 
@@ -372,8 +371,7 @@ namespace uguimvvm
 
         private SimpleMonitor _monitor = new SimpleMonitor();
 
-        #endregion Private Fields
+#endregion Private Fields
     }
 }
-*/
-// MRMW_CHANGE - END: Replacing uguimvvm ObservableCollection<T> and INotifyCollectionChanged with System variants.
+#endif

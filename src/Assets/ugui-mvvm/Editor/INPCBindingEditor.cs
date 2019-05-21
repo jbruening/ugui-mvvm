@@ -7,23 +7,26 @@ using System.Reflection;
 using System;
 using uguimvvm;
 using System.Collections.Generic;
-// MRMW_CHANGE - BEGIN: EditorApplication.currentScene is deprecated, using EditorSceneManager.GetActiveScene() instead
+#if UNITY_5_3_OR_NEWER
 using UnityEditor.SceneManagement;
-// MRMW_CHANGE - END: EditorApplication.currentScene is deprecated, using EditorSceneManager.GetActiveScene() instead
+#endif
 
 [CustomEditor(typeof(INPCBinding))]
 class INPCBindingEditor : Editor
 {
     private static List<INPCBinding> cachedBindings = new List<INPCBinding>();
 
-    #region scene post processing
+#region scene post processing
     [PostProcessScene(1)]
     public static void OnPostProcessScene()
     {
+#if UNITY_2017_2_5_OR_NEWER
         EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+#endif
         FigureViewBindings();
     }
 
+#if UNITY_2017_2_5_OR_NEWER
     private static void OnPlayModeStateChanged(PlayModeStateChange state)
     {
         // adding this workaround because a lot of the bindings don't get cleaned up by the editor after quitting the scene 
@@ -40,6 +43,7 @@ class INPCBindingEditor : Editor
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
         }
     }
+#endif
 
     static void RemoveViewBinding(INPCBinding binding)
     {
@@ -171,9 +175,11 @@ class INPCBindingEditor : Editor
 
     private static string PathTo(Transform transform)
     {
-        // MRMW_CHANGE - BEGIN: EditorApplication.currentScene is deprecated, using EditorSceneManager.GetActiveScene() instead
+#if UNITY_5_3_OR_NEWER
         return (transform.parent != null ? PathTo(transform.parent) : "Scene " + EditorSceneManager.GetActiveScene().name) + "->" + transform.name;
-        // MRMW_CHANGE - END: EditorApplication.currentScene is deprecated, using EditorSceneManager.GetActiveScene() instead
+#else
+        return (transform.parent != null ? PathTo(transform.parent) : "Scene " + EditorApplication.currentScene) + "->" + transform.name;
+#endif
     }
 
     static bool IsEventType(Type type)
@@ -190,7 +196,7 @@ class INPCBindingEditor : Editor
         }
         return null;
     }
-    #endregion
+#endregion
 
     public override void OnInspectorGUI()
     {
@@ -339,7 +345,7 @@ class INPCBindingEditor : Editor
 
             if (ortype == null)
             {
-                // MRMW_CHANGE - BEGIN: Improve handling of invalid DataContext types
+                // Handle invalid DataContext types
                 if (!string.IsNullOrEmpty(pprop.stringValue))
                 {
                     var style = new GUIStyle(EditorStyles.textField);
@@ -351,7 +357,6 @@ class INPCBindingEditor : Editor
                         pprop.stringValue),
                         style);
                 }
-                // MRMW_CHANGE - END: Improve handling of invalid DataContext types
             }
             else
             {
@@ -365,7 +370,7 @@ class INPCBindingEditor : Editor
                 else
                 {
                     rtype = idx - 1 < 0 ? ortype : path.PPath[idx - 1].PropertyType;
-                    // MRMW_CHANGE - BEGIN: Improve handling of invalid DataContext types
+                    // Improve handling of invalid DataContext types
                     var style = new GUIStyle(EditorStyles.textField);
                     style.normal.textColor = Color.red;
                     EditorGUILayout.TextField(string.Format("Error: {0}/{1} invalid property \"{2}\" of an valid DataContext.",
@@ -373,7 +378,6 @@ class INPCBindingEditor : Editor
                         pprop.displayName,
                         pprop.stringValue),
                         style);
-                    // MRMW_CHANGE - END: Improve handling of invalid DataContext types
                 }
 
 
@@ -398,7 +402,7 @@ class INPCBindingEditor : Editor
         }
         else
         {
-            // MRMW_CHANGE - BEGIN: Improve handling of invalid DataContext types
+            // Improve handling of invalid DataContext types
             if (!string.IsNullOrEmpty(pprop.stringValue))
             {
                 var style = new GUIStyle(EditorStyles.textField);
@@ -410,7 +414,6 @@ class INPCBindingEditor : Editor
                         pprop.stringValue),
                         style);
             }
-            // MRMW_CHANGE - END: Improve handling of invalid DataContext types
         }
 
         EditorGUI.indentLevel--;

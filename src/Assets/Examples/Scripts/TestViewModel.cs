@@ -1,7 +1,9 @@
 ﻿using System.Linq;
-// MRMW Change Start - Fix Build Errors
+#if UNITY_WSA || !NET_LEGACY
 using System.Collections.ObjectModel;
-// MRMW Change End - Fix Build Errors
+#else
+using uguimvvm;
+#endif
 
 class TestViewModel : ABehaviourViewModel, IParentVm
 {

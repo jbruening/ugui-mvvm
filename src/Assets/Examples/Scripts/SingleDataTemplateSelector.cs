@@ -1,6 +1,6 @@
 ﻿using uguimvvm;
 using UnityEngine;
-// MRMW Change Start - Sample DataTemplateSelector
+
 public class SingleDataTemplateSelector : DataTemplateSelector
 {
     public GameObject DefaultPrefab;
@@ -10,4 +10,3 @@ public class SingleDataTemplateSelector : DataTemplateSelector
         return DefaultPrefab;
     }
 }
-// MRMW Change End - Sample DataTemplateSelector

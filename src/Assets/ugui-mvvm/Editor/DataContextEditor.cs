@@ -13,10 +13,8 @@ class DataContextEditor : Editor
 
     private bool _searching;
     private string _searchString;
-    // MRMW_CHANGE - BEGIN: Improve searching
     private string _previousSearchString = String.Empty;
     private IEnumerable<Type> _types;
-    // MRMW_CHANGE - END: Improve searching
     private Vector2 _scrollPos;
     private Type _tval;
     private bool _cvis;
@@ -34,14 +32,13 @@ class DataContextEditor : Editor
             _tval = Type.GetType(tprop.stringValue);
             if (_tval == null) //invalid type name. Clear it so we don't keep looking for an invalid type.
             {
-                // MRMW_CHANGE - BEGIN: Improve handling of invalid DataContext types
+                // Handle invalid DataContext types
                 var style = new GUIStyle(EditorStyles.textField);
                 style.normal.textColor = Color.red;
 
                 EditorGUILayout.TextField(string.Format("Error: Invalid type \"{0}\"",
                     tprop.stringValue),
                     style);
-                // MRMW_CHANGE - END: Improve handling of invalid DataContext types
             }
         }
 
@@ -92,7 +89,6 @@ class DataContextEditor : Editor
 
         if (_tval == null && !string.IsNullOrEmpty(_searchString))
         {
-            // MRMW_CHANGE - BEGIN: Improve searching
             if (!_previousSearchString.Equals(_searchString))
             {
                 _previousSearchString = _searchString;
@@ -106,11 +102,12 @@ class DataContextEditor : Editor
                     try
                     {
                         return a.GetTypes();
-                    } catch (Exception)
+                    }
+                    catch (Exception)
                     {
                         return new Type[] { };
                     }
-                 }).Where(t => t.AssemblyQualifiedName.IndexOf(_searchString, StringComparison.OrdinalIgnoreCase) >= 0);
+                }).Where(t => t.AssemblyQualifiedName.IndexOf(_searchString, StringComparison.OrdinalIgnoreCase) >= 0);
 
                 // Calling ToList forces the query to execute this one time, instead of executing every single time "types" is enumerated.
                 _types = typeQuery.ToList();
@@ -131,7 +128,6 @@ class DataContextEditor : Editor
                 }
                 EditorGUILayout.EndScrollView();
             }
-            // MRMW_CHANGE - END: Improve searching
         }
 
         serializedObject.ApplyModifiedProperties();

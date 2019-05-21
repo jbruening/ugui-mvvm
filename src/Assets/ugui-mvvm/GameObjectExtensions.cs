@@ -1,4 +1,4 @@
-﻿// MRMW_CHANGE - BEGIN: Improve handling of invalid DataContext types
+﻿
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -27,4 +27,4 @@ namespace uguimvvm
         }
     }
 }
-// MRMW_CHANGE - END: Improve handling of invalid DataContext types
+

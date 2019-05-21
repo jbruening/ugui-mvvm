@@ -1,7 +1,7 @@
 ﻿using uguimvvm;
-// MRMW Change Start - Fix Build Error
+#if UNITY_WSA || !NET_LEGACY
 using System.Collections.ObjectModel;
-// MRMW Change End - Fix Build Error
+#endif
 
 class TestPOCOVm : AViewModel, IParentVm
 {

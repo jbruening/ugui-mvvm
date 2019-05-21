@@ -1,7 +1,17 @@
 ﻿using System;
-// MRMW_CHANGE - BEGIN: Replacing uguimvvm.ICommand with ICommand
+#if UNITY_WSA || !NET_LEGACY
 using System.Windows.Input;
-// MRMW_CHANGE - END: Replacing uguimvvm.ICommand with ICommand
+#else
+namespace uguimvvm
+{
+    public interface ICommand
+    {
+        bool CanExecute(object parameter);
+        void Execute(object parameter);
+        event EventHandler CanExecuteChanged;
+    }
+}
+#endif
 
 namespace uguimvvm
 {

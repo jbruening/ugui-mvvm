@@ -1,7 +1,7 @@
 ﻿using System;
-// MRMW_CHANGE - BEGIN: Replacing uguimvvm.ICommand with ICommand
-using System.Windows.Input;
-// MRMW_CHANGE - END: Replacing uguimvvm.ICommand with ICommand
+#if UNITY_WSA || !NET_LEGACY
+using ICommand = System.Windows.Input.ICommand;
+#endif
 using uguimvvm;
 using UnityEditor;
 using UnityEditor.Callbacks;
@@ -15,7 +15,7 @@ class CommandBindingEditor : Editor
     private SerializedProperty _vmprop;
     private SerializedProperty _veprop;
 
-    #region scene post processing
+#region scene post processing
     [PostProcessScene(1)]
     public static void OnPostProcessScene()
     {
@@ -48,8 +48,7 @@ class CommandBindingEditor : Editor
         var @event = INPCBindingEditor.GetEvent(vcomp, veprop);
         if (@event != null)
         {
-            // MRMW_CHANGE - Begin - Fixing adding multiple command binding event handlers when using prefabs
-            // There is an issue with Prefabs not reverting the changes correctly
+            // Fixing adding multiple command binding event handlers when using prefabs
             var eventCount = @event.GetPersistentEventCount();
             for(var idx = 0; idx < eventCount; idx++)
             {
@@ -60,14 +59,13 @@ class CommandBindingEditor : Editor
                     return;
                 }
             }
-            // MRMW_CHANGE - END - Fixing adding multiple command binding event handlers when using prefabs
             
             UnityEditor.Events.UnityEventTools.AddVoidPersistentListener(@event, binding.ExecuteCommand);
         }
 
         sobj.ApplyModifiedProperties();
     }
-    #endregion
+#endregion
 
     void OnEnable()
     {

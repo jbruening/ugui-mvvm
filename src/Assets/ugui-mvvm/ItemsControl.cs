@@ -1,8 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-// MRMW_CHANGE - BEGIN: Replacing uguimvvm ObservableCollection<T> and INotifyCollectionChanged with System variants.
 using System.Collections.Specialized;
-// MRMW_CHANGE - END: Replacing uguimvvm ObservableCollection<T> and INotifyCollectionChanged with System variants.
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -42,7 +40,6 @@ namespace uguimvvm
             }
         }
 
-        // MRMW Change Start - Add ItemTemplateSelector support
         [SerializeField]
         private DataTemplateSelector _itemTemplateSelector;
         public DataTemplateSelector ItemTemplateSelector
@@ -55,7 +52,6 @@ namespace uguimvvm
                 ResetCollection(false);
             }
         }
-        // MRMW Change End - Add ItemTemplateSelector Support
 
         [Tooltip("When Awaking, destroy any children that are not part of the ItemsSource or the prefab.\nThis is useful where you want to view the items control as it would be with example objects, but don't actually want them to be children at runtime")]
         [SerializeField]
@@ -95,7 +91,7 @@ namespace uguimvvm
                 for (var i = transform.childCount - 1; i >= 0; i--)
                 {
                     var cg = transform.GetChild(i).gameObject;
-                    if (cg == ItemTemplate) // MRMW TODO: What is the expected behaviour here?
+                    if (cg == ItemTemplate)
                         cg.SetActive(false);
                     else if (_items.All(c => c.Control != cg))
                         Destroy(cg);
@@ -152,10 +148,8 @@ namespace uguimvvm
         private ItemInfo AddItem(object item)
         {
             var trans = transform;
-// MRMW Start Change - Prefab Selector support
             var itemTemplate = ItemTemplateSelector != null ? ItemTemplateSelector.SelectTemplate(item) : _itemTemplate;
             var control = Instantiate(itemTemplate);
-// MRMW End Change - Prefab Selector support
 
             var rect = control.GetComponent<RectTransform>();
             if (rect == null)

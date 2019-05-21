@@ -1,6 +1,4 @@
-﻿// MRMW_CHANGE - BEGIN: Replacing uguimvvm ObservableCollection<T> and INotifyCollectionChanged with System variants.
-using System.Collections.Specialized;
-// MRMW_CHANGE - END: Replacing uguimvvm ObservableCollection<T> and INotifyCollectionChanged with System variants.
+﻿using System.Collections.Specialized;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -27,12 +25,10 @@ namespace uguimvvm.Primitives
             }
         }
 
-        // MRMW_CHANGE - BEGIN: Expose the gameobject of the selected item
         public GameObject SelectedControl
         {
-            get { return SelectedInfo?.Control; }
+            get { return SelectedInfo == null ? null : SelectedInfo.Control; }
         }
-        // MRMW_CHANGE - END: Expose the gameobject of the selected item
 
         [SerializeField]
         private UnityEvent _selectedChanged = null;

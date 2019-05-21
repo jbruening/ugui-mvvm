@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
-// MRMW_CHANGE - BEGIN: Replacing uguimvvm.ICommand with ICommand
+#if UNITY_WSA || !NET_LEGACY
 using System.Windows.Input;
-// MRMW_CHANGE - END: Replacing uguimvvm.ICommand with ICommand
+#endif
 using UnityEngine;
 using Component = UnityEngine.Component;
 
@@ -12,12 +12,10 @@ namespace uguimvvm
 {
     public class DataContext : MonoBehaviour, INotifyPropertyChanged
     {
-// MRMW_CHANGE - BEGIN: supress CS0649 warning since the assignment is done in the unity inspector
 #pragma warning disable 0649
         [SerializeField]
         string _type;
 #pragma warning restore 0649
-// MRMW_CHANGE - END: supress CS0649 warning since the assignment is done in the unity inspector
 
         private Type _rtype;
         public Type Type
@@ -71,7 +69,6 @@ namespace uguimvvm
 
             _value = value;
 
-// ReSharper disable once ForCanBeConvertedToForeach foreach generates garbage
             for (int i = 0; i < _dependents.Count; i++)
             {
                 var item = _dependents[i];
@@ -90,7 +87,6 @@ namespace uguimvvm
 
         void OnDestroy()
         {
-// ReSharper disable once ForCanBeConvertedToForeach foreach generates garbage
             for (int i = 0; i < _dependents.Count; i++)
             {
                 var d = _dependents[i];
@@ -104,7 +100,6 @@ namespace uguimvvm
         {
             if (_value == null)
             {
-                //Debug.LogErrorFormat("Cannot get value for {0}. DataContext on {1} has no value", property, name);
                 return null;
             }
 
@@ -115,7 +110,6 @@ namespace uguimvvm
         {
             if (_value == null)
             {
-                //Debug.LogErrorFormat("Cannot set value for {0}. DataContext on {1} has no value", property, name);
                 return;
             }
 
@@ -137,7 +131,7 @@ namespace uguimvvm
             Command(commandName, null);
         }
 
-        #region property binding
+#region property binding
         private void BindingPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "" || e.PropertyName == _propertyBinding.Property)
@@ -153,7 +147,7 @@ namespace uguimvvm
             var value = INPCBinding.GetValue(_propertyBinding, _prop);
             UpdateValue(value);
         }
-        #endregion
+#endregion
 
         public void AddDependentProperty(INPCBinding.PropertyPath prop, PropertyChangedEventHandler handler)
         {
