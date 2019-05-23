@@ -29,6 +29,24 @@ namespace uguimvvm
         [SerializeField]
         private BindingParameter _parameter = null;
 
+        // alternatively use this property for custom parameter types to pass at runtime by binding this property to an INPCBinding
+        public object Parameter
+        {
+            get
+            {
+                return _runtimeParameter == null ? _parameter.GetValue() : _runtimeParameter;
+            }
+            set
+            {
+                if (_runtimeParameter != value)
+                {
+                    _runtimeParameter = value;
+                    SetViewEnabledState(_command == null || _command.CanExecute(_runtimeParameter));
+                }
+            }
+        }
+        private object _runtimeParameter = null;
+
         INPCBinding.PropertyPath _vmProp;
         private ICommand _command;
 
@@ -135,7 +153,7 @@ namespace uguimvvm
         private void CommandOnCanExecuteChanged(object sender, EventArgs eventArgs)
         {
             //enable if we don't have a command, or whatever the command's canexecute is.
-            SetViewEnabledState(_command == null || _command.CanExecute(GetCommandParamater()));
+            SetViewEnabledState(_command == null || _command.CanExecute(Parameter));
         }
 
         private void SetViewEnabledState(bool state)
@@ -147,42 +165,7 @@ namespace uguimvvm
         public void ExecuteCommand()
         {
             if (_command == null) return;
-            _command.Execute(GetCommandParamater());
-        }
-
-        private object GetCommandParamater()
-        {
-            object val = null;
-            if (_parameter.Type == BindingParameterType.Binding)
-            {
-                var param = (string)_parameter.GetValue();
-
-                Type vmtype = _viewModel.Component is DataContext ?
-                                        (_viewModel.Component as DataContext).Type
-                                        : _viewModel.Component.GetType();
-
-                var paramPath = new INPCBinding.PropertyPath(param, vmtype, true);
-
-                val = _viewModel.Component is DataContext ?
-                            (_viewModel.Component as DataContext).GetValue(paramPath)
-                            : paramPath.GetValue(_viewModel.Component, null);
-            }
-            else if (_parameter.Type == BindingParameterType.ViewBinding)
-            {
-                var param = (string)_parameter.GetValue();
-
-                Type vtype = _view.GetType();
-
-                var paramPath = new INPCBinding.PropertyPath(param, vtype, true);
-
-                val = paramPath.GetValue(_view, null);
-            }
-            else
-            {
-                val = _parameter.GetValue();
-            }
-
-            return val;
+            _command.Execute(Parameter);
         }
     }
 
@@ -195,7 +178,6 @@ namespace uguimvvm
         public int Int;
         public float Float;
         public bool Bool;
-        public string PropertyPath;
 
         public object GetValue()
         {
@@ -211,9 +193,6 @@ namespace uguimvvm
                     return ObjectReference;
                 case BindingParameterType.String:
                     return String;
-                case BindingParameterType.Binding:
-                case BindingParameterType.ViewBinding:
-                    return PropertyPath;
                 default:
                     return null;
             }
@@ -227,7 +206,5 @@ namespace uguimvvm
         Int,
         Float,
         Bool,
-        Binding,
-        ViewBinding,
     }
 }
