@@ -21,9 +21,20 @@ class CreateScriptableObjects : ScriptableWizard
             var validAssemblies = AppDomain.CurrentDomain.GetAssemblies().Where(a => !Equals(a, ueda) && !a.FullName.Contains("UnityEditor"));
             //all types deriving from ScriptableObject, that aren't editor-based classes.
             _scriptTypes = validAssemblies
-                    .SelectMany(a => a.GetTypes())
-                    .Where(t => typeof(ScriptableObject).IsAssignableFrom(t) && !editorTypes.Any(e => e.IsAssignableFrom(t)))
-                    .ToArray();
+                   .SelectMany(a =>
+                   {
+                       // some assemblies do not allow querying their type and can result in exceptions
+                       try
+                       {
+                           return a.GetTypes();
+                       }
+                       catch
+                       {
+                           return Enumerable.Empty<Type>();
+                       }
+                   })
+                   .Where(t => typeof(ScriptableObject).IsAssignableFrom(t) && !editorTypes.Any(e => e.IsAssignableFrom(t)))
+                   .ToArray();
             _names = _scriptTypes.Select(t => t.FullName).ToArray();
         }
 

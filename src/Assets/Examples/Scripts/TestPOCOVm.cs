@@ -1,6 +1,7 @@
 ﻿using uguimvvm;
-using UnityEngine;
-using System.Collections;
+#if UNITY_WSA || !NET_LEGACY
+using System.Collections.ObjectModel;
+#endif
 
 class TestPOCOVm : AViewModel, IParentVm
 {

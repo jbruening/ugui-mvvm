@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Specialized;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -22,6 +23,11 @@ namespace uguimvvm.Primitives
 
                 InternalSetSelected(info, true);
             }
+        }
+
+        public GameObject SelectedControl
+        {
+            get { return SelectedInfo == null ? null : SelectedInfo.Control; }
         }
 
         [SerializeField]

@@ -1,6 +1,9 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+#if UNITY_WSA || !NET_LEGACY
+using System.Collections.ObjectModel;
+#else
 using uguimvvm;
-using System.Linq;
+#endif
 
 class TestViewModel : ABehaviourViewModel, IParentVm
 {

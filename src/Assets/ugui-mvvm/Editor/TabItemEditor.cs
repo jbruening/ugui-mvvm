@@ -43,7 +43,7 @@ namespace uguimvvm.Editor
 
             var tab = CreateTab(GetStandardResources());
             SetParentAndAlign(tab, panel);
-            
+
 
             PlaceUIElementRoot(panel, menuCommand.context as GameObject);
             if (panel == null) return; //destroyed
@@ -68,9 +68,9 @@ namespace uguimvvm.Editor
         {
             var button = DefaultControls.CreateButton(GetStandardResources());
             Object.DestroyImmediate(button.GetComponent<Button>());
-            var tab = button.AddComponent<TabItem>();
+            button.AddComponent<TabItem>();
             button.name = "Tab";
-            var lg = button.AddComponent<LayoutElement>();
+            button.AddComponent<LayoutElement>();
             return button;
         }
 

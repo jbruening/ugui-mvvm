@@ -7,15 +7,79 @@ using System.Reflection;
 using System;
 using uguimvvm;
 using System.Collections.Generic;
+#if UNITY_5_3_OR_NEWER
+using UnityEditor.SceneManagement;
+#endif
 
 [CustomEditor(typeof(INPCBinding))]
 class INPCBindingEditor : Editor
 {
-    #region scene post processing
+    private static List<INPCBinding> cachedBindings = new List<INPCBinding>();
+
+#region scene post processing
     [PostProcessScene(1)]
     public static void OnPostProcessScene()
     {
+#if UNITY_2017_2_5_OR_NEWER
+        EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+#endif
         FigureViewBindings();
+    }
+
+#if UNITY_2017_2_5_OR_NEWER
+    private static void OnPlayModeStateChanged(PlayModeStateChange state)
+    {
+        // adding this workaround because a lot of the bindings don't get cleaned up by the editor after quitting the scene 
+        if (state == PlayModeStateChange.ExitingPlayMode)
+        {
+            foreach (var binding in cachedBindings)
+            {
+                if (binding.Mode != BindingMode.OneWayToView)
+                {
+                    RemoveViewBinding(binding);
+                }
+            }
+            cachedBindings.Clear();
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+        }
+    }
+#endif
+
+    static void RemoveViewBinding(INPCBinding binding)
+    {
+        var sobj = new SerializedObject(binding);
+        var vevValue = GetViewEventValue(sobj);
+        if (vevValue != null)
+        {
+            var eventCount = vevValue.GetPersistentEventCount();
+            for (var idx = 0; idx < eventCount; idx++)
+            {
+                var perTarget = vevValue.GetPersistentTarget(idx);
+                // this was a binding we added, let's remove it
+                if (perTarget == binding)
+                {
+                    UnityEditor.Events.UnityEventTools.RemovePersistentListener(vevValue, idx);
+                    eventCount--;
+                    sobj.ApplyModifiedProperties();
+                }
+            }
+        }
+    }
+
+    private static UnityEventBase GetViewEventValue(SerializedObject sobj)
+    {
+        var viewEvProp = sobj.FindProperty("_viewEvent");
+        if (string.IsNullOrEmpty(viewEvProp.stringValue))
+            return null;
+
+        var viewProp = sobj.FindProperty("_view");
+        var vcprop = viewProp.FindPropertyRelative("Component");
+
+        var vcomp = vcprop.objectReferenceValue as Component;
+        if (vcomp == null)
+            return null;
+
+        return GetEvent(vcomp, viewEvProp);
     }
 
     private static void FigureViewBindings()
@@ -33,25 +97,26 @@ class INPCBindingEditor : Editor
     {
         if (binding.Mode == BindingMode.OneWayToView)
         {
-            Debug.LogFormat(binding, "Skipping {0}, as it is onewaytoview", binding.name);
             return;
         }
 
         var sobj = new SerializedObject(binding);
-        var viewProp = sobj.FindProperty("_view");
-        var viewEvProp = sobj.FindProperty("_viewEvent");
-        if (string.IsNullOrEmpty(viewEvProp.stringValue))
-            return;
-
-        var vcprop = viewProp.FindPropertyRelative("Component");
-
-        var vcomp = vcprop.objectReferenceValue as Component;
-        if (vcomp == null)
-            return;
-
-        var vevValue = GetEvent(vcomp, viewEvProp);
+        var vevValue = GetViewEventValue(sobj);
         if (vevValue != null)
         {
+            cachedBindings.Add(binding);
+            var eventCount = vevValue.GetPersistentEventCount();
+
+            for (var idx = 0; idx < eventCount; idx++)
+            {
+                var perTarget = vevValue.GetPersistentTarget(idx);
+                // if we find a duplicate event skip over adding it
+                if (perTarget == binding)
+                {
+                    return;
+                }
+            }
+
             UnityEditor.Events.UnityEventTools.AddVoidPersistentListener(vevValue, binding.ApplyVToVM);
         }
 
@@ -82,7 +147,7 @@ class INPCBindingEditor : Editor
         //necessary to actually iterate over the properties of it.
         it.Next(true);
         var sep = FirstOrDefault(it, p => p.displayName == eventName);
-        
+
         if (sep == null)
         {
             Debug.LogErrorFormat(component, "Could not get event {0} on {1}.  Something probably changed event names, so you need to fix it. {2}", eventName, type, PathTo(component));
@@ -166,7 +231,7 @@ class INPCBindingEditor : Editor
     }
 
     /// <summary>
-    /// Draw all UnityEventBase 
+    /// Draw all UnityEventBase
     /// </summary>
     /// <param name="crefProperty"></param>
     /// <param name="eventProperty"></param>
@@ -221,7 +286,7 @@ class INPCBindingEditor : Editor
     {
         if (t == null)
             return Enumerable.Empty<FieldInfo>();
-        var flags = BindingFlags.Public | BindingFlags.NonPublic | 
+        var flags = BindingFlags.Public | BindingFlags.NonPublic |
                     BindingFlags.Instance | BindingFlags.DeclaredOnly;
         return t.GetFields(flags).Concat(GetAllFields(t.BaseType));
     }
@@ -236,7 +301,7 @@ class INPCBindingEditor : Editor
 
     public static void DrawCRefProp(int targetId, SerializedProperty property, GUIContent label, bool resolveDataContext = true)
     {
-        DrawCRefProp(targetId, property, label, typeof(object));
+        DrawCRefProp(targetId, property, label, typeof(object), resolveDataContext);
     }
 
     public static void GetCPathProperties(SerializedProperty property, out SerializedProperty component, out SerializedProperty path)
@@ -263,7 +328,7 @@ class INPCBindingEditor : Editor
         EditorGUI.indentLevel++;
         var position = EditorGUILayout.GetControlRect(true);
         ComponentReferenceDrawer.PropertyField(position, cprop);
-        
+
         if (cprop.objectReferenceValue != null)
         {
             var name = "prop_" + property.propertyPath + "_" + targetId;
@@ -277,10 +342,21 @@ class INPCBindingEditor : Editor
                 ortype = (orv as DataContext).Type;
             else
                 ortype = orv.GetType();
-            
+
             if (ortype == null)
             {
-                pprop.stringValue = null;
+                // Handle invalid DataContext types
+                if (!string.IsNullOrEmpty(pprop.stringValue))
+                {
+                    var style = new GUIStyle(EditorStyles.textField);
+                    style.normal.textColor = Color.red;
+
+                    EditorGUILayout.TextField(string.Format("Error: {0}/{1} is bound to property \"{2}\" of an invalid DataContext Type.",
+                        property.displayName,
+                        pprop.displayName,
+                        pprop.stringValue),
+                        style);
+                }
             }
             else
             {
@@ -292,7 +368,18 @@ class INPCBindingEditor : Editor
                     rtype = path.PropertyType;
                 }
                 else
+                {
                     rtype = idx - 1 < 0 ? ortype : path.PPath[idx - 1].PropertyType;
+                    // Improve handling of invalid DataContext types
+                    var style = new GUIStyle(EditorStyles.textField);
+                    style.normal.textColor = Color.red;
+                    EditorGUILayout.TextField(string.Format("Error: {0}/{1} invalid property \"{2}\" of an valid DataContext.",
+                        property.displayName,
+                        pprop.displayName,
+                        pprop.stringValue),
+                        style);
+                }
+
 
 
                 var lrect = GUILayoutUtility.GetLastRect();
@@ -300,21 +387,34 @@ class INPCBindingEditor : Editor
 
                 var props = rtype.GetProperties(BindingFlags.Instance | BindingFlags.Public);
 
-                
+
                 if (focused == name)
                 {
                     var propNames = props.Select(p => p.Name)
                         .OrderByDescending(
                             s => s.IndexOf(path.Parts.LastOrDefault() ?? "", StringComparison.OrdinalIgnoreCase) == 0)
                         .ToArray();
-                    
+
                     var propstring = string.Join("\n",propNames);
                     EditorGUILayout.HelpBox(propstring, MessageType.None);
                 }
             }
         }
         else
-            pprop.stringValue = null;
+        {
+            // Improve handling of invalid DataContext types
+            if (!string.IsNullOrEmpty(pprop.stringValue))
+            {
+                var style = new GUIStyle(EditorStyles.textField);
+                style.normal.textColor = Color.red;
+
+                EditorGUILayout.TextField(string.Format("Error: {0}/{1} is bound to property \"{2}\" of an invalid component object reference.",
+                        property.displayName,
+                        pprop.displayName,
+                        pprop.stringValue),
+                        style);
+            }
+        }
 
         EditorGUI.indentLevel--;
     }

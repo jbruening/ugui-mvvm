@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+#if UNITY_WSA || !NET_LEGACY
+using ICommand = System.Windows.Input.ICommand;
+#endif
 using uguimvvm;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
-using UnityEngine.Events;
 
 [CustomEditor(typeof (CommandBinding))]
 class CommandBindingEditor : Editor
@@ -16,7 +15,7 @@ class CommandBindingEditor : Editor
     private SerializedProperty _vmprop;
     private SerializedProperty _veprop;
 
-    #region scene post processing
+#region scene post processing
     [PostProcessScene(1)]
     public static void OnPostProcessScene()
     {
@@ -49,12 +48,24 @@ class CommandBindingEditor : Editor
         var @event = INPCBindingEditor.GetEvent(vcomp, veprop);
         if (@event != null)
         {
+            // Fixing adding multiple command binding event handlers when using prefabs
+            var eventCount = @event.GetPersistentEventCount();
+            for(var idx = 0; idx < eventCount; idx++)
+            {
+                var perTarget = @event.GetPersistentTarget(idx);
+                // if we find a duplicate event skip over adding it
+                if (perTarget == binding)
+                {
+                    return;
+                }
+            }
+            
             UnityEditor.Events.UnityEventTools.AddVoidPersistentListener(@event, binding.ExecuteCommand);
         }
 
         sobj.ApplyModifiedProperties();
     }
-    #endregion
+#endregion
 
     void OnEnable()
     {
