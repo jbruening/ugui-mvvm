@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Globalization;
 using System.Reflection;
 using System.Linq;
 using UnityEngine.UI;
@@ -11,6 +12,27 @@ using UnityEngine.EventSystems;
 
 namespace uguimvvm
 {
+    public static class TypeExtensions
+    {
+        public static bool IsValueType(this Type type)
+        {
+#if UNITY_WSA && ENABLE_DOTNET && !UNITY_EDITOR
+            return type.GetTypeInfo().IsValueType;
+#else
+            return type.IsValueType;
+#endif
+        }
+
+        public static Type BaseType(this Type type)
+        {
+#if UNITY_WSA && ENABLE_DOTNET && !UNITY_EDITOR
+            return type.GetTypeInfo().BaseType;
+#else
+            return type.BaseType;
+#endif
+        }
+    }
+
     public class INPCBinding : MonoBehaviour
     {
         [Serializable]
@@ -244,9 +266,11 @@ namespace uguimvvm
                 catch (AmbiguousMatchException)
                 {
                     PropertyInfo result;
-                    for (result = null; result == null && type != null; type = type.BaseType)
+                    for (result = null; result == null && type != null; type = type.BaseType())
+                    {
                         result = type.GetProperty(name,
                             BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                    }
                     return result;
                 }
             }
@@ -266,18 +290,27 @@ namespace uguimvvm
 
         [SerializeField]
         ComponentPath _view;
+
+#pragma warning disable 0169
+
         [SerializeField]
         string _viewEvent;
+
+#if !UNITY_EDITOR
+#pragma warning restore 0169
+#endif
 
         [SerializeField]
         ComponentPath _viewModel;
 
         [SerializeField]
-        BindingMode _mode = BindingMode.TwoWay;
+        BindingMode _mode = BindingMode.OneWayToView;
         public BindingMode Mode { get { return _mode; } }
 
+#pragma warning disable 0649
         [SerializeField]
         ScriptableObject _converter;
+#pragma warning restore 0649
 
         IValueConverter _ci;
         Type _vType;
@@ -340,10 +373,13 @@ namespace uguimvvm
             var value = _vProp.GetValue(_view.Component, null);
 
             if (_ci != null)
-                value = _ci.ConvertBack(value, _vmType, null, System.Threading.Thread.CurrentThread.CurrentCulture);
+            {
+                var currentCulture = CultureInfo.CurrentCulture;
+                value = _ci.ConvertBack(value, _vmType, null, currentCulture);
+            }
             else if (value != null)
                 value = System.Convert.ChangeType(value, _vmType);
-            else 
+            else
                 value = GetDefaultValue(_vmType);
 
             if (value is IDelayedValue)
@@ -368,7 +404,10 @@ namespace uguimvvm
             var value = GetValue(_viewModel, _vmProp);
 
             if (_ci != null)
-                value = _ci.Convert(value, _vType, null, System.Threading.Thread.CurrentThread.CurrentCulture);
+            {
+                var currentCulture = CultureInfo.CurrentCulture;
+                value = _ci.Convert(value, _vType, null, currentCulture);
+            }
             else if (value != null)
             {
                 if (!_vType.IsInstanceOfType(value))
@@ -376,7 +415,7 @@ namespace uguimvvm
                     value = System.Convert.ChangeType(value, _vType);
                 }
             }
-            else 
+            else
                 value = GetDefaultValue(_vType);
 
             if (value is IDelayedValue)
@@ -392,7 +431,7 @@ namespace uguimvvm
         {
             if (value != null && !_vType.IsInstanceOfType(value))
             {
-                Debug.LogErrorFormat("Could not bind {0} to type {1}", value.GetType(), _vType);
+                Debug.LogErrorFormat(this, "Could not bind {0} to type {1}", value.GetType(), _vType);
                 return;
             }
 
@@ -415,7 +454,7 @@ namespace uguimvvm
         {
             if (value != null && value.GetType() != _vmType)
             {
-                Debug.LogErrorFormat("Could not bind {0} to type {1}", value.GetType(), _vmType);
+                Debug.LogErrorFormat(this, "Could not bind {0} to type {1}", value.GetType(), _vmType);
                 return;
             }
 
@@ -432,9 +471,24 @@ namespace uguimvvm
             _vProp = FigureBinding(_view, null, false);
 
             if (_vmProp.IsValid)
+            {
                 _vmType = _vmProp.PropertyType;
+            }
+            else
+            {
+                Debug.LogErrorFormat(this, "INPCBinding: Invalid ViewModel property in \"{0}\".",
+                    gameObject.GetParentNameHierarchy());
+            }
+
             if (_vProp.IsValid)
+            {
                 _vType = _vProp.PropertyType;
+            }
+            else
+            {
+                Debug.LogErrorFormat(this, "INPCBinding: Invalid View property in \"{0}\".",
+                    gameObject.GetParentNameHierarchy());
+            }
         }
 
         public static PropertyPath FigureBinding(ComponentPath path, PropertyChangedEventHandler handler, bool resolveDataContext)
@@ -474,8 +528,10 @@ namespace uguimvvm
 
         object GetDefaultValue(Type t)
         {
-            if (t.IsValueType)
+            if (t.IsValueType())
+            {
                 return Activator.CreateInstance(t);
+            }
 
             return null;
         }

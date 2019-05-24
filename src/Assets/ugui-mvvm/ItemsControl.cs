@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -35,6 +36,19 @@ namespace uguimvvm
             {
                 if (_itemTemplate == value) return;
                 _itemTemplate = value;
+                ResetCollection(false);
+            }
+        }
+
+        [SerializeField]
+        private DataTemplateSelector _itemTemplateSelector;
+        public DataTemplateSelector ItemTemplateSelector
+        {
+            get { return _itemTemplateSelector; }
+            set
+            {
+                if (_itemTemplateSelector == value) return;
+                _itemTemplateSelector = value;
                 ResetCollection(false);
             }
         }
@@ -134,7 +148,8 @@ namespace uguimvvm
         private ItemInfo AddItem(object item)
         {
             var trans = transform;
-            var control = Instantiate(_itemTemplate);
+            var itemTemplate = ItemTemplateSelector != null ? ItemTemplateSelector.SelectTemplate(item) : _itemTemplate;
+            var control = Instantiate(itemTemplate);
 
             var rect = control.GetComponent<RectTransform>();
             if (rect == null)

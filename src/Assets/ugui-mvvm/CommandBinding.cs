@@ -1,6 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Reflection;
+#if UNITY_WSA || !NET_LEGACY
+using System.Windows.Input;
+#endif
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -12,17 +15,48 @@ namespace uguimvvm
     {
         [SerializeField]
         Component _view;
+
+#pragma warning disable 0169
         [SerializeField]
         string _viewEvent;
 
+#if !UNITY_EDITOR
+#pragma warning restore 0169
+#endif
         [SerializeField]
         INPCBinding.ComponentPath _viewModel = null;
 
         [SerializeField]
         private BindingParameter _parameter = null;
 
+        // alternatively use this property for custom parameter types to pass at runtime by binding this property to an INPCBinding
+        public object Parameter
+        {
+            get
+            {
+                return _runtimeParameter == null ? _parameter.GetValue() : _runtimeParameter;
+            }
+            set
+            {
+                if (_runtimeParameter != value)
+                {
+                    _runtimeParameter = value;
+                    SetViewEnabledState(_command == null || _command.CanExecute(_runtimeParameter));
+                }
+            }
+        }
+        private object _runtimeParameter = null;
+
         INPCBinding.PropertyPath _vmProp;
         private ICommand _command;
+
+        public INPCBinding.ComponentPath ViewModel
+        {
+            get
+            {
+                return _viewModel;
+            }
+        }
 
         void Reset()
         {
@@ -60,12 +94,19 @@ namespace uguimvvm
                 vmtype = _viewModel.Component.GetType();
 
             _vmProp = new INPCBinding.PropertyPath(_viewModel.Property, vmtype, true);
+
+            if (!_vmProp.IsValid)
+            {
+                Debug.LogErrorFormat(this, "CommandBinding: Invalid ViewModel property in \"{0}\".",
+                    gameObject.GetParentNameHierarchy());
+            }
+
             if (!typeof (ICommand).IsAssignableFrom(_vmProp.PropertyType))
                 _vmProp = null;
 
             if (_vmProp == null)
             {
-                Debug.LogWarningFormat("No property named {0} of type ICommand exists in {1}", _viewModel.Property, vmtype);
+                Debug.LogWarningFormat(this, "No property named {0} of type ICommand exists in {1}", _viewModel.Property, vmtype);
             }
 
             if (_vmProp != null && _vmProp.IsValid)
@@ -112,7 +153,7 @@ namespace uguimvvm
         private void CommandOnCanExecuteChanged(object sender, EventArgs eventArgs)
         {
             //enable if we don't have a command, or whatever the command's canexecute is.
-            SetViewEnabledState(_command == null || _command.CanExecute(_parameter));
+            SetViewEnabledState(_command == null || _command.CanExecute(Parameter));
         }
 
         private void SetViewEnabledState(bool state)
@@ -124,7 +165,7 @@ namespace uguimvvm
         public void ExecuteCommand()
         {
             if (_command == null) return;
-            _command.Execute(_parameter.GetValue());
+            _command.Execute(Parameter);
         }
     }
 

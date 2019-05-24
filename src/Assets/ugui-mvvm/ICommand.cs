@@ -1,5 +1,7 @@
 ﻿using System;
-
+#if UNITY_WSA || !NET_LEGACY
+using System.Windows.Input;
+#else
 namespace uguimvvm
 {
     public interface ICommand
@@ -8,7 +10,11 @@ namespace uguimvvm
         void Execute(object parameter);
         event EventHandler CanExecuteChanged;
     }
+}
+#endif
 
+namespace uguimvvm
+{
     public class RelayCommand : ICommand
     {
         public RelayCommand(Action execute, Func<bool> canExecute = null)
@@ -33,7 +39,7 @@ namespace uguimvvm
         }
 
         public event EventHandler CanExecuteChanged;
-        
+
         private readonly Action _execute;
         private readonly Func<bool> _canExecute;
     }
@@ -52,7 +58,7 @@ namespace uguimvvm
         public bool CanExecute(object parameter)
         {
             if (_canExecute == null) return true;
-            
+
             if (parameter is T)
                 return _canExecute((T) parameter);
             return false;

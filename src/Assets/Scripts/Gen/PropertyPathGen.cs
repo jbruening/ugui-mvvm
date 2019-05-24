@@ -1,6 +1,11 @@
 #region GENERATED. Regenerate by menu item Assets/Generate PropertyPathGen
-using uguimvvm;
+using INPCBinding = uguimvvm.INPCBinding;
 using ppa = uguimvvm.PropertyPathAccessors;
+#if UNITY_WSA || !NET_LEGACY
+using System.Collections.ObjectModel;
+#else
+using uguimvvm;
+#endif
 
 class PropertyPathGen
 {
@@ -21,22 +26,6 @@ static void Register()
     (obj, value) =>
     {
         ((UnityEngine.UI.InputField)obj).text = (System.String)value;
-    });
-
-  ppa.Register(
-    new[]
-    {
-        INPCBinding.PropertyPath.GetProperty(typeof(TestViewModel), "TestProperty")
-    },
-    obj => 
-    {
-        if(obj == null) return null; 
-        var v0 = ((TestViewModel)obj).TestProperty;
-        return v0;
-    },
-    (obj, value) =>
-    {
-        ((TestViewModel)obj).TestProperty = (System.String)value;
     });
 
   ppa.Register(
@@ -74,24 +63,6 @@ static void Register()
   ppa.Register(
     new[]
     {
-        INPCBinding.PropertyPath.GetProperty(typeof(TestViewModel), "Selected"),
-        INPCBinding.PropertyPath.GetProperty(typeof(ChildViewModel), "CanSomething")
-    },
-    obj => 
-    {
-        if(obj == null) return null; 
-        var v0 = ((TestViewModel)obj).Selected;
-        return v0.CanSomething;
-    },
-    (obj, value) =>
-    {
-        var v0 = ((TestViewModel)obj).Selected;
-        v0.CanSomething = (System.Boolean)value;
-    });
-
-  ppa.Register(
-    new[]
-    {
         INPCBinding.PropertyPath.GetProperty(typeof(UnityEngine.Behaviour), "enabled")
     },
     obj => 
@@ -124,22 +95,6 @@ static void Register()
   ppa.Register(
     new[]
     {
-        INPCBinding.PropertyPath.GetProperty(typeof(TestViewModel), "Children")
-    },
-    obj => 
-    {
-        if(obj == null) return null; 
-        var v0 = ((TestViewModel)obj).Children;
-        return v0;
-    },
-    (obj, value) =>
-    {
-        ((TestViewModel)obj).Children = (uguimvvm.ObservableCollection<ChildViewModel>)value;
-    });
-
-  ppa.Register(
-    new[]
-    {
         INPCBinding.PropertyPath.GetProperty(typeof(uguimvvm.Primitives.Selector), "Selected")
     },
     obj => 
@@ -151,22 +106,6 @@ static void Register()
     (obj, value) =>
     {
         ((uguimvvm.Primitives.Selector)obj).Selected = (System.Object)value;
-    });
-
-  ppa.Register(
-    new[]
-    {
-        INPCBinding.PropertyPath.GetProperty(typeof(TestViewModel), "Selected")
-    },
-    obj => 
-    {
-        if(obj == null) return null; 
-        var v0 = ((TestViewModel)obj).Selected;
-        return v0;
-    },
-    (obj, value) =>
-    {
-        ((TestViewModel)obj).Selected = (ChildViewModel)value;
     });
 
   ppa.Register(

@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
+#if UNITY_WSA || !NET_LEGACY
+using System.Windows.Input;
+#endif
 using UnityEngine;
 using Component = UnityEngine.Component;
 
@@ -9,8 +12,10 @@ namespace uguimvvm
 {
     public class DataContext : MonoBehaviour, INotifyPropertyChanged
     {
+#pragma warning disable 0649
         [SerializeField]
         string _type;
+#pragma warning restore 0649
 
         private Type _rtype;
         public Type Type
@@ -46,12 +51,12 @@ namespace uguimvvm
             if (!_instantiateOnAwake) return;
             if (Type == null)
             {
-                Debug.LogError("Set to instantiate on awake, but type is not defined, or is not valid");
+                Debug.LogError("Set to instantiate on awake, but type is not defined, or is not valid", this);
                 return;
             }
             if (typeof(UnityEngine.Object).IsAssignableFrom(Type))
             {
-                Debug.LogErrorFormat("Cannot automatically instantiate type {0}, as it derives from UnityEngine.Object", Type);
+                Debug.LogErrorFormat(this, "Cannot automatically instantiate type {0}, as it derives from UnityEngine.Object", Type);
                 return;
             }
 
@@ -64,7 +69,6 @@ namespace uguimvvm
 
             _value = value;
 
-// ReSharper disable once ForCanBeConvertedToForeach foreach generates garbage
             for (int i = 0; i < _dependents.Count; i++)
             {
                 var item = _dependents[i];
@@ -83,7 +87,6 @@ namespace uguimvvm
 
         void OnDestroy()
         {
-// ReSharper disable once ForCanBeConvertedToForeach foreach generates garbage
             for (int i = 0; i < _dependents.Count; i++)
             {
                 var d = _dependents[i];
@@ -97,7 +100,6 @@ namespace uguimvvm
         {
             if (_value == null)
             {
-                //Debug.LogErrorFormat("Cannot get value for {0}. DataContext on {1} has no value", property, name);
                 return null;
             }
 
@@ -108,7 +110,6 @@ namespace uguimvvm
         {
             if (_value == null)
             {
-                //Debug.LogErrorFormat("Cannot set value for {0}. DataContext on {1} has no value", property, name);
                 return;
             }
 
@@ -130,7 +131,7 @@ namespace uguimvvm
             Command(commandName, null);
         }
 
-        #region property binding
+#region property binding
         private void BindingPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "" || e.PropertyName == _propertyBinding.Property)
@@ -146,7 +147,7 @@ namespace uguimvvm
             var value = INPCBinding.GetValue(_propertyBinding, _prop);
             UpdateValue(value);
         }
-        #endregion
+#endregion
 
         public void AddDependentProperty(INPCBinding.PropertyPath prop, PropertyChangedEventHandler handler)
         {
