@@ -9,6 +9,7 @@ using INotifyPropertyChanged = System.ComponentModel.INotifyPropertyChanged;
 using PropertyChangedEventArgs = System.ComponentModel.PropertyChangedEventArgs;
 using PropertyChangedEventHandler = System.ComponentModel.PropertyChangedEventHandler;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 
 namespace uguimvvm
 {
@@ -289,19 +290,22 @@ namespace uguimvvm
         }
 
         [SerializeField]
-        ComponentPath _view;
+        [FormerlySerializedAs("_view")]
+        ComponentPath _target;
 
 #pragma warning disable 0169
 
         [SerializeField]
-        string _viewEvent;
+        [FormerlySerializedAs("_viewEvent")]
+        string _targetEvent;
 
 #if !UNITY_EDITOR
 #pragma warning restore 0169
 #endif
 
         [SerializeField]
-        ComponentPath _viewModel;
+        [FormerlySerializedAs("_viewModel")]
+        ComponentPath _source;
 
         [SerializeField]
         BindingMode _mode = BindingMode.OneWayToView;
@@ -322,11 +326,11 @@ namespace uguimvvm
         {
             var context = gameObject.GetComponentInParent(typeof(DataContext)) as DataContext;
             if (context != null)
-                _viewModel = new ComponentPath { Component = context };
+                _source = new ComponentPath { Component = context };
 
             var view = gameObject.GetComponents<UIBehaviour>().OrderBy((behaviour => OrderOnType(behaviour))).FirstOrDefault();
             if (view != null)
-                _view = new ComponentPath { Component = view };
+                _target = new ComponentPath { Component = view };
         }
 
         private int OrderOnType(UIBehaviour item)
@@ -366,11 +370,11 @@ namespace uguimvvm
 
             if (_mode == BindingMode.OneWayToView) return;
 
-            if (_view.Component == null) return;
+            if (_target.Component == null) return;
 
             if (!enabled) return;
 
-            var value = _vProp.GetValue(_view.Component, null);
+            var value = _vProp.GetValue(_target.Component, null);
 
             if (_ci != null)
             {
@@ -397,11 +401,11 @@ namespace uguimvvm
 
             if (_mode == BindingMode.OneWayToViewModel) return;
 
-            if (_viewModel.Component == null) return;
+            if (_source.Component == null) return;
 
             if (!enabled) return;
 
-            var value = GetValue(_viewModel, _vmProp);
+            var value = GetValue(_source, _vmProp);
 
             if (_ci != null)
             {
@@ -439,7 +443,7 @@ namespace uguimvvm
             if (value == null && _vProp.PropertyType == typeof(string))
                 value = "";
 
-            _vProp.SetValue(_view.Component, value, null);
+            _vProp.SetValue(_target.Component, value, null);
         }
 
         public static object GetValue(ComponentPath path, PropertyPath prop, bool resolveDataContext = true)
@@ -458,17 +462,17 @@ namespace uguimvvm
                 return;
             }
 
-            if (_viewModel.Component is DataContext)
-                (_viewModel.Component as DataContext).SetValue(value, _vmProp);
+            if (_source.Component is DataContext)
+                (_source.Component as DataContext).SetValue(value, _vmProp);
             else
-                _vmProp.SetValue(_viewModel.Component, value, null);
+                _vmProp.SetValue(_source.Component, value, null);
         }
 
         private void FigureBindings()
         {
-            _vmProp = FigureBinding(_viewModel, inpc_PropertyChanged, true);
-            //post processing will have set up our _view.
-            _vProp = FigureBinding(_view, null, false);
+            _vmProp = FigureBinding(_source, inpc_PropertyChanged, true);
+            //post processing will have set up our _target.
+            _vProp = FigureBinding(_target, null, false);
 
             if (_vmProp.IsValid)
             {
@@ -514,13 +518,13 @@ namespace uguimvvm
 
         void inpc_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "" || e.PropertyName == _viewModel.Property)
+            if (e.PropertyName == "" || e.PropertyName == _source.Property)
                 ApplyVMToV();
         }
 
         private void ClearBindings()
         {
-            var inpc = _viewModel.Component as INotifyPropertyChanged;
+            var inpc = _source.Component as INotifyPropertyChanged;
             if (inpc == null) return;
             inpc.PropertyChanged -= inpc_PropertyChanged;
             //todo: clean up unity events

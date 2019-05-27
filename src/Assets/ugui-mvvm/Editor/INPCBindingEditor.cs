@@ -68,11 +68,11 @@ class INPCBindingEditor : Editor
 
     private static UnityEventBase GetViewEventValue(SerializedObject sobj)
     {
-        var viewEvProp = sobj.FindProperty("_viewEvent");
+        var viewEvProp = sobj.FindProperty("_targetEvent");
         if (string.IsNullOrEmpty(viewEvProp.stringValue))
             return null;
 
-        var viewProp = sobj.FindProperty("_view");
+        var viewProp = sobj.FindProperty("_target");
         var vcprop = viewProp.FindPropertyRelative("Component");
 
         var vcomp = vcprop.objectReferenceValue as Component;
@@ -202,9 +202,9 @@ class INPCBindingEditor : Editor
     {
         serializedObject.Update();
 
-        var vprop = serializedObject.FindProperty("_view");
-        var vmprop = serializedObject.FindProperty("_viewModel");
-        var veprop = serializedObject.FindProperty("_viewEvent");
+        var vprop = serializedObject.FindProperty("_target");
+        var vmprop = serializedObject.FindProperty("_source");
+        var veprop = serializedObject.FindProperty("_targetEvent");
         var cprop = serializedObject.FindProperty("_converter");
         var mprop = serializedObject.FindProperty("_mode");
 
