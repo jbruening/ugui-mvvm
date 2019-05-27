@@ -54,7 +54,7 @@ namespace uguimvvm
         INPCBinding.PropertyPath _vmProp;
         private ICommand _command;
 
-        public INPCBinding.ComponentPath ViewModel
+        public INPCBinding.ComponentPath Source
         {
             get
             {
@@ -101,7 +101,7 @@ namespace uguimvvm
 
             if (!_vmProp.IsValid)
             {
-                Debug.LogErrorFormat(this, "CommandBinding: Invalid ViewModel property in \"{0}\".",
+                Debug.LogErrorFormat(this, "CommandBinding: Invalid Source property in \"{0}\".",
                     gameObject.GetParentNameHierarchy());
             }
 

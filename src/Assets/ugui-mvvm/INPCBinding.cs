@@ -480,7 +480,7 @@ namespace uguimvvm
             }
             else
             {
-                Debug.LogErrorFormat(this, "INPCBinding: Invalid ViewModel property in \"{0}\".",
+                Debug.LogErrorFormat(this, "INPCBinding: Invalid Source property in \"{0}\".",
                     gameObject.GetParentNameHierarchy());
             }
 
@@ -490,7 +490,7 @@ namespace uguimvvm
             }
             else
             {
-                Debug.LogErrorFormat(this, "INPCBinding: Invalid View property in \"{0}\".",
+                Debug.LogErrorFormat(this, "INPCBinding: Invalid Target property in \"{0}\".",
                     gameObject.GetParentNameHierarchy());
             }
         }
