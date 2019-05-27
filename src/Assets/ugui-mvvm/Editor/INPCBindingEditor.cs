@@ -95,7 +95,7 @@ class INPCBindingEditor : Editor
 
     static void FigureViewBinding(INPCBinding binding)
     {
-        if (binding.Mode == BindingMode.OneWayToView)
+        if (binding.Mode == BindingMode.OneWayToTarget)
         {
             return;
         }
@@ -220,7 +220,7 @@ class INPCBindingEditor : Editor
             if (mprop.enumValueIndex > 1)
             {
                 EditorUtility.DisplayDialog("Error", string.Format("Cannot change {0} to {1}, as only {2} and {3} are valid for no event",
-                    mprop.displayName, (BindingMode)mprop.enumValueIndex, BindingMode.OneTime, BindingMode.OneWayToView), "Okay");
+                    mprop.displayName, (BindingMode)mprop.enumValueIndex, BindingMode.OneTime, BindingMode.OneWayToTarget), "Okay");
                 mprop.enumValueIndex = 1;
             }
         }
