@@ -308,7 +308,7 @@ namespace uguimvvm
         ComponentPath _source;
 
         [SerializeField]
-        BindingMode _mode = BindingMode.OneWayToTarget;
+        BindingMode _mode = BindingMode.OneWay;
         public BindingMode Mode { get { return _mode; } }
 
 #pragma warning disable 0649
@@ -368,7 +368,7 @@ namespace uguimvvm
             //Debug.Log("Applying v to vm");
             if (_vmProp == null || _vProp == null) return;
 
-            if (_mode == BindingMode.OneWayToTarget) return;
+            if (_mode == BindingMode.OneWay) return;
 
             if (_target.Component == null) return;
 
