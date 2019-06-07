@@ -54,6 +54,16 @@ namespace uguimvvm
         INPCBinding.PropertyPath _vmProp;
         private ICommand _command;
 
+        [Obsolete("Use the Source property.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public INPCBinding.ComponentPath ViewModel
+        {
+            get
+            {
+                return this.Source;
+            }
+        }
+
         public INPCBinding.ComponentPath Source
         {
             get
