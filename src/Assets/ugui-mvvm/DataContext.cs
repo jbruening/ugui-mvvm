@@ -151,7 +151,11 @@ namespace uguimvvm
 
         public void AddDependentProperty(INPCBinding.PropertyPath prop, PropertyChangedEventHandler handler)
         {
-            _dependents.Add(new DependentProperty(prop, handler));
+            var dependentProperty = new DependentProperty(prop, handler);
+            dependentProperty.Prop.AddHandler(_value, dependentProperty.Handler);
+            dependentProperty.Prop.TriggerHandler(_value);
+
+            _dependents.Add(dependentProperty);
         }
 
         public class DependentProperty
