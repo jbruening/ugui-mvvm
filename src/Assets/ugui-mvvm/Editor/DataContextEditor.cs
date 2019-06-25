@@ -11,16 +11,22 @@ class DataContextEditor : Editor
     private static readonly string SearchFieldLabel = "Type name";
     private static readonly string SearchFieldControlName = "SearchField";
 
-    private bool _searching;
     private string _searchString;
     private string _previousSearchString = String.Empty;
     private IEnumerable<Type> _types;
     private Vector2 _scrollPos;
     private Type _tval;
-    private bool _cvis;
+    private string _focusedControl;
+    private bool hasFocusedSearchControl = false;
 
     public override void OnInspectorGUI()
     {
+        // Only update the focused element name during the Layout event, since all controls must be static between Layout & Repaint.
+        if (Event.current.type == EventType.Layout)
+        {
+            _focusedControl = GUI.GetNameOfFocusedControl();
+        }
+
         serializedObject.Update();
 
         var tprop = serializedObject.FindProperty("_type");
@@ -52,12 +58,13 @@ class DataContextEditor : Editor
             {
                 EditorGUILayout.PropertyField(iprop);
 
-                INPCBindingEditor.DrawCRefProp(serializedObject.targetObject.GetInstanceID(), bprop, GUIContent.none);
+                INPCBindingEditor.DrawCRefProp(serializedObject.targetObject.GetInstanceID(), _focusedControl, bprop, GUIContent.none);
             }
         }
 
         if (_tval != null)
         {
+            hasFocusedSearchControl = false;
             _searchString = EditorGUILayout.TextField(SearchFieldLabel, _tval.FullName);
             if (_searchString != _tval.FullName)
             {
@@ -65,24 +72,9 @@ class DataContextEditor : Editor
                 iprop.boolValue = false;
                 _tval = null;
             }
-            else
-            {
-                //_cvis = EditorGUILayout.Foldout(_cvis, "Commands");
-                //if (_cvis)
-                //{
-                //    EditorGUI.indentLevel++;
-                //    var cprops = _tval.GetProperties().Where(p => p.PropertyType == typeof(ICommand));
-                //    foreach (var prop in cprops)
-                //    {
-                //        GUILayout.Label(prop.Name);
-                //    }
-                //    EditorGUI.indentLevel--;
-                //}
-            }
         }
         else
         {
-
             GUI.SetNextControlName(SearchFieldControlName);
             _searchString = EditorGUILayout.TextField(SearchFieldLabel, _searchString);
         }
@@ -113,8 +105,6 @@ class DataContextEditor : Editor
                 _types = typeQuery.ToList();
             }
 
-            EditorGUI.FocusTextInControl(SearchFieldControlName);
-
             if (_types != null)
             {
                 _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.Height(100));
@@ -138,6 +128,16 @@ class DataContextEditor : Editor
             EditorGUI.BeginDisabledGroup(true);
             EditorGUILayout.Toggle("Value is non-null?", dc.Value != null);
             EditorGUI.EndDisabledGroup();
+        }
+
+        // Only update the focused control at the very end of the draw call, and only update the focus once when the user starts a search.
+        if (_tval == null && !string.IsNullOrEmpty(_searchString))
+        {
+            if (!hasFocusedSearchControl)
+            {
+                EditorGUI.FocusTextInControl(SearchFieldControlName);
+                hasFocusedSearchControl = true;
+            }
         }
     }
 }

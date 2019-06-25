@@ -15,6 +15,7 @@ using UnityEditor.SceneManagement;
 class INPCBindingEditor : Editor
 {
     private static List<INPCBinding> cachedBindings = new List<INPCBinding>();
+    private string _focusedControl = "";
 
 #region scene post processing
     [PostProcessScene(1)]
@@ -200,6 +201,12 @@ class INPCBindingEditor : Editor
 
     public override void OnInspectorGUI()
     {
+        // Only update the focused element name during the Layout event, since all controls must be static between Layout & Repaint.
+        if (Event.current.type == EventType.Layout)
+        {
+            _focusedControl = GUI.GetNameOfFocusedControl();
+        }
+
         serializedObject.Update();
 
         var vprop = serializedObject.FindProperty("_view");
@@ -208,11 +215,11 @@ class INPCBindingEditor : Editor
         var cprop = serializedObject.FindProperty("_converter");
         var mprop = serializedObject.FindProperty("_mode");
 
-        DrawCRefProp(serializedObject.targetObject.GetInstanceID(), vprop, new GUIContent());
+        DrawCRefProp(serializedObject.targetObject.GetInstanceID(), _focusedControl, vprop, new GUIContent());
 
         var epropcount = DrawCrefEvents(vprop, veprop);
 
-        DrawCRefProp(serializedObject.targetObject.GetInstanceID(), vmprop, new GUIContent());
+        DrawCRefProp(serializedObject.targetObject.GetInstanceID(), _focusedControl, vmprop, new GUIContent());
 
         EditorGUILayout.PropertyField(mprop, false);
         if (epropcount == 0)
@@ -299,9 +306,9 @@ class INPCBindingEditor : Editor
         return t.GetField(name, flags) ?? GetField(t.BaseType, name);
     }
 
-    public static void DrawCRefProp(int targetId, SerializedProperty property, GUIContent label, bool resolveDataContext = true)
+    public static void DrawCRefProp(int targetId, string focusedControl, SerializedProperty property, GUIContent label, bool resolveDataContext = true)
     {
-        DrawCRefProp(targetId, property, label, typeof(object), resolveDataContext);
+        DrawCRefProp(targetId, focusedControl, property, label, typeof(object), resolveDataContext);
     }
 
     public static void GetCPathProperties(SerializedProperty property, out SerializedProperty component, out SerializedProperty path)
@@ -318,7 +325,7 @@ class INPCBindingEditor : Editor
     /// <param name="label"></param>
     /// <param name="filter"></param>
     /// <param name="resolveDataContext"></param>
-    public static void DrawCRefProp(int targetId, SerializedProperty property, GUIContent label, Type filter, bool resolveDataContext = true)
+    public static void DrawCRefProp(int targetId, string focusedControl, SerializedProperty property, GUIContent label, Type filter, bool resolveDataContext = true)
     {
         EditorGUILayout.LabelField(property.displayName);
 
@@ -334,7 +341,6 @@ class INPCBindingEditor : Editor
             var name = "prop_" + property.propertyPath + "_" + targetId;
             GUI.SetNextControlName(name);
             EditorGUILayout.PropertyField(pprop);
-            var focused = GUI.GetNameOfFocusedControl();
 
             var orv = cprop.objectReferenceValue;
             Type ortype;
@@ -373,22 +379,16 @@ class INPCBindingEditor : Editor
                     // Improve handling of invalid DataContext types
                     var style = new GUIStyle(EditorStyles.textField);
                     style.normal.textColor = Color.red;
-                    EditorGUILayout.TextField(string.Format("Error: {0}/{1} invalid property \"{2}\" of an valid DataContext.",
+                    EditorGUILayout.TextField(string.Format("Error: {0}/{1} invalid property \"{2}\" of a valid DataContext.",
                         property.displayName,
                         pprop.displayName,
                         pprop.stringValue),
                         style);
                 }
 
-
-
                 var lrect = GUILayoutUtility.GetLastRect();
-                EditorGUI.Toggle(new Rect(lrect.x + EditorGUIUtility.fieldWidth + 5, lrect.y, lrect.width, lrect.height), path.IsValid);
-
                 var props = rtype.GetProperties(BindingFlags.Instance | BindingFlags.Public);
-
-
-                if (focused == name)
+                if (focusedControl == name)
                 {
                     var propNames = props.Select(p => p.Name)
                         .OrderByDescending(
