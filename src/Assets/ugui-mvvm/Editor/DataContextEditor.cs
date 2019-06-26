@@ -17,7 +17,7 @@ class DataContextEditor : Editor
     private Vector2 _scrollPos;
     private Type _tval;
     private string _focusedControl;
-    private bool hasFocusedSearchControl = false;
+    private bool _hasFocusedSearchControl = false;
 
     public override void OnInspectorGUI()
     {
@@ -64,7 +64,7 @@ class DataContextEditor : Editor
 
         if (_tval != null)
         {
-            hasFocusedSearchControl = false;
+            _hasFocusedSearchControl = false;
             _searchString = EditorGUILayout.TextField(SearchFieldLabel, _tval.FullName);
             if (_searchString != _tval.FullName)
             {
@@ -133,10 +133,10 @@ class DataContextEditor : Editor
         // Only update the focused control at the very end of the draw call, and only update the focus once when the user starts a search.
         if (_tval == null && !string.IsNullOrEmpty(_searchString))
         {
-            if (!hasFocusedSearchControl)
+            if (!_hasFocusedSearchControl)
             {
                 EditorGUI.FocusTextInControl(SearchFieldControlName);
-                hasFocusedSearchControl = true;
+                _hasFocusedSearchControl = true;
             }
         }
     }
