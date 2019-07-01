@@ -117,16 +117,18 @@ class DataContextEditor : Editor
 
             if (_types != null)
             {
-                _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.Height(100));
-                foreach (var type in _types)
+                using (var scrollViewScope = new EditorGUILayout.ScrollViewScope(_scrollPos, GUILayout.Height(100)))
                 {
-                    if (GUILayout.Button(type.FullName))
+                    _scrollPos = scrollViewScope.scrollPosition;
+                    foreach (var type in _types)
                     {
-                        _tval = type;
-                        tprop.stringValue = _tval.AssemblyQualifiedName;
+                        if (GUILayout.Button(type.FullName))
+                        {
+                            _tval = type;
+                            tprop.stringValue = _tval.AssemblyQualifiedName;
+                        }
                     }
                 }
-                EditorGUILayout.EndScrollView();
             }
         }
 
@@ -135,9 +137,10 @@ class DataContextEditor : Editor
         var dc = target as DataContext;
         if (dc != null)
         {
-            EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.Toggle("Value is non-null?", dc.Value != null);
-            EditorGUI.EndDisabledGroup();
+            using (var disabledGroupScope = new EditorGUI.DisabledGroupScope(true))
+            {
+                EditorGUILayout.Toggle("Value is non-null?", dc.Value != null);
+            }
         }
     }
 }
