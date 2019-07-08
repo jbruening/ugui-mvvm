@@ -32,7 +32,8 @@ namespace uguimvvm
 
         [SerializeField]
         private INPCBinding.ComponentPath _propertyBinding = null;
-        public Component Component { get { return _propertyBinding.Component; } }
+        public INPCBinding.ComponentPath PropertyBinding => _propertyBinding;
+        public Component Component { get { return _propertyBinding?.Component; } }
         private INPCBinding.PropertyPath _prop;
 
         [Tooltip("Instantiate the type on awake. This will not work for UnityEngine.Object types")]
