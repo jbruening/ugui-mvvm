@@ -93,35 +93,35 @@ class CommandBindingEditor : Editor
         INPCBindingEditor.DrawCRefProp(serializedObject.targetObject.GetInstanceID(), _focusedControl, _vmprop, GUIContent.none, typeof(ICommand));
 
         var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
-        var label = EditorGUI.BeginProperty(rect, null, _parmprop);
-        GUI.Label(rect, label);
-
-        //parameter type
-        var typeProp = _parmprop.FindPropertyRelative("Type");
-        var trect = rect;
-        trect.x += EditorGUIUtility.labelWidth;
-        trect.width -= EditorGUIUtility.labelWidth;
-        EditorGUI.PropertyField(trect, typeProp);
-
-        //value field
-        var typeValue = (BindingParameterType)Enum.GetValues(typeof(BindingParameterType)).GetValue(typeProp.enumValueIndex);
-        SerializedProperty valueProp = null;
-        switch(typeValue)
+        using (var propertyScope = new EditorGUI.PropertyScope(rect, null, _parmprop))
         {
-            case BindingParameterType.None:
-                break;
-            default:
-                valueProp = _parmprop.FindPropertyRelative(typeValue.ToString());
-                break;
-        }
-        if (valueProp != null)
-        {
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(valueProp);
-            EditorGUI.indentLevel--;
-        }
+            GUI.Label(rect, propertyScope.content);
 
-        EditorGUI.EndProperty();
+            //parameter type
+            var typeProp = _parmprop.FindPropertyRelative("Type");
+            var trect = rect;
+            trect.x += EditorGUIUtility.labelWidth;
+            trect.width -= EditorGUIUtility.labelWidth;
+            EditorGUI.PropertyField(trect, typeProp);
+
+            //value field
+            var typeValue = (BindingParameterType)Enum.GetValues(typeof(BindingParameterType)).GetValue(typeProp.enumValueIndex);
+            SerializedProperty valueProp = null;
+            switch (typeValue)
+            {
+                case BindingParameterType.None:
+                    break;
+                default:
+                    valueProp = _parmprop.FindPropertyRelative(typeValue.ToString());
+                    break;
+            }
+            if (valueProp != null)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(valueProp);
+                EditorGUI.indentLevel--;
+            }
+        }
 
         serializedObject.ApplyModifiedProperties();
     }
