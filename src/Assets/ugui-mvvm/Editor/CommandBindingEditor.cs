@@ -14,7 +14,6 @@ class CommandBindingEditor : Editor
     private SerializedProperty _vprop;
     private SerializedProperty _vmprop;
     private SerializedProperty _veprop;
-    private string _focusedControl;
 
 #region scene post processing
     [PostProcessScene(1)]
@@ -78,19 +77,13 @@ class CommandBindingEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        // Only update the focused element name during the Layout event, since all controls must be static between Layout & Repaint.
-        if (Event.current.type == EventType.Layout)
-        {
-            _focusedControl = GUI.GetNameOfFocusedControl();
-        }
-
         serializedObject.Update();
 
         EditorGUILayout.PropertyField(_vprop);
         if (_vprop.objectReferenceValue != null)
             INPCBindingEditor.DrawComponentEvents(_vprop, _veprop);
 
-        INPCBindingEditor.DrawCRefProp(serializedObject.targetObject.GetInstanceID(), _focusedControl, _vmprop, GUIContent.none, typeof(ICommand));
+        EditorGUILayout.PropertyField(_vmprop);
 
         var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
         using (var propertyScope = new EditorGUI.PropertyScope(rect, null, _parmprop))

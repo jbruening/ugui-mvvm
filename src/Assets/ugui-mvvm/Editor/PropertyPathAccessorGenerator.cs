@@ -213,7 +213,7 @@ static void Register()
     {
         SerializedProperty cprop;
         SerializedProperty pprop;
-        INPCBindingEditor.GetCPathProperties(prop, out cprop, out pprop);
+        ComponentPathDrawer.GetCPathProperties(prop, out cprop, out pprop);
 
         var oval = cprop.objectReferenceValue;
         if (oval == null) return;
