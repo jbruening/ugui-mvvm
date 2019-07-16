@@ -28,7 +28,7 @@ namespace uguimvvm.converters
 
             int realValue = (int)value;
 
-           Assert.IsTrue(convertToValues.Length >= realValue, $"Invalid index [{realValue}] for IntToUnityConverter({typeof(T).Name}). Maximum value is {convertToValues.Length}");
+            Assert.IsTrue(convertToValues.Length >= realValue, $"Invalid index [{realValue}] for IntToUnityConverter({typeof(T).Name}). Maximum value is {convertToValues.Length}");
 
             return convertToValues[realValue];
         }

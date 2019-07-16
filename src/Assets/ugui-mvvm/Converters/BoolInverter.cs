@@ -5,7 +5,7 @@ using UnityEngine;
 namespace uguimvvm.converters
 {
     /// <summary>
-    /// Toggles the passed in boolean value 
+    /// Inverts the passed in boolean value 
     /// </summary>
     public class BoolInverter : ScriptableObject, IValueConverter
     {
