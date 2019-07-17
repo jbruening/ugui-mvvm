@@ -12,7 +12,7 @@ namespace uguimvvm
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            EditorGUILayout.LabelField(property.displayName);
+            EditorGUI.LabelField(position, property.displayName);
             EditorGUI.indentLevel++;
 
             SerializedProperty component, propertyPath;
@@ -35,7 +35,7 @@ namespace uguimvvm
                 _suggestionProvider = new PropertyPathSuggestionProvider(property);
                 _autoSuggestField = new AutoSuggestField(
                     _suggestionProvider,
-                    new GUIContent(property.displayName),
+                    new GUIContent(propertyPath.displayName),
                     new AutoSuggestField.Options
                     {
                         DisplayMode = DisplayMode.Inline,
