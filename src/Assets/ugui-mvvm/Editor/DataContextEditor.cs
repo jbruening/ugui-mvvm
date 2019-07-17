@@ -16,17 +16,10 @@ class DataContextEditor : Editor
     private IEnumerable<Type> _types;
     private Vector2 _scrollPos;
     private Type _tval;
-    private string _focusedControl;
     private bool _hasFocusedSearchControl = false;
 
     public override void OnInspectorGUI()
     {
-        // Only update the focused element name during the Layout event, since all controls must be static between Layout & Repaint.
-        if (Event.current.type == EventType.Layout)
-        {
-            _focusedControl = GUI.GetNameOfFocusedControl();
-        }
-
         serializedObject.Update();
 
         var tprop = serializedObject.FindProperty("_type");
@@ -57,8 +50,7 @@ class DataContextEditor : Editor
             else
             {
                 EditorGUILayout.PropertyField(iprop);
-
-                INPCBindingEditor.DrawCRefProp(serializedObject.targetObject.GetInstanceID(), _focusedControl, bprop, GUIContent.none);
+                EditorGUILayout.PropertyField(bprop);
             }
         }
 
