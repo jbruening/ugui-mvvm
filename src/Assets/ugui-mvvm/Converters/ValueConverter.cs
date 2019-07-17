@@ -66,11 +66,12 @@ namespace uguimvvm.converters
                 return defaultTargetValue;
             }
 
-            if (!(value is TSource castedValue))
+            if (!(value is TSource))
             {
                 throw new InvalidCastException($"Parameter [value] is invalid type. Expected type is [{typeof(TSource).Name}].");
             }
 
+            var castedValue = (TSource)value;
             var item = itemLookup.FirstOrDefault(x => sourceComparer.Equals(castedValue, x.SourceValue));
 
             if (item == null)
@@ -100,11 +101,12 @@ namespace uguimvvm.converters
                 return defaultSourceValue;
             }
 
-            if (!(value is TTarget castedValue))
+            if (!(value is TTarget))
             {
                 throw new InvalidCastException($"Parameter [value] is invalid type. Expected type is [{typeof(TTarget).Name}].");
             }
 
+            var castedValue = (TTarget)value;
             var item = itemLookup.FirstOrDefault(x => targetComparer.Equals(castedValue, x.TargetValue));
             if (item == null)
             {

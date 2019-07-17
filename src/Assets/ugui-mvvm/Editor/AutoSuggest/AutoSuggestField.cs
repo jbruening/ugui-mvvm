@@ -330,8 +330,9 @@ namespace AutoSuggest
 
         private void EditorApplication_Update()
         {
-            if (_heightAnimator.Update())
+            if (_heightAnimator.Update() || ThreadSafeCacheInvalid)
             {
+                // If the height animator is still moving or there is a pending cache invalidation, trigger a repaint.
                 EditorWindow.focusedWindow?.Repaint();
             }
         }
