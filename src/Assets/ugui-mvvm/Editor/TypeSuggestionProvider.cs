@@ -35,6 +35,7 @@ namespace uguimvvm
         {
             IList<TypeSuggestion> results = null;
 
+            // Mark selected type as invalid while loading
             SelectedTypeIsValid = false;
             SelectedType = null;
 
@@ -57,7 +58,8 @@ namespace uguimvvm
                     _types = typeQuery.ToList();
                 }
 
-                results = _types.AsParallel()
+                results = _types
+                    .AsParallel()
                     .WithCancellation(cancellationToken)
                     .Select((t) => new TypeSuggestion(t, currentValue))
                     .Where((s) => s.DisplayTextMatchIndex >= 0)
@@ -76,6 +78,8 @@ namespace uguimvvm
                 {
                     SelectedType = null;
                 }
+
+                // Now that loading has completed, mark selected type as valid.  It is valid even if it is null.
                 SelectedTypeIsValid = true;
 
                 if (isFocused)
