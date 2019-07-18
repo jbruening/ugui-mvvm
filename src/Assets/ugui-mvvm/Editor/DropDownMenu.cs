@@ -17,6 +17,8 @@ namespace uguimvvm
         private List<DropDownItem> _dropDownItems = new List<DropDownItem>();
         private int _selectedItem = -1;
 
+        public int ItemCount => _dropDownItems.Count;
+
         public void Add(DropDownItem item)
         {
             if (item.IsSelected)

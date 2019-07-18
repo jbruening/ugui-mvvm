@@ -31,7 +31,6 @@ class ComponentReferenceDrawer : PropertyDrawer
 
         var menu = new DropDownMenu();
 
-        bool clipboardEntryAdded = false;
         if (clipboard != null)
         {
             menu.Add(new DropDownItem
@@ -39,14 +38,12 @@ class ComponentReferenceDrawer : PropertyDrawer
                 Label = $"Paste component: {clipboard.name} ({clipboard.GetType().Name})",
                 Command = () => { property.objectReferenceValue = clipboard; },
             });
-
-            clipboardEntryAdded = true;
         }
 
         var component = property.objectReferenceValue as Component;
         if (component != null && component.gameObject != null)
         {
-            if (clipboardEntryAdded)
+            if (menu.ItemCount > 0)
             {
                 menu.Add(new DropDownItem { Label = null });
             }
@@ -64,6 +61,14 @@ class ComponentReferenceDrawer : PropertyDrawer
                     IsSelected = currentlySelected,
                 });
             }
+        }
+
+        if (menu.ItemCount == 0)
+        {
+            menu.Add(new DropDownItem { Label = "Instructions" });
+            menu.Add(new DropDownItem());
+            menu.Add(new DropDownItem { Label = "You can right click on a component and select 'Copy Component Reference' and then paste here using this menu." });
+            menu.Add(new DropDownItem { Label = "Or you can drag and drop a gameObject in the box to the left then use this menu to choose the component from that gameObject." });
         }
 
         // Render the menu.  If the user selects an item, it will execute that item's command.
