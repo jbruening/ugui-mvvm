@@ -1,19 +1,10 @@
-﻿using System;
-using System.Linq;
+﻿using uguimvvm;
 using UnityEditor;
 using UnityEngine;
-using uguimvvm;
-using System.Collections.Generic;
 
 [CustomPropertyDrawer(typeof(ComponentReferenceAttribute))]
 class ComponentReferenceDrawer : PropertyDrawer
 {
-    private class DropDownItem
-    {
-        public string Label { get; set; }
-        public Action Command { get; set; }
-    }
-
     public static Component clipboard;
 
     [MenuItem("CONTEXT/Component/Copy Component Reference")]
@@ -38,12 +29,11 @@ class ComponentReferenceDrawer : PropertyDrawer
 
         var dropDownPosition = new Rect(position.xMax, position.y, dropDownWidth, EditorGUIUtility.singleLineHeight);
 
-        var dropDownItems = new List<DropDownItem>();
-        int selectedItem = -1;
+        var menu = new DropDownMenu();
 
         if (clipboard != null)
         {
-            dropDownItems.Add(new DropDownItem
+            menu.Add(new DropDownItem
             {
                 Label = $"Paste reference to {clipboard.name} - {clipboard.GetType()}",
                 Command = () => { property.objectReferenceValue = clipboard; },
@@ -51,13 +41,13 @@ class ComponentReferenceDrawer : PropertyDrawer
         }
         else
         {
-            dropDownItems.Add(new DropDownItem { Label = "Nothing to paste" });
+            menu.Add(new DropDownItem { Label = "Nothing to paste" });
         }
 
         var component = property.objectReferenceValue as Component;
         if (component != null && component.gameObject != null)
         {
-            dropDownItems.Add(new DropDownItem { Label = null });
+            menu.Add(new DropDownItem { Label = null });
 
             var siblingComponents = component.gameObject.GetComponents<Component>();
 
@@ -65,40 +55,15 @@ class ComponentReferenceDrawer : PropertyDrawer
             {
                 bool currentlySelected = siblingComponent == component;
 
-                if (currentlySelected)
-                {
-                    // This component is currently selected.  Mark it as such.
-                    selectedItem = dropDownItems.Count;
-                }
-
-                dropDownItems.Add(new DropDownItem
+                menu.Add(new DropDownItem
                 {
                     Label = $"{siblingComponent.GetType().Name}",
                     Command = () => { property.objectReferenceValue = siblingComponent; },
+                    IsSelected = currentlySelected,
                 });
             }
         }
 
-        var dropDownContent = new GUIContent[dropDownItems.Count];
-        for (int i = 0; i < dropDownContent.Length; i++)
-        {
-            var item = dropDownItems[i];
-
-            if (item.Label == null)
-            {
-                dropDownContent[i] = new GUIContent();
-            }
-            else
-            {
-                dropDownContent[i] = new GUIContent(item.Label);
-            }
-        }
-
-        var clickedIndex = EditorGUI.Popup(dropDownPosition, selectedItem, dropDownContent);
-
-        if (clickedIndex != selectedItem)
-        {
-            dropDownItems[clickedIndex].Command?.Invoke();
-        }
+        menu.OnGUI(dropDownPosition);
     }
 }
