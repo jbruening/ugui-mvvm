@@ -31,23 +31,25 @@ class ComponentReferenceDrawer : PropertyDrawer
 
         var menu = new DropDownMenu();
 
+        bool clipboardEntryAdded = false;
         if (clipboard != null)
         {
             menu.Add(new DropDownItem
             {
-                Label = $"Paste reference to {clipboard.name} - {clipboard.GetType()}",
+                Label = $"Paste component: {clipboard.name} ({clipboard.GetType().Name})",
                 Command = () => { property.objectReferenceValue = clipboard; },
             });
-        }
-        else
-        {
-            menu.Add(new DropDownItem { Label = "Nothing to paste" });
+
+            clipboardEntryAdded = true;
         }
 
         var component = property.objectReferenceValue as Component;
         if (component != null && component.gameObject != null)
         {
-            menu.Add(new DropDownItem { Label = null });
+            if (clipboardEntryAdded)
+            {
+                menu.Add(new DropDownItem { Label = null });
+            }
 
             var siblingComponents = component.gameObject.GetComponents<Component>();
 
@@ -64,6 +66,7 @@ class ComponentReferenceDrawer : PropertyDrawer
             }
         }
 
+        // Render the menu.  If the user selects an item, it will execute that item's command.
         menu.OnGUI(dropDownPosition);
     }
 }
