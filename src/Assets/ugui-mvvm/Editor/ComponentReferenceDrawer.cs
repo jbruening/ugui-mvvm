@@ -8,7 +8,7 @@ using System.Collections.Generic;
 [CustomPropertyDrawer(typeof(ComponentReferenceAttribute))]
 class ComponentReferenceDrawer : PropertyDrawer
 {
-    private class DropdownItem
+    private class DropDownItem
     {
         public string Label { get; set; }
         public Action Command { get; set; }
@@ -30,19 +30,20 @@ class ComponentReferenceDrawer : PropertyDrawer
 
     public static void PropertyField(Rect position, SerializedProperty property)
     {
-        float dropDownWidth = (position.width - EditorGUIUtility.labelWidth) / 3.0f;
+        const float DropDownWidthFraction = 0.4f;
+        float dropDownWidth = (position.width - EditorGUIUtility.labelWidth) * DropDownWidthFraction;
 
         position.width -= dropDownWidth;
         EditorGUI.PropertyField(position, property);
 
-        var dropdownPosition = new Rect(position.xMax, position.y, dropDownWidth, EditorGUIUtility.singleLineHeight);
+        var dropDownPosition = new Rect(position.xMax, position.y, dropDownWidth, EditorGUIUtility.singleLineHeight);
 
-        var dropdownItems = new List<DropdownItem>();
+        var dropDownItems = new List<DropDownItem>();
         int selectedItem = -1;
 
         if (clipboard != null)
         {
-            dropdownItems.Add(new DropdownItem
+            dropDownItems.Add(new DropDownItem
             {
                 Label = $"Paste reference to {clipboard.name} - {clipboard.GetType()}",
                 Command = () => { property.objectReferenceValue = clipboard; },
@@ -50,13 +51,13 @@ class ComponentReferenceDrawer : PropertyDrawer
         }
         else
         {
-            dropdownItems.Add(new DropdownItem { Label = "Nothing to paste" });
+            dropDownItems.Add(new DropDownItem { Label = "Nothing to paste" });
         }
 
         var component = property.objectReferenceValue as Component;
         if (component != null && component.gameObject != null)
         {
-            dropdownItems.Add(new DropdownItem { Label = null });
+            dropDownItems.Add(new DropDownItem { Label = null });
 
             var siblingComponents = component.gameObject.GetComponents<Component>();
 
@@ -67,10 +68,10 @@ class ComponentReferenceDrawer : PropertyDrawer
                 if (currentlySelected)
                 {
                     // This component is currently selected.  Mark it as such.
-                    selectedItem = dropdownItems.Count;
+                    selectedItem = dropDownItems.Count;
                 }
 
-                dropdownItems.Add(new DropdownItem
+                dropDownItems.Add(new DropDownItem
                 {
                     Label = $"{siblingComponent.GetType().Name}",
                     Command = () => { property.objectReferenceValue = siblingComponent; },
@@ -78,26 +79,26 @@ class ComponentReferenceDrawer : PropertyDrawer
             }
         }
 
-        var dropdownContent = new GUIContent[dropdownItems.Count];
-        for (int i = 0; i < dropdownContent.Length; i++)
+        var dropDownContent = new GUIContent[dropDownItems.Count];
+        for (int i = 0; i < dropDownContent.Length; i++)
         {
-            var item = dropdownItems[i];
+            var item = dropDownItems[i];
 
             if (item.Label == null)
             {
-                dropdownContent[i] = new GUIContent();
+                dropDownContent[i] = new GUIContent();
             }
             else
             {
-                dropdownContent[i] = new GUIContent(item.Label);
+                dropDownContent[i] = new GUIContent(item.Label);
             }
         }
 
-        var clickedIndex = EditorGUI.Popup(dropdownPosition, selectedItem, dropdownContent);
+        var clickedIndex = EditorGUI.Popup(dropDownPosition, selectedItem, dropDownContent);
 
         if (clickedIndex != selectedItem)
         {
-            dropdownItems[clickedIndex].Command?.Invoke();
+            dropDownItems[clickedIndex].Command?.Invoke();
         }
     }
 }
