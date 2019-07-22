@@ -208,11 +208,11 @@ class INPCBindingEditor : Editor
         var cprop = serializedObject.FindProperty("_converter");
         var mprop = serializedObject.FindProperty("_mode");
 
-        DrawCRefProp(serializedObject.targetObject.GetInstanceID(), vprop, new GUIContent());
+        EditorGUILayout.PropertyField(vprop);
 
         var epropcount = DrawCrefEvents(vprop, veprop);
 
-        DrawCRefProp(serializedObject.targetObject.GetInstanceID(), vmprop, new GUIContent());
+        EditorGUILayout.PropertyField(vmprop);
 
         EditorGUILayout.PropertyField(mprop, false);
         if (epropcount == 0)
@@ -225,7 +225,8 @@ class INPCBindingEditor : Editor
             }
         }
 
-        EditorGUILayout.PropertyField(cprop, false);
+        var position = EditorGUILayout.GetControlRect(true);
+        ComponentReferenceDrawer.PropertyField(position, cprop);
 
         serializedObject.ApplyModifiedProperties();
     }
@@ -297,125 +298,5 @@ class INPCBindingEditor : Editor
             return null;
         var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
         return t.GetField(name, flags) ?? GetField(t.BaseType, name);
-    }
-
-    public static void DrawCRefProp(int targetId, SerializedProperty property, GUIContent label, bool resolveDataContext = true)
-    {
-        DrawCRefProp(targetId, property, label, typeof(object), resolveDataContext);
-    }
-
-    public static void GetCPathProperties(SerializedProperty property, out SerializedProperty component, out SerializedProperty path)
-    {
-        component = property.FindPropertyRelative("Component");
-        path = property.FindPropertyRelative("Property");
-    }
-
-    /// <summary>
-    /// draw an INPCBinding.ComponentPath property
-    /// </summary>
-    /// <param name="targetId"></param>
-    /// <param name="property"></param>
-    /// <param name="label"></param>
-    /// <param name="filter"></param>
-    /// <param name="resolveDataContext"></param>
-    public static void DrawCRefProp(int targetId, SerializedProperty property, GUIContent label, Type filter, bool resolveDataContext = true)
-    {
-        EditorGUILayout.LabelField(property.displayName);
-
-        SerializedProperty cprop, pprop;
-        GetCPathProperties(property, out cprop, out pprop);
-
-        EditorGUI.indentLevel++;
-        var position = EditorGUILayout.GetControlRect(true);
-        ComponentReferenceDrawer.PropertyField(position, cprop);
-
-        if (cprop.objectReferenceValue != null)
-        {
-            var name = "prop_" + property.propertyPath + "_" + targetId;
-            GUI.SetNextControlName(name);
-            EditorGUILayout.PropertyField(pprop);
-            var focused = GUI.GetNameOfFocusedControl();
-
-            var orv = cprop.objectReferenceValue;
-            Type ortype;
-            if (orv is DataContext && resolveDataContext)
-                ortype = (orv as DataContext).Type;
-            else
-                ortype = orv.GetType();
-
-            if (ortype == null)
-            {
-                // Handle invalid DataContext types
-                if (!string.IsNullOrEmpty(pprop.stringValue))
-                {
-                    var style = new GUIStyle(EditorStyles.textField);
-                    style.normal.textColor = Color.red;
-
-                    EditorGUILayout.TextField(string.Format("Error: {0}/{1} is bound to property \"{2}\" of an invalid DataContext Type.",
-                        property.displayName,
-                        pprop.displayName,
-                        pprop.stringValue),
-                        style);
-                }
-            }
-            else
-            {
-                var path = new INPCBinding.PropertyPath(pprop.stringValue, ortype);
-                Type rtype;
-                var idx = Array.FindIndex(path.PPath, p => p == null);
-                if (path.IsValid)
-                {
-                    rtype = path.PropertyType;
-                }
-                else
-                {
-                    rtype = idx - 1 < 0 ? ortype : path.PPath[idx - 1].PropertyType;
-                    // Improve handling of invalid DataContext types
-                    var style = new GUIStyle(EditorStyles.textField);
-                    style.normal.textColor = Color.red;
-                    EditorGUILayout.TextField(string.Format("Error: {0}/{1} invalid property \"{2}\" of an valid DataContext.",
-                        property.displayName,
-                        pprop.displayName,
-                        pprop.stringValue),
-                        style);
-                }
-
-
-
-                var lrect = GUILayoutUtility.GetLastRect();
-                EditorGUI.Toggle(new Rect(lrect.x + EditorGUIUtility.fieldWidth + 5, lrect.y, lrect.width, lrect.height), path.IsValid);
-
-                var props = rtype.GetProperties(BindingFlags.Instance | BindingFlags.Public);
-
-
-                if (focused == name)
-                {
-                    var propNames = props.Select(p => p.Name)
-                        .OrderByDescending(
-                            s => s.IndexOf(path.Parts.LastOrDefault() ?? "", StringComparison.OrdinalIgnoreCase) == 0)
-                        .ToArray();
-
-                    var propstring = string.Join("\n",propNames);
-                    EditorGUILayout.HelpBox(propstring, MessageType.None);
-                }
-            }
-        }
-        else
-        {
-            // Improve handling of invalid DataContext types
-            if (!string.IsNullOrEmpty(pprop.stringValue))
-            {
-                var style = new GUIStyle(EditorStyles.textField);
-                style.normal.textColor = Color.red;
-
-                EditorGUILayout.TextField(string.Format("Error: {0}/{1} is bound to property \"{2}\" of an invalid component object reference.",
-                        property.displayName,
-                        pprop.displayName,
-                        pprop.stringValue),
-                        style);
-            }
-        }
-
-        EditorGUI.indentLevel--;
     }
 }
