@@ -1,4 +1,6 @@
 ﻿using System;
+using System.ComponentModel;
+using UnityEngine;
 
 namespace uguimvvm
 {
@@ -8,7 +10,16 @@ namespace uguimvvm
         OneWayToTarget,
         OneWayToSource,
         TwoWay,
+
+        // Obsolete values.  Only here to maintain backwards compatibility.
         [Obsolete]
-        OneWayToView,
+        [HideInInspector]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        OneWayToView = OneWayToTarget,
+
+        [Obsolete]
+        [HideInInspector]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        OneWayToViewModel = OneWayToSource,
     }
 }
