@@ -1,4 +1,6 @@
-﻿using uguimvvm;
+﻿using System.Collections.Generic;
+using System.Linq;
+using uguimvvm;
 using UnityEditor;
 using UnityEngine;
 
@@ -49,14 +51,36 @@ class ComponentReferenceDrawer : PropertyDrawer
             }
 
             var siblingComponents = component.gameObject.GetComponents<Component>();
+            var existingComponents = new Dictionary<string, int>();
 
             foreach (var siblingComponent in siblingComponents)
             {
                 bool currentlySelected = siblingComponent == component;
 
+                var componentName = siblingComponent.GetType().Name;
+
+                // The underlying UnityEditor.EditorGUI.Popup will not render duplicate entries. (aka. entries with the same display name).
+                // So if there are more than 1 component with the same name, then we must append a number to the name to make it unique.
+                var countOfComponentsWithSameName = siblingComponents.Count((c) => c.GetType().Name == componentName);
+
+                if (countOfComponentsWithSameName > 1)
+                {
+                    if (!existingComponents.ContainsKey(componentName))
+                    {
+                        // For this loop through the components, this is the first one we've hit with this name.
+                        existingComponents[componentName] = 0;
+                    }
+                    else
+                    {
+                        // Some number of components with this name already exist.
+                        existingComponents[componentName]++;
+                    }
+                    componentName = $"{componentName} {existingComponents[componentName]}";
+                }
+
                 menu.Add(new DropDownItem
                 {
-                    Label = $"{siblingComponent.GetType().Name}",
+                    Label = $"{componentName}",
                     Command = () => { property.objectReferenceValue = siblingComponent; },
                     IsSelected = currentlySelected,
                 });
