@@ -68,7 +68,7 @@ class ComponentReferenceDrawer : PropertyDrawer
                     if (!existingComponents.ContainsKey(componentName))
                     {
                         // For this loop through the components, this is the first one we've hit with this name.
-                        existingComponents[componentName] = 0;
+                        existingComponents[componentName] = 1;
                     }
                     else
                     {
