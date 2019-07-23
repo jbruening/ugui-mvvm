@@ -1,4 +1,6 @@
-﻿namespace uguimvvm
+﻿using System;
+
+namespace uguimvvm
 {
     public enum BindingMode
     {
@@ -6,5 +8,7 @@
         OneWayToTarget,
         OneWayToSource,
         TwoWay,
+        [Obsolete]
+        OneWayToView,
     }
 }
