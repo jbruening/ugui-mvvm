@@ -1,23 +1,20 @@
-﻿using System;
-using System.Linq;
-using UnityEngine;
-using UnityEditor;
-using uguimvvm;
+﻿using AutoSuggest;
+using System;
 using System.Collections.Generic;
+using uguimvvm;
+using UnityEditor;
+using UnityEngine;
 
 [CustomEditor(typeof(DataContext))]
 class DataContextEditor : Editor
 {
     private static readonly string SearchFieldLabel = "Type name";
-    private static readonly string SearchFieldControlName = "SearchField";
 
-    private bool _searching;
-    private string _searchString;
-    private string _previousSearchString = String.Empty;
+    private string _searchString = null;
     private IEnumerable<Type> _types;
-    private Vector2 _scrollPos;
     private Type _tval;
-    private bool _cvis;
+    private TypeSuggestionProvider _suggestionProvider;
+    private AutoSuggestField _autoSuggestField;
 
     public override void OnInspectorGUI()
     {
@@ -27,19 +24,33 @@ class DataContextEditor : Editor
         var iprop = serializedObject.FindProperty("_instantiateOnAwake");
         var bprop = serializedObject.FindProperty("_propertyBinding");
 
-        if (_tval == null && !string.IsNullOrEmpty(tprop.stringValue))
+        if (_autoSuggestField == null)
         {
-            _tval = Type.GetType(tprop.stringValue);
-            if (_tval == null) //invalid type name. Clear it so we don't keep looking for an invalid type.
-            {
-                // Handle invalid DataContext types
-                var style = new GUIStyle(EditorStyles.textField);
-                style.normal.textColor = Color.red;
+            _suggestionProvider = new TypeSuggestionProvider();
+            _autoSuggestField = new AutoSuggestField(
+                _suggestionProvider,
+                new GUIContent(SearchFieldLabel),
+                new AutoSuggestField.Options
+                {
+                    DisplayMode = DisplayMode.Inline,
+                });
+        }
 
-                EditorGUILayout.TextField(string.Format("Error: Invalid type \"{0}\"",
-                    tprop.stringValue),
-                    style);
-            }
+        if (_searchString == null)
+        {
+            // On first frame, _searchString will be null.
+            // After block line, it will be non-null.
+
+            _tval = Type.GetType(tprop.stringValue);
+            _searchString = _tval?.FullName ?? string.Empty;
+        }
+
+        _searchString = _autoSuggestField.OnGUI(_searchString);
+
+        if (_suggestionProvider.SelectedTypeIsValid && Event.current.type == EventType.Layout)
+        {
+            _tval = _suggestionProvider.SelectedType;
+            tprop.stringValue = _tval?.AssemblyQualifiedName;
         }
 
         if (_tval != null)
@@ -51,82 +62,7 @@ class DataContextEditor : Editor
             else
             {
                 EditorGUILayout.PropertyField(iprop);
-
-                INPCBindingEditor.DrawCRefProp(serializedObject.targetObject.GetInstanceID(), bprop, GUIContent.none);
-            }
-        }
-
-        if (_tval != null)
-        {
-            _searchString = EditorGUILayout.TextField(SearchFieldLabel, _tval.FullName);
-            if (_searchString != _tval.FullName)
-            {
-                tprop.stringValue = null;
-                iprop.boolValue = false;
-                _tval = null;
-            }
-            else
-            {
-                //_cvis = EditorGUILayout.Foldout(_cvis, "Commands");
-                //if (_cvis)
-                //{
-                //    EditorGUI.indentLevel++;
-                //    var cprops = _tval.GetProperties().Where(p => p.PropertyType == typeof(ICommand));
-                //    foreach (var prop in cprops)
-                //    {
-                //        GUILayout.Label(prop.Name);
-                //    }
-                //    EditorGUI.indentLevel--;
-                //}
-            }
-        }
-        else
-        {
-
-            GUI.SetNextControlName(SearchFieldControlName);
-            _searchString = EditorGUILayout.TextField(SearchFieldLabel, _searchString);
-        }
-
-        if (_tval == null && !string.IsNullOrEmpty(_searchString))
-        {
-            if (!_previousSearchString.Equals(_searchString))
-            {
-                _previousSearchString = _searchString;
-                _types = null;
-            }
-
-            if (_types == null && GUILayout.Button("Search"))
-            {
-                var typeQuery = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a =>
-                {
-                    try
-                    {
-                        return a.GetTypes();
-                    }
-                    catch (Exception)
-                    {
-                        return new Type[] { };
-                    }
-                }).Where(t => t.AssemblyQualifiedName.IndexOf(_searchString, StringComparison.OrdinalIgnoreCase) >= 0);
-
-                // Calling ToList forces the query to execute this one time, instead of executing every single time "types" is enumerated.
-                _types = typeQuery.ToList();
-            }
-
-            EditorGUI.FocusTextInControl(SearchFieldControlName);
-
-            if (_types != null)
-            {
-                _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.Height(100));
-                foreach (var type in _types)
-                {
-                    if (GUILayout.Button(type.FullName))
-                    {
-                        _tval = type;
-                        tprop.stringValue = _tval.AssemblyQualifiedName;
-                    }
-                }
-                EditorGUILayout.EndScrollView();
+                EditorGUILayout.PropertyField(bprop);
             }
         }
 
@@ -135,9 +71,10 @@ class DataContextEditor : Editor
         var dc = target as DataContext;
         if (dc != null)
         {
-            EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.Toggle("Value is non-null?", dc.Value != null);
-            EditorGUI.EndDisabledGroup();
+            using (var disabledGroupScope = new EditorGUI.DisabledGroupScope(true))
+            {
+                EditorGUILayout.Toggle("Value is non-null?", dc.Value != null);
+            }
         }
     }
 }

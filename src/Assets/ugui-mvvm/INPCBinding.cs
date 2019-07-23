@@ -292,6 +292,7 @@ namespace uguimvvm
         [SerializeField]
         [FormerlySerializedAs("_view")]
         ComponentPath _target;
+        public ComponentPath Target => _target;
 
 #pragma warning disable 0169
 
@@ -306,6 +307,7 @@ namespace uguimvvm
         [SerializeField]
         [FormerlySerializedAs("_viewModel")]
         ComponentPath _source;
+        public ComponentPath Source => _source;
 
         [SerializeField]
         BindingMode _mode = BindingMode.OneWayToTarget;
