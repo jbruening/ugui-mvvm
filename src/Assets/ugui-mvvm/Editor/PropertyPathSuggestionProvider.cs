@@ -9,6 +9,17 @@ namespace uguimvvm
 {
     public class PropertyPathSuggestionProvider : ISuggestionProvider
     {
+        private class PropertySuggestion : Suggestion
+        {
+            public PropertySuggestion(PropertyInfo property, string currentValueToLastDot, string currentValueAfterLastDot)
+                : base(
+                      currentValueToLastDot + property.Name,
+                      $"{property.Name.PadRight(16, ' ')}\t({property.PropertyType.Name})",
+                      property.Name.IndexOf(currentValueAfterLastDot, StringComparison.CurrentCultureIgnoreCase),
+                      currentValueAfterLastDot.Length)
+            { }
+        }
+
         private class PropertyPathException : Exception
         {
             public PropertyPathException(string message)
@@ -41,7 +52,7 @@ namespace uguimvvm
                     return Enumerable.Empty<Suggestion>();
                 }
 
-                var optionsWithInfo = subProperties.Select(p => new Suggestion(currentValueToLastDot + p, p, p.IndexOf(currentValueAfterLastDot, StringComparison.CurrentCultureIgnoreCase), currentValueAfterLastDot.Length))
+                var optionsWithInfo = subProperties.Select(p => new PropertySuggestion(p, currentValueToLastDot, currentValueAfterLastDot))
                     .Where(opt => opt.DisplayTextMatchIndex >= 0);
 
                 if (!optionsWithInfo.Any())
@@ -91,7 +102,7 @@ namespace uguimvvm
             }
         }
 
-        private static IEnumerable<string> GetSubProperties(SerializedProperty property, string currentPathString, bool throwOnInvalidPath)
+        private static IEnumerable<PropertyInfo> GetSubProperties(SerializedProperty property, string currentPathString, bool throwOnInvalidPath)
         {
             SerializedProperty cprop, pprop;
             ComponentPathDrawer.GetCPathProperties(property, out cprop, out pprop);
@@ -100,7 +111,7 @@ namespace uguimvvm
             {
                 if (string.IsNullOrEmpty(currentPathString))
                 {
-                    return Enumerable.Empty<string>();
+                    return Enumerable.Empty<PropertyInfo>();
                 }
                 else
                 {
@@ -118,7 +129,7 @@ namespace uguimvvm
             {
                 if (string.IsNullOrEmpty(currentPathString))
                 {
-                    return Enumerable.Empty<string>();
+                    return Enumerable.Empty<PropertyInfo>();
                 }
                 else
                 {
@@ -131,7 +142,7 @@ namespace uguimvvm
             }
 
             // pprop.stringValue can be one frame behind what is in currentPathString
-            var path = new INPCBinding.PropertyPath(currentPathString, objectReferenceType);
+            var path = new PropertyBinding.PropertyPath(currentPathString, objectReferenceType);
 
             if (throwOnInvalidPath && !path.IsValid)
             {
@@ -144,9 +155,7 @@ namespace uguimvvm
 
             var rtype = GetLastValidTypeBeforeTheDot(path.PPath, objectReferenceType);
 
-            var props = rtype.GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            var propNames = props.Select(p => p.Name);
-            return propNames;
+            return rtype.GetProperties(BindingFlags.Instance | BindingFlags.Public);
         }
 
         private static Type GetTypeFromObjectReference(UnityEngine.Object o)
