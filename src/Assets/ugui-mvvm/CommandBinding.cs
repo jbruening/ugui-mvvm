@@ -24,12 +24,12 @@ namespace uguimvvm
 #pragma warning restore 0169
 #endif
         [SerializeField]
-        INPCBinding.ComponentPath _viewModel = null;
+        PropertyBinding.ComponentPath _viewModel = null;
 
         [SerializeField]
         private BindingParameter _parameter = null;
 
-        // alternatively use this property for custom parameter types to pass at runtime by binding this property to an INPCBinding
+        // alternatively use this property for custom parameter types to pass at runtime by binding this property to a PropertyBinding
         public object Parameter
         {
             get
@@ -47,10 +47,10 @@ namespace uguimvvm
         }
         private object _runtimeParameter = null;
 
-        INPCBinding.PropertyPath _vmProp;
+        PropertyBinding.PropertyPath _vmProp;
         private ICommand _command;
 
-        public INPCBinding.ComponentPath ViewModel
+        public PropertyBinding.ComponentPath ViewModel
         {
             get
             {
@@ -62,7 +62,7 @@ namespace uguimvvm
         {
             var context = gameObject.GetComponentInParent(typeof(DataContext)) as DataContext;
             if (context != null)
-                _viewModel = new INPCBinding.ComponentPath { Component = context };
+                _viewModel = new PropertyBinding.ComponentPath { Component = context };
 
             _view = gameObject.GetComponent<UIBehaviour>();
         }
@@ -93,7 +93,7 @@ namespace uguimvvm
             else
                 vmtype = _viewModel.Component.GetType();
 
-            _vmProp = new INPCBinding.PropertyPath(_viewModel.Property, vmtype, true);
+            _vmProp = new PropertyBinding.PropertyPath(_viewModel.Property, vmtype, true);
 
             if (!_vmProp.IsValid)
             {

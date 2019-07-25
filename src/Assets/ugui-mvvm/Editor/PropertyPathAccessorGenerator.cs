@@ -103,7 +103,7 @@ public class PropertyPathAccessorGenerator
     private static void CreateHeader(StringBuilder sw)
     {
         sw.AppendLine(@"#region GENERATED. Regenerate by menu item Assets/Generate PropertyPathGen
-using INPCBinding = uguimvvm.INPCBinding;
+using PropertyBinding = uguimvvm.PropertyBinding;
 using ppa = uguimvvm.PropertyPathAccessors;
 #if UNITY_WSA || !NET_LEGACY
 using System.Collections.ObjectModel;
@@ -195,13 +195,13 @@ static void Register()
         var objects = Resources.FindObjectsOfTypeAll<GameObject>();
         foreach (var obj in objects)
         {
-            var bindings = obj.GetComponents<INPCBinding>();
+            var bindings = obj.GetComponents<PropertyBinding>();
             foreach (var binding in bindings)
                 BuildPaths(binding, sw);
         }
     }
 
-    private static void BuildPaths(INPCBinding binding, StringBuilder sw)
+    private static void BuildPaths(PropertyBinding binding, StringBuilder sw)
     {
         var sobj = new SerializedObject(binding);
 
@@ -218,7 +218,7 @@ static void Register()
         var oval = cprop.objectReferenceValue;
         if (oval == null) return;
 
-        var ppath = new INPCBinding.PropertyPath(pprop.stringValue, oval.GetType());
+        var ppath = new PropertyBinding.PropertyPath(pprop.stringValue, oval.GetType());
 
         if (!ppath.IsValid) return;
 
@@ -242,7 +242,7 @@ static void Register()
 {4}
     }});",
             string.Join(",\r\n", ppath.PPath.Select(p =>
-                string.Format("        INPCBinding.PropertyPath.GetProperty(typeof({0}), \"{1}\")", 
+                string.Format("        PropertyBinding.PropertyPath.GetProperty(typeof({0}), \"{1}\")", 
                     GetFullName(p.DeclaringType), 
                     p.Name))
                     .ToArray()),
@@ -253,7 +253,7 @@ static void Register()
             .AppendLine().AppendLine();
     }
 
-    static string BuildGetterEnd(INPCBinding.PropertyPath ppath)
+    static string BuildGetterEnd(PropertyBinding.PropertyPath ppath)
     {
         if (ppath.Parts.Length == 1)
             return string.Format("        return v0;");
@@ -273,7 +273,7 @@ static void Register()
         return sb.ToString();
     }
 
-    static string BuildSetterEnd(INPCBinding.PropertyPath ppath)
+    static string BuildSetterEnd(PropertyBinding.PropertyPath ppath)
     {
         if (ppath.Parts.Length == 1)
         {

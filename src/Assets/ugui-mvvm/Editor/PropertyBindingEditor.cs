@@ -11,10 +11,10 @@ using System.Collections.Generic;
 using UnityEditor.SceneManagement;
 #endif
 
-[CustomEditor(typeof(INPCBinding))]
-class INPCBindingEditor : Editor
+[CustomEditor(typeof(PropertyBinding))]
+class PropertyBindingEditor : Editor
 {
-    private static List<INPCBinding> cachedBindings = new List<INPCBinding>();
+    private static List<PropertyBinding> cachedBindings = new List<PropertyBinding>();
 
 #region scene post processing
     [PostProcessScene(1)]
@@ -45,7 +45,7 @@ class INPCBindingEditor : Editor
     }
 #endif
 
-    static void RemoveViewBinding(INPCBinding binding)
+    static void RemoveViewBinding(PropertyBinding binding)
     {
         var sobj = new SerializedObject(binding);
         var vevValue = GetViewEventValue(sobj);
@@ -87,13 +87,13 @@ class INPCBindingEditor : Editor
         var objects = Resources.FindObjectsOfTypeAll<GameObject>();
         foreach (var obj in objects)
         {
-            var bindings = obj.GetComponents<INPCBinding>();
+            var bindings = obj.GetComponents<PropertyBinding>();
             foreach (var binding in bindings)
                 FigureViewBinding(binding);
         }
     }
 
-    static void FigureViewBinding(INPCBinding binding)
+    static void FigureViewBinding(PropertyBinding binding)
     {
         if (binding.Mode == BindingMode.OneWayToView)
         {

@@ -142,7 +142,7 @@ namespace uguimvvm
             }
 
             // pprop.stringValue can be one frame behind what is in currentPathString
-            var path = new INPCBinding.PropertyPath(currentPathString, objectReferenceType);
+            var path = new PropertyBinding.PropertyPath(currentPathString, objectReferenceType);
 
             if (throwOnInvalidPath && !path.IsValid)
             {

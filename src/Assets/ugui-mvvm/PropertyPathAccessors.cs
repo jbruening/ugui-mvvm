@@ -82,7 +82,7 @@ namespace uguimvvm
         }
 
         /// <summary>
-        /// Allow the INpcBinding.PropertyPath objects to start using the cached property paths.
+        /// Allow the PropertyBinding.PropertyPath objects to start using the cached property paths.
         /// Registering accessors after this is run is likely to result in the accessors to not be used, due to the paths being set to NoSetter/NoGetter
         /// </summary>
         public static void Initialize()

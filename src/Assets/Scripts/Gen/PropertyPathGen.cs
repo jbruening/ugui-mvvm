@@ -1,5 +1,5 @@
 #region GENERATED. Regenerate by menu item Assets/Generate PropertyPathGen
-using INPCBinding = uguimvvm.INPCBinding;
+using PropertyBinding = uguimvvm.PropertyBinding;
 using ppa = uguimvvm.PropertyPathAccessors;
 #if UNITY_WSA || !NET_LEGACY
 using System.Collections.ObjectModel;
@@ -15,7 +15,7 @@ static void Register()
   ppa.Register(
     new[]
     {
-        INPCBinding.PropertyPath.GetProperty(typeof(UnityEngine.UI.InputField), "text")
+        PropertyBinding.PropertyPath.GetProperty(typeof(UnityEngine.UI.InputField), "text")
     },
     obj => 
     {
@@ -31,7 +31,7 @@ static void Register()
   ppa.Register(
     new[]
     {
-        INPCBinding.PropertyPath.GetProperty(typeof(UnityEngine.UI.Text), "text")
+        PropertyBinding.PropertyPath.GetProperty(typeof(UnityEngine.UI.Text), "text")
     },
     obj => 
     {
@@ -47,7 +47,7 @@ static void Register()
   ppa.Register(
     new[]
     {
-        INPCBinding.PropertyPath.GetProperty(typeof(UnityEngine.UI.Toggle), "isOn")
+        PropertyBinding.PropertyPath.GetProperty(typeof(UnityEngine.UI.Toggle), "isOn")
     },
     obj => 
     {
@@ -63,7 +63,7 @@ static void Register()
   ppa.Register(
     new[]
     {
-        INPCBinding.PropertyPath.GetProperty(typeof(UnityEngine.Behaviour), "enabled")
+        PropertyBinding.PropertyPath.GetProperty(typeof(UnityEngine.Behaviour), "enabled")
     },
     obj => 
     {
@@ -79,7 +79,7 @@ static void Register()
   ppa.Register(
     new[]
     {
-        INPCBinding.PropertyPath.GetProperty(typeof(uguimvvm.ItemsControl), "ItemsSource")
+        PropertyBinding.PropertyPath.GetProperty(typeof(uguimvvm.ItemsControl), "ItemsSource")
     },
     obj => 
     {
@@ -95,7 +95,7 @@ static void Register()
   ppa.Register(
     new[]
     {
-        INPCBinding.PropertyPath.GetProperty(typeof(uguimvvm.Primitives.Selector), "Selected")
+        PropertyBinding.PropertyPath.GetProperty(typeof(uguimvvm.Primitives.Selector), "Selected")
     },
     obj => 
     {
@@ -111,7 +111,7 @@ static void Register()
   ppa.Register(
     new[]
     {
-        INPCBinding.PropertyPath.GetProperty(typeof(uguimvvm.ItemsControl), "ItemsSource")
+        PropertyBinding.PropertyPath.GetProperty(typeof(uguimvvm.ItemsControl), "ItemsSource")
     },
     obj => 
     {
@@ -127,7 +127,7 @@ static void Register()
   ppa.Register(
     new[]
     {
-        INPCBinding.PropertyPath.GetProperty(typeof(uguimvvm.Primitives.Selector), "Selected")
+        PropertyBinding.PropertyPath.GetProperty(typeof(uguimvvm.Primitives.Selector), "Selected")
     },
     obj => 
     {

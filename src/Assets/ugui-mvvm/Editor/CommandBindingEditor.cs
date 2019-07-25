@@ -45,7 +45,7 @@ class CommandBindingEditor : Editor
         if (vcomp == null)
             return;
 
-        var @event = INPCBindingEditor.GetEvent(vcomp, veprop);
+        var @event = PropertyBindingEditor.GetEvent(vcomp, veprop);
         if (@event != null)
         {
             // Fixing adding multiple command binding event handlers when using prefabs
@@ -81,7 +81,7 @@ class CommandBindingEditor : Editor
 
         EditorGUILayout.PropertyField(_vprop);
         if (_vprop.objectReferenceValue != null)
-            INPCBindingEditor.DrawComponentEvents(_vprop, _veprop);
+            PropertyBindingEditor.DrawComponentEvents(_vprop, _veprop);
 
         EditorGUILayout.PropertyField(_vmprop);
 

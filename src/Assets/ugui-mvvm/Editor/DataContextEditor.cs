@@ -1,6 +1,5 @@
 ﻿using AutoSuggest;
 using System;
-using System.Collections.Generic;
 using uguimvvm;
 using UnityEditor;
 using UnityEngine;
@@ -11,7 +10,6 @@ class DataContextEditor : Editor
     private static readonly string SearchFieldLabel = "Type name";
 
     private string _searchString = null;
-    private IEnumerable<Type> _types;
     private Type _tval;
     private TypeSuggestionProvider _suggestionProvider;
     private AutoSuggestField _autoSuggestField;

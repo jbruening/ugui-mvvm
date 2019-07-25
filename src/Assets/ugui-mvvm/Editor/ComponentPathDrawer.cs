@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace uguimvvm
 {
-    [CustomPropertyDrawer(typeof(INPCBinding.ComponentPath))]
+    [CustomPropertyDrawer(typeof(PropertyBinding.ComponentPath))]
     class ComponentPathDrawer : PropertyDrawer
     {
         private PropertyPathSuggestionProvider _suggestionProvider;

@@ -9,7 +9,9 @@ namespace AutoSuggest
         private IReadOnlyList<string> _options;
         private bool _warnForUnknownValues;
 
+#pragma warning disable 0067
         public event Action SuggestionsChanged;
+#pragma warning restore 0067
 
         public FixedListSuggestionProvider(IReadOnlyList<string> options, bool warnForUnknownValues)
         {
