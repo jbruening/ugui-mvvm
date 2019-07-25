@@ -27,16 +27,34 @@ class INPCBindingToPropertyBindingUpgradeEditor : PropertyBindingEditor
                 "Upgrade now",
                 "Cancel"))
             {
+                bool okToProceed = true;
 #if UNITY_2018_3_OR_NEWER
-                var inpcBinding = this.serializedObject.targetObject as INPCBinding;
-                _oldMonoScript = MonoScript.FromMonoBehaviour(inpcBinding);
-                var propertyBinding = inpcBinding.gameObject.AddComponent<PropertyBinding>();
-                _newMonoScript = MonoScript.FromMonoBehaviour(propertyBinding);
-                DestroyImmediate(propertyBinding);
+
+                if (EditorSettings.serializationMode != SerializationMode.ForceText)
+                {
+                    okToProceed = false;
+                    EditorUtility.DisplayDialog(
+                        "Text base assets required",
+                        "The upgrade requires that you enable text based assets\n\n" +
+                        "Edit > Project Settings > Editor > Asset Serialization > Mode > Force Text\n\n" +
+                        "Please set this setting, then save and commit all, then attempt the upgrade again.  You can revert to binary assets after upgrading if you wish.",
+                        "Ok");
+                }
+                else
+                {
+                    var inpcBinding = this.serializedObject.targetObject as INPCBinding;
+                    _oldMonoScript = MonoScript.FromMonoBehaviour(inpcBinding);
+                    var propertyBinding = inpcBinding.gameObject.AddComponent<PropertyBinding>();
+                    _newMonoScript = MonoScript.FromMonoBehaviour(propertyBinding);
+                    DestroyImmediate(propertyBinding);
+                }
 #endif
 
-                // Schedule the upgrade to occur on the next Editor update tick.
-                EditorApplication.update += UpgradeMonoScriptsOnEditorUpdate;
+                if (okToProceed)
+                {
+                    // Schedule the upgrade to occur on the next Editor update tick.
+                    EditorApplication.update += UpgradeMonoScriptsOnEditorUpdate;
+                }
             }
         }
 
