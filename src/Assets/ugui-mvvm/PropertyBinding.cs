@@ -324,20 +324,6 @@ namespace uguimvvm
         PropertyPath _vProp;
         PropertyPath _vmProp;
 
-        public void CopyFromExisting(PropertyBinding other)
-        {
-            _target = other._target;
-            _targetEvent = other._targetEvent;
-            _source = other._source;
-            _mode = other._mode;
-            _converter = other._converter;
-            _ci = other._ci;
-            _vType = other._vType;
-            _vmType = other._vmType;
-            _vProp = other._vProp;
-            _vmProp = other._vmProp;
-        }
-
         void Reset()
         {
             var context = gameObject.GetComponentInParent(typeof(DataContext)) as DataContext;
