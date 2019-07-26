@@ -12,7 +12,7 @@ namespace uguimvvm
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            EditorGUI.LabelField(position, property.displayName);
+            EditorGUI.LabelField(position, label);
             EditorGUI.indentLevel++;
 
             SerializedProperty component, propertyPath;

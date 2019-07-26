@@ -6,6 +6,7 @@ using System.Windows.Input;
 #endif
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Component = UnityEngine.Component;
 
@@ -14,17 +15,20 @@ namespace uguimvvm
     public class CommandBinding : MonoBehaviour
     {
         [SerializeField]
-        Component _view;
+        [FormerlySerializedAs("_view")]
+        Component _target;
 
 #pragma warning disable 0169
         [SerializeField]
-        string _viewEvent;
+        [FormerlySerializedAs("_viewEvent")]
+        string _targetEvent;
 
 #if !UNITY_EDITOR
 #pragma warning restore 0169
 #endif
         [SerializeField]
-        INPCBinding.ComponentPath _viewModel = null;
+        [FormerlySerializedAs("_viewModel")]
+        INPCBinding.ComponentPath _source = null;
 
         [SerializeField]
         private BindingParameter _parameter = null;
@@ -50,11 +54,21 @@ namespace uguimvvm
         INPCBinding.PropertyPath _vmProp;
         private ICommand _command;
 
+        [Obsolete("Use the Source property.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public INPCBinding.ComponentPath ViewModel
         {
             get
             {
-                return _viewModel;
+                return this.Source;
+            }
+        }
+
+        public INPCBinding.ComponentPath Source
+        {
+            get
+            {
+                return _source;
             }
         }
 
@@ -62,9 +76,9 @@ namespace uguimvvm
         {
             var context = gameObject.GetComponentInParent(typeof(DataContext)) as DataContext;
             if (context != null)
-                _viewModel = new INPCBinding.ComponentPath { Component = context };
+                _source = new INPCBinding.ComponentPath { Component = context };
 
-            _view = gameObject.GetComponent<UIBehaviour>();
+            _target = gameObject.GetComponent<UIBehaviour>();
         }
 
         void Awake()
@@ -79,8 +93,8 @@ namespace uguimvvm
 
         private void ClearBindings()
         {
-            if (_viewModel.Component is INotifyPropertyChanged)
-                (_viewModel.Component as INotifyPropertyChanged).PropertyChanged -= OnPropertyChanged;
+            if (_source.Component is INotifyPropertyChanged)
+                (_source.Component as INotifyPropertyChanged).PropertyChanged -= OnPropertyChanged;
             if (_command != null)
                 _command.CanExecuteChanged -= CommandOnCanExecuteChanged;
         }
@@ -88,16 +102,16 @@ namespace uguimvvm
         private void FigureBindings()
         {
             Type vmtype;
-            if (_viewModel.Component is DataContext)
-                vmtype = (_viewModel.Component as DataContext).Type;
+            if (_source.Component is DataContext)
+                vmtype = (_source.Component as DataContext).Type;
             else
-                vmtype = _viewModel.Component.GetType();
+                vmtype = _source.Component.GetType();
 
-            _vmProp = new INPCBinding.PropertyPath(_viewModel.Property, vmtype, true);
+            _vmProp = new INPCBinding.PropertyPath(_source.Property, vmtype, true);
 
             if (!_vmProp.IsValid)
             {
-                Debug.LogErrorFormat(this, "CommandBinding: Invalid ViewModel property in \"{0}\".",
+                Debug.LogErrorFormat(this, "CommandBinding: Invalid Source property in \"{0}\".",
                     gameObject.GetParentNameHierarchy());
             }
 
@@ -106,13 +120,13 @@ namespace uguimvvm
 
             if (_vmProp == null)
             {
-                Debug.LogWarningFormat(this, "No property named {0} of type ICommand exists in {1}", _viewModel.Property, vmtype);
+                Debug.LogWarningFormat(this, "No property named {0} of type ICommand exists in {1}", _source.Property, vmtype);
             }
 
             if (_vmProp != null && _vmProp.IsValid)
             {
-                if (_viewModel.Component is INotifyPropertyChanged)
-                    (_viewModel.Component as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
+                if (_source.Component is INotifyPropertyChanged)
+                    (_source.Component as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
 
                 BindCommand();
             }
@@ -120,9 +134,9 @@ namespace uguimvvm
 
         private object GetVmValue()
         {
-            if (_viewModel.Component is DataContext)
-                return (_viewModel.Component as DataContext).GetValue(_vmProp);
-            return _vmProp.GetValue(_viewModel.Component, null);
+            if (_source.Component is DataContext)
+                return (_source.Component as DataContext).GetValue(_vmProp);
+            return _vmProp.GetValue(_source.Component, null);
         }
 
         private void BindCommand()
@@ -144,7 +158,7 @@ namespace uguimvvm
         private void OnPropertyChanged(object sender, PropertyChangedEventArgs propertyChangedEventArgs)
         {
             if (propertyChangedEventArgs.PropertyName != "" &&
-                propertyChangedEventArgs.PropertyName != _viewModel.Property)
+                propertyChangedEventArgs.PropertyName != _source.Property)
                 return;
 
             BindCommand();
@@ -158,8 +172,8 @@ namespace uguimvvm
 
         private void SetViewEnabledState(bool state)
         {
-            if (_view is Selectable)
-                (_view as Selectable).interactable = state;
+            if (_target is Selectable)
+                (_target as Selectable).interactable = state;
         }
 
         public void ExecuteCommand()

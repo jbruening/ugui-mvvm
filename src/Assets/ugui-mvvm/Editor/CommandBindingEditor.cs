@@ -36,8 +36,8 @@ class CommandBindingEditor : Editor
     static void FigureViewBinding(CommandBinding binding)
     {
         var sobj = new SerializedObject(binding);
-        var vcprop = sobj.FindProperty("_view");
-        var veprop = sobj.FindProperty("_viewEvent");
+        var vcprop = sobj.FindProperty("_target");
+        var veprop = sobj.FindProperty("_targetEvent");
         if (string.IsNullOrEmpty(veprop.stringValue))
             return;
 
@@ -69,9 +69,9 @@ class CommandBindingEditor : Editor
 
     void OnEnable()
     {
-        _vprop = serializedObject.FindProperty("_view");
-        _vmprop = serializedObject.FindProperty("_viewModel");
-        _veprop = serializedObject.FindProperty("_viewEvent");
+        _vprop = serializedObject.FindProperty("_target");
+        _vmprop = serializedObject.FindProperty("_source");
+        _veprop = serializedObject.FindProperty("_targetEvent");
         _parmprop = serializedObject.FindProperty("_parameter");
     }
 

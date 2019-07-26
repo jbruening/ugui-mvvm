@@ -1,10 +1,25 @@
-﻿namespace uguimvvm
+﻿using System;
+using System.ComponentModel;
+using UnityEngine;
+
+namespace uguimvvm
 {
     public enum BindingMode
     {
         OneTime,
-        OneWayToView,
-        OneWayToViewModel,
+        OneWayToTarget,
+        OneWayToSource,
         TwoWay,
+
+        // Obsolete values.  Only here to maintain backwards compatibility.
+        [Obsolete]
+        [HideInInspector]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        OneWayToView = OneWayToTarget,
+
+        [Obsolete]
+        [HideInInspector]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        OneWayToViewModel = OneWayToSource,
     }
 }
