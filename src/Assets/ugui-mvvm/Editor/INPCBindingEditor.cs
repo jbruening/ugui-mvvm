@@ -208,11 +208,11 @@ class INPCBindingEditor : Editor
         var cprop = serializedObject.FindProperty("_converter");
         var mprop = serializedObject.FindProperty("_mode");
 
-        EditorGUILayout.PropertyField(vprop);
+        EditorGUILayout.PropertyField(vprop, new GUIContent(vprop.displayName, "Typically, the Target would be a View"));
 
         var epropcount = DrawCrefEvents(vprop, veprop);
 
-        EditorGUILayout.PropertyField(vmprop);
+        EditorGUILayout.PropertyField(vmprop, new GUIContent(vmprop.displayName, "Typically, the Source would be a ViewModel"));
 
         EditorGUILayout.PropertyField(mprop, false);
         if (epropcount == 0)
