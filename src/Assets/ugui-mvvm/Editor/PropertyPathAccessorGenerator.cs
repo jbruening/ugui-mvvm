@@ -205,8 +205,8 @@ static void Register()
     {
         var sobj = new SerializedObject(binding);
 
-        BuildPath(sobj.FindProperty("_view"), sw);
-        BuildPath(sobj.FindProperty("_viewModel"), sw);
+        BuildPath(sobj.FindProperty("_target"), sw);
+        BuildPath(sobj.FindProperty("_source"), sw);
     }
 
     private static void BuildPath(SerializedProperty prop, StringBuilder sw)

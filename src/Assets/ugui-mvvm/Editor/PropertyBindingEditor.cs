@@ -68,11 +68,11 @@ class PropertyBindingEditor : Editor
 
     private static UnityEventBase GetViewEventValue(SerializedObject sobj)
     {
-        var viewEvProp = sobj.FindProperty("_viewEvent");
+        var viewEvProp = sobj.FindProperty("_targetEvent");
         if (string.IsNullOrEmpty(viewEvProp.stringValue))
             return null;
 
-        var viewProp = sobj.FindProperty("_view");
+        var viewProp = sobj.FindProperty("_target");
         var vcprop = viewProp.FindPropertyRelative("Component");
 
         var vcomp = vcprop.objectReferenceValue as Component;
@@ -95,7 +95,7 @@ class PropertyBindingEditor : Editor
 
     static void FigureViewBinding(PropertyBinding binding)
     {
-        if (binding.Mode == BindingMode.OneWayToView)
+        if (binding.Mode == BindingMode.OneWayToTarget)
         {
             return;
         }
@@ -202,17 +202,17 @@ class PropertyBindingEditor : Editor
     {
         serializedObject.Update();
 
-        var vprop = serializedObject.FindProperty("_view");
-        var vmprop = serializedObject.FindProperty("_viewModel");
-        var veprop = serializedObject.FindProperty("_viewEvent");
+        var vprop = serializedObject.FindProperty("_target");
+        var vmprop = serializedObject.FindProperty("_source");
+        var veprop = serializedObject.FindProperty("_targetEvent");
         var cprop = serializedObject.FindProperty("_converter");
         var mprop = serializedObject.FindProperty("_mode");
 
-        EditorGUILayout.PropertyField(vprop);
+        EditorGUILayout.PropertyField(vprop, new GUIContent(vprop.displayName, "Typically, the Target would be a View"));
 
         var epropcount = DrawCrefEvents(vprop, veprop);
 
-        EditorGUILayout.PropertyField(vmprop);
+        EditorGUILayout.PropertyField(vmprop, new GUIContent(vmprop.displayName, "Typically, the Source would be a ViewModel"));
 
         EditorGUILayout.PropertyField(mprop, false);
         if (epropcount == 0)
@@ -220,7 +220,7 @@ class PropertyBindingEditor : Editor
             if (mprop.enumValueIndex > 1)
             {
                 EditorUtility.DisplayDialog("Error", string.Format("Cannot change {0} to {1}, as only {2} and {3} are valid for no event",
-                    mprop.displayName, (BindingMode)mprop.enumValueIndex, BindingMode.OneTime, BindingMode.OneWayToView), "Okay");
+                    mprop.displayName, (BindingMode)mprop.enumValueIndex, BindingMode.OneTime, BindingMode.OneWayToTarget), "Okay");
                 mprop.enumValueIndex = 1;
             }
         }

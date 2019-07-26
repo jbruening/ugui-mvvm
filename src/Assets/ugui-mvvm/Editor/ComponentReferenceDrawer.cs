@@ -18,16 +18,21 @@ class ComponentReferenceDrawer : PropertyDrawer
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-        PropertyField(position, property);
+        PropertyField(position, property, label);
     }
 
     public static void PropertyField(Rect position, SerializedProperty property)
+    {
+        PropertyField(position, property, new GUIContent(property.displayName, property.tooltip));
+    }
+
+    public static void PropertyField(Rect position, SerializedProperty property, GUIContent label)
     {
         const float DropDownWidthFraction = 0.4f;
         float dropDownWidth = (position.width - EditorGUIUtility.labelWidth) * DropDownWidthFraction;
 
         position.width -= dropDownWidth;
-        EditorGUI.PropertyField(position, property);
+        EditorGUI.PropertyField(position, property, label);
 
         var dropDownPosition = new Rect(position.xMax, position.y, dropDownWidth, EditorGUIUtility.singleLineHeight);
 
