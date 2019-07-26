@@ -326,9 +326,9 @@ namespace uguimvvm
 
         public void CopyFromExisting(PropertyBinding other)
         {
-            _view = other._view;
-            _viewEvent = other._viewEvent;
-            _viewModel = other._viewModel;
+            _target = other._target;
+            _targetEvent = other._targetEvent;
+            _source = other._source;
             _mode = other._mode;
             _converter = other._converter;
             _ci = other._ci;

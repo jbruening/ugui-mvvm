@@ -64,7 +64,7 @@ namespace uguimvvm
             }
         }
 
-        public INPCBinding.ComponentPath Source
+        public PropertyBinding.ComponentPath Source
         {
             get
             {
