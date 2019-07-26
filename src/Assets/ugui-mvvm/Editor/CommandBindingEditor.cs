@@ -79,7 +79,8 @@ class CommandBindingEditor : Editor
     {
         serializedObject.Update();
 
-        EditorGUILayout.PropertyField(_vprop);
+        ComponentReferenceDrawer.PropertyField(EditorGUILayout.GetControlRect(), _vprop);
+
         if (_vprop.objectReferenceValue != null)
             PropertyBindingEditor.DrawComponentEvents(_vprop, _veprop);
 
