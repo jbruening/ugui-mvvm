@@ -259,11 +259,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3ee59b7cf539ba4db21f88739be3aeb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _view:
+  _target:
     Component: {fileID: 189801499}
     Property: text
-  _viewEvent: m_OnValueChange
-  _viewModel:
+  _targetEvent: m_OnValueChanged
+  _source:
     Component: {fileID: 1164661541}
     Property: TestString
   _mode: 3
@@ -465,9 +465,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 514947f9d26649c41b9142ca68265ced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _view: {fileID: 503098152}
-  _viewEvent: m_OnClick
-  _viewModel:
+  _target: {fileID: 503098152}
+  _targetEvent: m_OnClick
+  _source:
     Component: {fileID: 1164661541}
     Property: SaySomething
   _parameter:
@@ -704,11 +704,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3ee59b7cf539ba4db21f88739be3aeb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _view:
+  _target:
     Component: {fileID: 790469600}
     Property: isOn
-  _viewEvent: onValueChanged
-  _viewModel:
+  _targetEvent: onValueChanged
+  _source:
     Component: {fileID: 1164661541}
     Property: CanSaySomething
   _mode: 3
@@ -1158,11 +1158,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3ee59b7cf539ba4db21f88739be3aeb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _view:
+  _target:
     Component: {fileID: 1277512582}
     Property: text
-  _viewEvent: 
-  _viewModel:
+  _targetEvent: m_OnCullStateChanged
+  _source:
     Component: {fileID: 1164661541}
     Property: TestString
   _mode: 1
