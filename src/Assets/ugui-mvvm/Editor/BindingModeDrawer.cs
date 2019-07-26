@@ -20,7 +20,7 @@ public class ObsoleteAwareEnumDrawer<EnumT> : PropertyDrawer
 {
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-        var dropDownPosition = EditorGUI.PrefixLabel(position, new GUIContent(property.displayName));
+        var dropDownPosition = EditorGUI.PrefixLabel(position, label);
 
         var enumType = typeof(EnumT);
         var names = Enum.GetNames(enumType);
