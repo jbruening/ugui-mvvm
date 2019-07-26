@@ -3,9 +3,9 @@
 namespace uguimvvm.extensions
 {
     /// <summary>
-    /// Use this monobehavior to use INPC bindings to perform operations on material properties
+    /// Use this monobehavior to use PropertyBindings to perform operations on material properties
     /// </summary>
-    [RequireComponent(typeof(INPCBinding))]
+    [RequireComponent(typeof(PropertyBinding))]
     public class MaterialPropertyExtensions : MonoBehaviour
     {
         [SerializeField]

@@ -31,10 +31,10 @@ namespace uguimvvm
         }
 
         [SerializeField]
-        private INPCBinding.ComponentPath _propertyBinding = null;
-        public INPCBinding.ComponentPath PropertyBinding => _propertyBinding;
+        private PropertyBinding.ComponentPath _propertyBinding = null;
+        public PropertyBinding.ComponentPath PropertyBinding => _propertyBinding;
         public Component Component { get { return _propertyBinding?.Component; } }
-        private INPCBinding.PropertyPath _prop;
+        private PropertyBinding.PropertyPath _prop;
 
         [Tooltip("Instantiate the type on awake. This will not work for UnityEngine.Object types")]
         [SerializeField]
@@ -45,7 +45,7 @@ namespace uguimvvm
         void Awake()
         {
             if (_propertyBinding != null && _propertyBinding.Component != null)
-                _prop = INPCBinding.FigureBinding(_propertyBinding, BindingPropertyChanged, true);
+                _prop = uguimvvm.PropertyBinding.FigureBinding(_propertyBinding, this.BindingPropertyChanged, true);
 
             ApplyBindingToValue();
 
@@ -97,7 +97,7 @@ namespace uguimvvm
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        internal object GetValue(INPCBinding.PropertyPath property)
+        internal object GetValue(PropertyBinding.PropertyPath property)
         {
             if (_value == null)
             {
@@ -107,7 +107,7 @@ namespace uguimvvm
             return property.GetValue(_value, null);
         }
 
-        internal void SetValue(object value, INPCBinding.PropertyPath property)
+        internal void SetValue(object value, PropertyBinding.PropertyPath property)
         {
             if (_value == null)
             {
@@ -145,12 +145,12 @@ namespace uguimvvm
             if (_propertyBinding.Component == null) return;
             if (_prop == null) return;
 
-            var value = INPCBinding.GetValue(_propertyBinding, _prop);
+            var value = uguimvvm.PropertyBinding.GetValue(_propertyBinding, _prop);
             UpdateValue(value);
         }
 #endregion
 
-        public void AddDependentProperty(INPCBinding.PropertyPath prop, PropertyChangedEventHandler handler)
+        public void AddDependentProperty(PropertyBinding.PropertyPath prop, PropertyChangedEventHandler handler)
         {
             var dependentProperty = new DependentProperty(prop, handler);
             dependentProperty.Prop.AddHandler(_value, dependentProperty.Handler);
@@ -160,10 +160,10 @@ namespace uguimvvm
 
         public class DependentProperty
         {
-            public INPCBinding.PropertyPath Prop { get; private set; }
+            public PropertyBinding.PropertyPath Prop { get; private set; }
             public PropertyChangedEventHandler Handler { get; private set; }
 
-            public DependentProperty(INPCBinding.PropertyPath prop, PropertyChangedEventHandler handler)
+            public DependentProperty(PropertyBinding.PropertyPath prop, PropertyChangedEventHandler handler)
             {
                 Prop = prop;
                 Handler = handler;

@@ -28,12 +28,12 @@ namespace uguimvvm
 #endif
         [SerializeField]
         [FormerlySerializedAs("_viewModel")]
-        INPCBinding.ComponentPath _source = null;
+        PropertyBinding.ComponentPath _source = null;
 
         [SerializeField]
         private BindingParameter _parameter = null;
 
-        // alternatively use this property for custom parameter types to pass at runtime by binding this property to an INPCBinding
+        // alternatively use this property for custom parameter types to pass at runtime by binding this property to a PropertyBinding
         public object Parameter
         {
             get
@@ -51,12 +51,12 @@ namespace uguimvvm
         }
         private object _runtimeParameter = null;
 
-        INPCBinding.PropertyPath _vmProp;
+        PropertyBinding.PropertyPath _vmProp;
         private ICommand _command;
 
         [Obsolete("Use the Source property.")]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public INPCBinding.ComponentPath ViewModel
+        public PropertyBinding.ComponentPath ViewModel
         {
             get
             {
@@ -64,7 +64,7 @@ namespace uguimvvm
             }
         }
 
-        public INPCBinding.ComponentPath Source
+        public PropertyBinding.ComponentPath Source
         {
             get
             {
@@ -76,7 +76,7 @@ namespace uguimvvm
         {
             var context = gameObject.GetComponentInParent(typeof(DataContext)) as DataContext;
             if (context != null)
-                _source = new INPCBinding.ComponentPath { Component = context };
+                _source = new PropertyBinding.ComponentPath { Component = context };
 
             _target = gameObject.GetComponent<UIBehaviour>();
         }
@@ -107,7 +107,7 @@ namespace uguimvvm
             else
                 vmtype = _source.Component.GetType();
 
-            _vmProp = new INPCBinding.PropertyPath(_source.Property, vmtype, true);
+            _vmProp = new PropertyBinding.PropertyPath(_source.Property, vmtype, true);
 
             if (!_vmProp.IsValid)
             {

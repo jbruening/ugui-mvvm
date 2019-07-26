@@ -34,7 +34,7 @@ namespace uguimvvm
         }
     }
 
-    public class INPCBinding : MonoBehaviour
+    public class PropertyBinding : MonoBehaviour
     {
         [Serializable]
         public class ComponentPath
