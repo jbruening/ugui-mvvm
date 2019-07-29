@@ -70,7 +70,7 @@ namespace uguimvvm
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (results.Count == 1 && results[0].Value == currentValue)
+                if (results.Any() && results[0].Value == currentValue)
                 {
                     SelectedType = results[0].Type;
                 }
