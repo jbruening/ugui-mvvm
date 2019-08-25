@@ -22,4 +22,17 @@ namespace uguimvvm
         [EditorBrowsable(EditorBrowsableState.Never)]
         OneWayToViewModel = OneWayToSource,
     }
+
+    public static class BindingModeExtensions
+    {
+        public static bool IsTargetBoundToSource(this BindingMode bindingMode)
+        {
+            return bindingMode != BindingMode.OneWayToSource;
+        }
+
+        public static bool IsSourceBoundToTarget(this BindingMode bindingMode)
+        {
+            return bindingMode == BindingMode.OneWayToSource || bindingMode == BindingMode.TwoWay;
+        }
+    }
 }

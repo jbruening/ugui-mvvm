@@ -95,7 +95,8 @@ class PropertyBindingEditor : Editor
 
     static void FigureViewBinding(PropertyBinding binding)
     {
-        if (binding.Mode == BindingMode.OneWayToTarget)
+        // Don't register for the target event that indicates the property has changed if the value from the target never flows back to the source.
+        if (!binding.Mode.IsSourceBoundToTarget())
         {
             return;
         }
@@ -210,11 +211,13 @@ class PropertyBindingEditor : Editor
 
         EditorGUILayout.PropertyField(vprop, new GUIContent(vprop.displayName, "Typically, the Target would be a View"));
 
-        var epropcount = DrawCrefEvents(vprop, veprop);
+        // If the value never flows back from the target to the source, then there is no reason to pay attention to value change events on the target.
+        int epropcount = ((PropertyBinding)target).Mode.IsSourceBoundToTarget() ? DrawCrefEvents(vprop, veprop) : -1;
 
         EditorGUILayout.PropertyField(vmprop, new GUIContent(vmprop.displayName, "Typically, the Source would be a ViewModel"));
 
         EditorGUILayout.PropertyField(mprop, false);
+
         if (epropcount == 0)
         {
             if (mprop.enumValueIndex > 1)

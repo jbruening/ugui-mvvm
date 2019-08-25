@@ -61,8 +61,8 @@ namespace uguimvvm
                 results = _types
                     .AsParallel()
                     .WithCancellation(cancellationToken)
-                    .Select((t) => new TypeSuggestion(t, currentValue))
                     .Where((t) => Attribute.GetCustomAttribute(t, typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute)) == null)
+                    .Select((t) => new TypeSuggestion(t, currentValue))
                     .Where((s) => s.DisplayTextMatchIndex >= 0)
                     .OrderBy(opt => opt.DisplayTextMatchIndex)
                     .ThenBy(opt => opt.Value.Length)
