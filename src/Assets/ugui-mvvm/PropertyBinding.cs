@@ -66,7 +66,7 @@ namespace uguimvvm
 
             private readonly PropertyInfo[] _pPath;
             private readonly Notifier[] _notifies;
-            private PropertyChangedEventHandler _handler;
+            private Action _handler;
             public PropertyInfo[] PPath { get { return _pPath; } }
             public string[] Parts { get; private set; }
 
@@ -184,7 +184,7 @@ namespace uguimvvm
                 _pPath[i].SetValue(root, value, index);
             }
 
-            public void AddHandler(object root, PropertyChangedEventHandler handler)
+            public void AddHandler(object root, Action handler)
             {
                 for (var i = 0; i < _pPath.Length; i++)
                 {
@@ -202,10 +202,10 @@ namespace uguimvvm
                 _handler = handler;
             }
 
-            internal void TriggerHandler(object sender)
+            internal void TriggerHandler()
             {
                 if (_handler != null)
-                    _handler(sender, new PropertyChangedEventArgs(Path));
+                    _handler();
             }
 
             private void OnPropertyChanged(object sender, PropertyChangedEventArgs args, Notifier notifier)
@@ -237,7 +237,7 @@ namespace uguimvvm
                         TrySubscribe(root, i+1);
                 }
 
-                _handler(sender, new PropertyChangedEventArgs(Path));
+                _handler();
             }
 
             private void TrySubscribe(object root, int idx)
@@ -472,7 +472,7 @@ namespace uguimvvm
 
         private void FigureBindings()
         {
-            _vmProp = FigureBinding(_source, inpc_PropertyChanged, true);
+            _vmProp = FigureBinding(_source, ApplyVMToV, true);
             //post processing will have set up our _target.
             _vProp = FigureBinding(_target, null, false);
 
@@ -497,7 +497,7 @@ namespace uguimvvm
             }
         }
 
-        public static PropertyPath FigureBinding(ComponentPath path, PropertyChangedEventHandler handler, bool resolveDataContext)
+        public static PropertyPath FigureBinding(ComponentPath path, Action handler, bool resolveDataContext)
         {
             Type type;
             if (resolveDataContext && path.Component is DataContext)
@@ -518,17 +518,10 @@ namespace uguimvvm
             return prop;
         }
 
-        void inpc_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "" || e.PropertyName == _source.Property)
-                ApplyVMToV();
-        }
-
         private void ClearBindings()
         {
-            var inpc = _source.Component as INotifyPropertyChanged;
-            if (inpc == null) return;
-            inpc.PropertyChanged -= inpc_PropertyChanged;
+            _vmProp?.ClearHandlers();
+            _vProp?.ClearHandlers();
             //todo: clean up unity events
         }
 
