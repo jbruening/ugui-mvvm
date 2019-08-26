@@ -35,6 +35,16 @@ namespace uguimvvm
         /// <param name="position"></param>
         public void OnGUI(Rect position)
         {
+            OnGUI(dropDownContent => EditorGUI.Popup(position, _selectedItem, dropDownContent));
+        }
+
+        public void OnGUI(string label)
+        {
+            OnGUI(dropDownContent => EditorGUILayout.Popup(new GUIContent(label), _selectedItem, dropDownContent));
+        }
+
+        private void OnGUI(Func<GUIContent[], int> showPopup)
+        {
             var dropDownContent = new GUIContent[_dropDownItems.Count];
             for (int i = 0; i < dropDownContent.Length; i++)
             {
@@ -50,7 +60,7 @@ namespace uguimvvm
                 }
             }
 
-            var clickedIndex = EditorGUI.Popup(position, _selectedItem, dropDownContent);
+            var clickedIndex = showPopup(dropDownContent);
 
             if (clickedIndex != _selectedItem)
             {

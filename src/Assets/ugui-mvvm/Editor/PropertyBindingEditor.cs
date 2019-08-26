@@ -254,25 +254,32 @@ class PropertyBindingEditor : Editor
     /// <returns></returns>
     public static int DrawComponentEvents(SerializedProperty component, SerializedProperty eventProperty)
     {
-        int epropcount = 0;
         if (component.objectReferenceValue != null)
         {
-            var eprops = GetAllFields(component.objectReferenceValue.GetType())
+            FieldInfo[] unityEventFields = GetAllFields(component.objectReferenceValue.GetType())
                 .Where(
-                    f =>
-                        typeof (UnityEventBase).IsAssignableFrom(f.FieldType) && (f.IsPublic ||
-                        f.GetCustomAttributes(typeof (SerializeField), false).Length > 0)).ToArray();
-            var enames = eprops.Select(f => ObjectNames.NicifyVariableName(f.Name)).ToArray();
-            epropcount = eprops.Length;
+                    field =>
+                        typeof (UnityEventBase).IsAssignableFrom(field.FieldType) && (field.IsPublic ||
+                        field.GetCustomAttributes(typeof (SerializeField), false).Length > 0)).ToArray();
 
-            if (eprops.Length > 0)
+            var currentSelectedIndex = Array.FindIndex(unityEventFields, p => p.Name == eventProperty.stringValue);
+
+            var unityEventsDropDown = new DropDownMenu();
+            for (int i = 0; i < unityEventFields.Length; i++)
+            {
+                FieldInfo unityEventField = unityEventFields[i];
+                unityEventsDropDown.Add(new DropDownItem
+                {
+                    Label = ObjectNames.NicifyVariableName(unityEventField.Name),
+                    IsSelected = currentSelectedIndex == i,
+                    Command = () => eventProperty.stringValue = unityEventField.Name,
+                });
+            }
+
+            if (unityEventFields.Length > 0)
             {
                 EditorGUI.indentLevel++;
-                var fedx = Array.FindIndex(eprops, p => p.Name == eventProperty.stringValue);
-                var edx = fedx < 0 ? 0 : fedx;
-                var nedx = EditorGUILayout.Popup("Event", edx, enames);
-                if (nedx != fedx && nedx >= 0 && nedx < eprops.Length)
-                    eventProperty.stringValue = eprops[nedx].Name;
+                unityEventsDropDown.OnGUI("Event");
                 EditorGUI.indentLevel--;
             }
             else
@@ -282,8 +289,11 @@ class PropertyBindingEditor : Editor
                 eventProperty.stringValue = "";
                 EditorGUI.indentLevel--;
             }
+
+            return unityEventFields.Length;
         }
-        return epropcount;
+
+        return 0;
     }
 
     public static IEnumerable<FieldInfo> GetAllFields(Type t)
