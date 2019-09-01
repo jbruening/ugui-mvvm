@@ -297,6 +297,9 @@ namespace uguimvvm
 #pragma warning disable 0169
 
         [SerializeField]
+        private BindingUpdateTrigger _targetUpdateTrigger = BindingUpdateTrigger.None;
+
+        [SerializeField]
         [FormerlySerializedAs("_viewEvent")]
         string _targetEvent;
 
@@ -472,6 +475,7 @@ namespace uguimvvm
 
         private void FigureBindings()
         {
+            // TODO: Maybe we only need to call these if BindingUpdateTrigger (for each of them) is not UnityEvent, and then in PropertyBindingEditor::FigureViewBindings it actually needs to process both source and target and look for ones that use UnityEvent as the trigger.
             _vmProp = FigureBinding(_source, ApplyVMToV, true);
             //post processing will have set up our _target.
             _vProp = FigureBinding(_target, null, false);
@@ -497,6 +501,9 @@ namespace uguimvvm
             }
         }
 
+        // TODO: Want to pass in a BindingUpdateTrigger here so it can decide whether it is handling an INPC event or a Unity event, but currently these two event handler types are managed completely differently (see PropertyBindingEditor::FigureViewBinding)
+        // Actually seems like maybe this isn't needed. Instead, this one will always handle INPC events and PropertyBindingEditor::FigureViewBinding will always handle UnityEvents
+        // Then just need to figure out how to bring in polling.
         public static PropertyPath FigureBinding(ComponentPath path, Action handler, bool resolveDataContext)
         {
             Type type;
