@@ -212,7 +212,11 @@ class PropertyBindingEditor : Editor
         EditorGUILayout.PropertyField(vprop, new GUIContent(vprop.displayName, "Typically, the Target would be a View"));
 
         // If the value never flows back from the target to the source, then there is no reason to pay attention to value change events on the target.
-        int epropcount = ((PropertyBinding)target).Mode.IsSourceBoundToTarget() ? DrawCrefEvents(vprop, veprop) : -1;
+        int epropcount = -1;
+        if (((PropertyBinding)target).Mode.IsSourceBoundToTarget())
+        {
+            epropcount = DrawCrefEvents(vprop, veprop);
+        }
 
         EditorGUILayout.PropertyField(vmprop, new GUIContent(vmprop.displayName, "Typically, the Source would be a ViewModel"));
 
