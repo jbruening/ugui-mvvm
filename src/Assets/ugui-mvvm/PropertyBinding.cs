@@ -342,15 +342,15 @@ namespace uguimvvm
             return 10;
         }
 
-        void Awake()
+        private void Awake()
         {
             _ci = _converter as IValueConverter;
-
-            FigureBindings();
         }
 
-        void OnEnable()
+        private void OnEnable()
         {
+            FigureBindings();
+
             ApplyVMToV();
 
             if (_mode == BindingMode.OneTime)
@@ -360,7 +360,7 @@ namespace uguimvvm
             }
         }
 
-        void OnDestroy()
+        private void OnDisable()
         {
             ClearBindings();
         }
