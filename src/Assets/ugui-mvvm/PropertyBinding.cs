@@ -532,9 +532,6 @@ namespace uguimvvm
             }
         }
 
-        // TODO: Want to pass in a BindingUpdateTrigger here so it can decide whether it is handling an INPC event or a Unity event, but currently these two event handler types are managed completely differently (see PropertyBindingEditor::FigureViewBinding)
-        // Actually seems like maybe this isn't needed. Instead, this one will always handle INPC events and PropertyBindingEditor::FigureViewBinding will always handle UnityEvents
-        // Then just need to figure out how to bring in polling.
         public static PropertyPath FigureBinding(ComponentPath path, Action handler, bool resolveDataContext)
         {
             Type type = PropertyBinding.GetComponentType(path.Component, resolveDataContext);
