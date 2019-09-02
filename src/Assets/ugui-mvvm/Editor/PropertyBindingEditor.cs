@@ -205,17 +205,71 @@ class PropertyBindingEditor : Editor
 
         var vprop = serializedObject.FindProperty("_target");
         var vmprop = serializedObject.FindProperty("_source");
+        var targetUpdateTrigger = serializedObject.FindProperty("_targetUpdateTrigger");
         var veprop = serializedObject.FindProperty("_targetEvent");
         var cprop = serializedObject.FindProperty("_converter");
         var mprop = serializedObject.FindProperty("_mode");
 
-        EditorGUILayout.PropertyField(vprop, new GUIContent(vprop.displayName, "Typically, the Target would be a View"));
+        using (var changeScope = new EditorGUI.ChangeCheckScope())
+        {
+            EditorGUILayout.PropertyField(vprop, new GUIContent(vprop.displayName, "Typically, the Target would be a View"));
+            // If the binding target changes, reset the binding update trigger (since the type of the target will determine the available update triggers)
+            if (changeScope.changed)
+            {
+                targetUpdateTrigger.enumValueIndex = (int)BindingUpdateTrigger.None;
+                veprop.stringValue = null;
+            }
+        }
+
+        Type targetType = PropertyBinding.GetComponentType((Component)vprop.FindPropertyRelative(nameof(PropertyBinding.ComponentPath.Component)).objectReferenceValue, false);
+        bool isTargetINotifyPropertyChanged = typeof(System.ComponentModel.INotifyPropertyChanged).IsAssignableFrom(targetType);
+        // Try to set the target update trigger to a reasonable default
+        if (targetUpdateTrigger.enumValueIndex == (int)BindingUpdateTrigger.None)
+        {
+            if (isTargetINotifyPropertyChanged)
+            {
+                targetUpdateTrigger.enumValueIndex = (int)BindingUpdateTrigger.PropertyChangedEvent;
+            }
+        }
 
         // If the value never flows back from the target to the source, then there is no reason to pay attention to value change events on the target.
         int epropcount = -1;
         if (((PropertyBinding)target).Mode.IsSourceBoundToTarget())
         {
-            epropcount = DrawCrefEvents(vprop, veprop);
+            var dropDownMenu = new DropDownMenu();
+
+            if (isTargetINotifyPropertyChanged)
+            {
+                dropDownMenu.Add(new DropDownItem { Label = "Property Changed", IsSelected = targetUpdateTrigger.enumValueIndex == (int)BindingUpdateTrigger.PropertyChangedEvent, Command = () =>
+                {
+                    targetUpdateTrigger.enumValueIndex = (int)BindingUpdateTrigger.PropertyChangedEvent;
+                    veprop.stringValue = null;
+                }});
+            }
+
+            List<DropDownItem> unityEvents = PropertyBindingEditor.GetDropUnityEventDownItems(targetType, veprop.stringValue, unityEvent =>
+            {
+                veprop.stringValue = unityEvent;
+                targetUpdateTrigger.enumValueIndex = (int)BindingUpdateTrigger.UnityEvent;
+            }).ToList();
+
+            if (dropDownMenu.ItemCount > 0 && unityEvents.Any())
+            {
+                dropDownMenu.Add(new DropDownItem());
+            }
+
+            unityEvents.ForEach(dropDownItem => dropDownMenu.Add(dropDownItem));
+
+            // Only show the update trigger dropdown if there is more than one choice
+            if (dropDownMenu.ItemCount > 1)
+            {
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    dropDownMenu.OnGUI("Event");
+                }
+            }
+
+            epropcount = dropDownMenu.ItemCount;
         }
 
         EditorGUILayout.PropertyField(vmprop, new GUIContent(vmprop.displayName, "Typically, the Source would be a ViewModel"));
@@ -246,7 +300,7 @@ class PropertyBindingEditor : Editor
     /// <returns></returns>
     public static int DrawCrefEvents(SerializedProperty crefProperty, SerializedProperty eventProperty)
     {
-        var cprop = crefProperty.FindPropertyRelative("Component");
+        var cprop = crefProperty.FindPropertyRelative(nameof(PropertyBinding.ComponentPath.Component));
         return DrawComponentEvents(cprop, eventProperty);
     }
 
@@ -258,46 +312,26 @@ class PropertyBindingEditor : Editor
     /// <returns></returns>
     public static int DrawComponentEvents(SerializedProperty component, SerializedProperty eventProperty)
     {
-        if (component.objectReferenceValue != null)
+        List<DropDownItem> unityEvents = PropertyBindingEditor.GetDropUnityEventDownItems(component.objectReferenceValue?.GetType(), eventProperty.stringValue, eventName => eventProperty.stringValue = eventName).ToList();
+
+        if (unityEvents.Count > 0)
         {
-            FieldInfo[] unityEventFields = GetAllFields(component.objectReferenceValue.GetType())
-                .Where(
-                    field =>
-                        typeof (UnityEventBase).IsAssignableFrom(field.FieldType) && (field.IsPublic ||
-                        field.GetCustomAttributes(typeof (SerializeField), false).Length > 0)).ToArray();
-
-            var currentSelectedIndex = Array.FindIndex(unityEventFields, p => p.Name == eventProperty.stringValue);
-
             var unityEventsDropDown = new DropDownMenu();
-            for (int i = 0; i < unityEventFields.Length; i++)
-            {
-                FieldInfo unityEventField = unityEventFields[i];
-                unityEventsDropDown.Add(new DropDownItem
-                {
-                    Label = ObjectNames.NicifyVariableName(unityEventField.Name),
-                    IsSelected = currentSelectedIndex == i,
-                    Command = () => eventProperty.stringValue = unityEventField.Name,
-                });
-            }
+            unityEvents.ForEach(dropDownItem => unityEventsDropDown.Add(dropDownItem));
 
-            if (unityEventFields.Length > 0)
-            {
-                EditorGUI.indentLevel++;
-                unityEventsDropDown.OnGUI("Event");
-                EditorGUI.indentLevel--;
-            }
-            else
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.LabelField("Event", "No available events");
-                eventProperty.stringValue = "";
-                EditorGUI.indentLevel--;
-            }
-
-            return unityEventFields.Length;
+            EditorGUI.indentLevel++;
+            unityEventsDropDown.OnGUI("Event");
+            EditorGUI.indentLevel--;
+        }
+        else
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.LabelField("Event", "No available events");
+            eventProperty.stringValue = "";
+            EditorGUI.indentLevel--;
         }
 
-        return 0;
+        return unityEvents.Count;
     }
 
     public static IEnumerable<FieldInfo> GetAllFields(Type t)
@@ -315,5 +349,30 @@ class PropertyBindingEditor : Editor
             return null;
         var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
         return t.GetField(name, flags) ?? GetField(t.BaseType, name);
+    }
+
+    private static IEnumerable<DropDownItem> GetDropUnityEventDownItems(Type componentType, string currentEvent, Action<string> onEventSelected)
+    {
+        if (componentType != null)
+        {
+            FieldInfo[] unityEventFields = GetAllFields(componentType)
+                .Where(
+                    field =>
+                        typeof(UnityEventBase).IsAssignableFrom(field.FieldType) && (field.IsPublic ||
+                        field.GetCustomAttributes(typeof(SerializeField), false).Length > 0)).ToArray();
+
+            var currentSelectedIndex = Array.FindIndex(unityEventFields, p => p.Name == currentEvent);
+
+            for (int i = 0; i < unityEventFields.Length; i++)
+            {
+                FieldInfo unityEventField = unityEventFields[i];
+                yield return new DropDownItem
+                {
+                    Label = ObjectNames.NicifyVariableName(unityEventField.Name),
+                    IsSelected = currentSelectedIndex == i,
+                    Command = () => onEventSelected(unityEventField.Name),
+                };
+            }
+        }
     }
 }

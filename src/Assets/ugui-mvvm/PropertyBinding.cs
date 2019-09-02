@@ -477,8 +477,14 @@ namespace uguimvvm
         {
             // TODO: Maybe we only need to call these if BindingUpdateTrigger (for each of them) is not UnityEvent, and then in PropertyBindingEditor::FigureViewBindings it actually needs to process both source and target and look for ones that use UnityEvent as the trigger.
             _vmProp = FigureBinding(_source, ApplyVMToV, true);
-            //post processing will have set up our _target.
-            _vProp = FigureBinding(_target, null, false);
+
+            // Post processing will have set up our _target iff the update trigger is a Unity event.
+            Action targetUpdateHandler = null;
+            if (_targetUpdateTrigger != BindingUpdateTrigger.UnityEvent)
+            {
+                targetUpdateHandler = ApplyVToVM;
+            }
+            _vProp = FigureBinding(_target, targetUpdateHandler, false);
 
             if (_vmProp.IsValid)
             {
@@ -506,11 +512,7 @@ namespace uguimvvm
         // Then just need to figure out how to bring in polling.
         public static PropertyPath FigureBinding(ComponentPath path, Action handler, bool resolveDataContext)
         {
-            Type type;
-            if (resolveDataContext && path.Component is DataContext)
-                type = (path.Component as DataContext).Type;
-            else
-                type = path.Component.GetType();
+            Type type = PropertyBinding.GetComponentType(path.Component, resolveDataContext);
 
             var prop = new PropertyPath(path.Property, type, true);
 
@@ -523,6 +525,21 @@ namespace uguimvvm
             }
 
             return prop;
+        }
+
+        public static Type GetComponentType(Component component, bool resolveDataContext)
+        {
+            if (component == null)
+            {
+                return null;
+            }
+
+            if (resolveDataContext && component is DataContext dataContext)
+            {
+                return dataContext.Type;
+            }
+
+            return component.GetType();
         }
 
         private void ClearBindings()
