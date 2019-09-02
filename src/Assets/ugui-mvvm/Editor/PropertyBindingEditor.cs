@@ -23,7 +23,7 @@ class PropertyBindingEditor : Editor
 #if UNITY_2017_2_5_OR_NEWER
         EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 #endif
-        FigureViewBindings();
+        FigureUnityEventTriggeredBindings();
     }
 
 #if UNITY_2017_2_5_OR_NEWER
@@ -34,9 +34,14 @@ class PropertyBindingEditor : Editor
         {
             foreach (var binding in cachedBindings)
             {
-                if (binding.Mode != BindingMode.OneWayToView)
+                if (binding.Mode != BindingMode.OneWayToTarget)
                 {
-                    RemoveViewBinding(binding);
+                    RemoveViewBinding(binding, "_target", "_targetEvent");
+                }
+
+                if (binding.Mode != BindingMode.OneWayToSource)
+                {
+                    RemoveViewBinding(binding, "_source", "_sourceEvent");
                 }
             }
             cachedBindings.Clear();
@@ -45,20 +50,20 @@ class PropertyBindingEditor : Editor
     }
 #endif
 
-    static void RemoveViewBinding(PropertyBinding binding)
+    static void RemoveViewBinding(PropertyBinding binding, string componentPathPropertyName, string eventPropertyName)
     {
         var sobj = new SerializedObject(binding);
-        var vevValue = GetViewEventValue(sobj);
-        if (vevValue != null)
+        var unityEvent = GetEventValue(sobj, componentPathPropertyName, eventPropertyName);
+        if (unityEvent != null)
         {
-            var eventCount = vevValue.GetPersistentEventCount();
+            var eventCount = unityEvent.GetPersistentEventCount();
             for (var idx = 0; idx < eventCount; idx++)
             {
-                var perTarget = vevValue.GetPersistentTarget(idx);
+                var perTarget = unityEvent.GetPersistentTarget(idx);
                 // this was a binding we added, let's remove it
                 if (perTarget == binding)
                 {
-                    UnityEditor.Events.UnityEventTools.RemovePersistentListener(vevValue, idx);
+                    UnityEditor.Events.UnityEventTools.RemovePersistentListener(unityEvent, idx);
                     eventCount--;
                     sobj.ApplyModifiedProperties();
                 }
@@ -66,34 +71,48 @@ class PropertyBindingEditor : Editor
         }
     }
 
-    private static UnityEventBase GetViewEventValue(SerializedObject sobj)
+    private static UnityEventBase GetEventValue(SerializedObject sobj, string componentPathPropertyName, string eventPropertyName)
     {
-        var viewEvProp = sobj.FindProperty("_targetEvent");
-        if (string.IsNullOrEmpty(viewEvProp.stringValue))
+        var eventProperty = sobj.FindProperty(eventPropertyName);
+        if (string.IsNullOrEmpty(eventProperty.stringValue))
             return null;
 
-        var viewProp = sobj.FindProperty("_target");
-        var vcprop = viewProp.FindPropertyRelative("Component");
+        var componentPathProperty = sobj.FindProperty(componentPathPropertyName);
+        var componentProperty = componentPathProperty.FindPropertyRelative(nameof(PropertyBinding.ComponentPath.Component));
 
-        var vcomp = vcprop.objectReferenceValue as Component;
-        if (vcomp == null)
+        var component = componentProperty.objectReferenceValue as Component;
+        if (component == null)
             return null;
 
-        return GetEvent(vcomp, viewEvProp);
+        return GetEvent(component, eventProperty);
     }
 
-    private static void FigureViewBindings()
+    private static void FigureUnityEventTriggeredBindings()
     {
         var objects = Resources.FindObjectsOfTypeAll<GameObject>();
         foreach (var obj in objects)
         {
             var bindings = obj.GetComponents<PropertyBinding>();
             foreach (var binding in bindings)
-                FigureViewBinding(binding);
+            {
+                FigureSourceBinding(binding);
+                FigureTargetBinding(binding);
+            }
         }
     }
 
-    static void FigureViewBinding(PropertyBinding binding)
+    private static void FigureSourceBinding(PropertyBinding binding)
+    {
+        // Don't register for the target event that indicates the property has changed if the value from the target never flows back to the source.
+        if (!binding.Mode.IsTargetBoundToSource())
+        {
+            return;
+        }
+
+        FigureBinding(binding, "_source", "_sourceEvent", binding.ApplySourceToTarget);
+    }
+
+    private static void FigureTargetBinding(PropertyBinding binding)
     {
         // Don't register for the target event that indicates the property has changed if the value from the target never flows back to the source.
         if (!binding.Mode.IsSourceBoundToTarget())
@@ -101,16 +120,21 @@ class PropertyBindingEditor : Editor
             return;
         }
 
+        FigureBinding(binding, "_target", "_targetEvent", binding.ApplyTargetToSource);
+    }
+
+    private static void FigureBinding(PropertyBinding binding, string componentPathPropertyName, string eventPropertyName, UnityAction handler)
+    {
         var sobj = new SerializedObject(binding);
-        var vevValue = GetViewEventValue(sobj);
-        if (vevValue != null)
+        var unityEvent = GetEventValue(sobj, componentPathPropertyName, eventPropertyName);
+        if (unityEvent != null)
         {
             cachedBindings.Add(binding);
-            var eventCount = vevValue.GetPersistentEventCount();
+            var eventCount = unityEvent.GetPersistentEventCount();
 
             for (var idx = 0; idx < eventCount; idx++)
             {
-                var perTarget = vevValue.GetPersistentTarget(idx);
+                var perTarget = unityEvent.GetPersistentTarget(idx);
                 // if we find a duplicate event skip over adding it
                 if (perTarget == binding)
                 {
@@ -118,7 +142,7 @@ class PropertyBindingEditor : Editor
                 }
             }
 
-            UnityEditor.Events.UnityEventTools.AddVoidPersistentListener(vevValue, binding.ApplyVToVM);
+            UnityEditor.Events.UnityEventTools.AddVoidPersistentListener(unityEvent, handler);
         }
 
         sobj.ApplyModifiedProperties();
@@ -203,91 +227,39 @@ class PropertyBindingEditor : Editor
     {
         serializedObject.Update();
 
-        var vprop = serializedObject.FindProperty("_target");
-        var vmprop = serializedObject.FindProperty("_source");
+        var target = serializedObject.FindProperty("_target");
         var targetUpdateTrigger = serializedObject.FindProperty("_targetUpdateTrigger");
-        var veprop = serializedObject.FindProperty("_targetEvent");
-        var cprop = serializedObject.FindProperty("_converter");
-        var mprop = serializedObject.FindProperty("_mode");
+        var targetEvent = serializedObject.FindProperty("_targetEvent");
 
-        using (var changeScope = new EditorGUI.ChangeCheckScope())
+        var source = serializedObject.FindProperty("_source");
+        var sourceUpdateTrigger = serializedObject.FindProperty("_sourceUpdateTrigger");
+        var sourceEvent = serializedObject.FindProperty("_sourceEvent");
+
+        var converter = serializedObject.FindProperty("_converter");
+        var mode = serializedObject.FindProperty("_mode");
+
+        int targetTriggerCount = DrawBindingComponent(target, "Typically, the Target would be a View", targetUpdateTrigger, targetEvent, ((BindingMode)mode.intValue).IsSourceBoundToTarget(), false);
+
+        int sourceTriggerCount = DrawBindingComponent(source, "Typically, the Source would be a ViewModel", sourceUpdateTrigger, sourceEvent, ((BindingMode)mode.intValue).IsTargetBoundToSource(), true);
+
+        EditorGUILayout.PropertyField(mode, false);
+
+        if (targetTriggerCount == 0 && ((BindingMode)mode.intValue).IsSourceBoundToTarget())
         {
-            EditorGUILayout.PropertyField(vprop, new GUIContent(vprop.displayName, "Typically, the Target would be a View"));
-            // If the binding target changes, reset the binding update trigger (since the type of the target will determine the available update triggers)
-            if (changeScope.changed)
-            {
-                targetUpdateTrigger.enumValueIndex = (int)BindingUpdateTrigger.None;
-                veprop.stringValue = null;
-            }
+            EditorUtility.DisplayDialog("Error", string.Format("Cannot change {0} to {1}, as only {2} and {3} are valid for no target updated event",
+                mode.displayName, mode.enumNames[mode.enumValueIndex], nameof(BindingMode.OneTime), nameof(BindingMode.OneWayToTarget)), "Okay");
+            mode.intValue = (int)BindingMode.OneTime;
         }
 
-        Type targetType = PropertyBinding.GetComponentType((Component)vprop.FindPropertyRelative(nameof(PropertyBinding.ComponentPath.Component)).objectReferenceValue, false);
-        bool isTargetINotifyPropertyChanged = typeof(System.ComponentModel.INotifyPropertyChanged).IsAssignableFrom(targetType);
-        // Try to set the target update trigger to a reasonable default
-        if (targetUpdateTrigger.enumValueIndex == (int)BindingUpdateTrigger.None)
+        if (sourceTriggerCount == 0 && ((BindingMode)mode.intValue).IsTargetBoundToSource())
         {
-            if (isTargetINotifyPropertyChanged)
-            {
-                targetUpdateTrigger.enumValueIndex = (int)BindingUpdateTrigger.PropertyChangedEvent;
-            }
-        }
-
-        // If the value never flows back from the target to the source, then there is no reason to pay attention to value change events on the target.
-        int epropcount = -1;
-        if (((PropertyBinding)target).Mode.IsSourceBoundToTarget())
-        {
-            var dropDownMenu = new DropDownMenu();
-
-            if (isTargetINotifyPropertyChanged)
-            {
-                dropDownMenu.Add(new DropDownItem { Label = "Property Changed", IsSelected = targetUpdateTrigger.enumValueIndex == (int)BindingUpdateTrigger.PropertyChangedEvent, Command = () =>
-                {
-                    targetUpdateTrigger.enumValueIndex = (int)BindingUpdateTrigger.PropertyChangedEvent;
-                    veprop.stringValue = null;
-                }});
-            }
-
-            List<DropDownItem> unityEvents = PropertyBindingEditor.GetDropUnityEventDownItems(targetType, veprop.stringValue, unityEvent =>
-            {
-                veprop.stringValue = unityEvent;
-                targetUpdateTrigger.enumValueIndex = (int)BindingUpdateTrigger.UnityEvent;
-            }).ToList();
-
-            if (dropDownMenu.ItemCount > 0 && unityEvents.Any())
-            {
-                dropDownMenu.Add(new DropDownItem());
-            }
-
-            unityEvents.ForEach(dropDownItem => dropDownMenu.Add(dropDownItem));
-
-            // Only show the update trigger dropdown if there is more than one choice
-            if (dropDownMenu.ItemCount > 1)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    dropDownMenu.OnGUI("Event");
-                }
-            }
-
-            epropcount = dropDownMenu.ItemCount;
-        }
-
-        EditorGUILayout.PropertyField(vmprop, new GUIContent(vmprop.displayName, "Typically, the Source would be a ViewModel"));
-
-        EditorGUILayout.PropertyField(mprop, false);
-
-        if (epropcount == 0)
-        {
-            if (mprop.enumValueIndex > 1)
-            {
-                EditorUtility.DisplayDialog("Error", string.Format("Cannot change {0} to {1}, as only {2} and {3} are valid for no event",
-                    mprop.displayName, (BindingMode)mprop.enumValueIndex, BindingMode.OneTime, BindingMode.OneWayToTarget), "Okay");
-                mprop.enumValueIndex = 1;
-            }
+            EditorUtility.DisplayDialog("Error", string.Format("Cannot change {0} to {1}, as only {2} and {3} are valid for no source updated event",
+                mode.displayName, mode.enumNames[mode.enumValueIndex], nameof(BindingMode.OneTime), nameof(BindingMode.OneWayToSource)), "Okay");
+            mode.intValue = (int)BindingMode.OneTime;
         }
 
         var position = EditorGUILayout.GetControlRect(true);
-        ComponentReferenceDrawer.PropertyField(position, cprop);
+        ComponentReferenceDrawer.PropertyField(position, converter);
 
         serializedObject.ApplyModifiedProperties();
     }
@@ -349,6 +321,78 @@ class PropertyBindingEditor : Editor
             return null;
         var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
         return t.GetField(name, flags) ?? GetField(t.BaseType, name);
+    }
+
+    private static int DrawBindingComponent(SerializedProperty componentPathProperty, string componentDescription, SerializedProperty updateTriggerProperty, SerializedProperty unityEventProperty, bool enableUpdateTriggers, bool resolveDataContext)
+    {
+        using (var changeScope = new EditorGUI.ChangeCheckScope())
+        {
+            EditorGUILayout.PropertyField(componentPathProperty, new GUIContent(componentPathProperty.displayName, componentDescription));
+            // If the binding target changes, reset the binding update trigger (since the type of the target will determine the available update triggers)
+            if (changeScope.changed)
+            {
+                updateTriggerProperty.intValue = (int)BindingUpdateTrigger.None;
+                unityEventProperty.stringValue = null;
+            }
+        }
+
+        Type resolvedType = PropertyBinding.GetComponentType((Component)componentPathProperty.FindPropertyRelative(nameof(PropertyBinding.ComponentPath.Component)).objectReferenceValue, resolveDataContext);
+        bool isINotifyPropertyChanged = typeof(System.ComponentModel.INotifyPropertyChanged).IsAssignableFrom(resolvedType);
+        // Try to set the target update trigger to a reasonable default
+        if (updateTriggerProperty.intValue == (int)BindingUpdateTrigger.None)
+        {
+            if (isINotifyPropertyChanged)
+            {
+                updateTriggerProperty.intValue = (int)BindingUpdateTrigger.PropertyChangedEvent;
+            }
+        }
+
+        // If the value never flows back from the target to the source, then there is no reason to pay attention to value change events on the target.
+        int updateTriggerCount = -1;
+        if (enableUpdateTriggers)
+        {
+            var dropDownMenu = new DropDownMenu();
+
+            if (isINotifyPropertyChanged)
+            {
+                dropDownMenu.Add(new DropDownItem
+                {
+                    Label = "Property Changed",
+                    IsSelected = updateTriggerProperty.intValue == (int)BindingUpdateTrigger.PropertyChangedEvent,
+                    Command = () =>
+                    {
+                        updateTriggerProperty.intValue = (int)BindingUpdateTrigger.PropertyChangedEvent;
+                        unityEventProperty.stringValue = null;
+                    }
+                });
+            }
+
+            List<DropDownItem> unityEvents = PropertyBindingEditor.GetDropUnityEventDownItems(resolvedType, unityEventProperty.stringValue, unityEvent =>
+            {
+                unityEventProperty.stringValue = unityEvent;
+                updateTriggerProperty.intValue = (int)BindingUpdateTrigger.UnityEvent;
+            }).ToList();
+
+            if (dropDownMenu.ItemCount > 0 && unityEvents.Any())
+            {
+                dropDownMenu.Add(new DropDownItem());
+            }
+
+            unityEvents.ForEach(dropDownItem => dropDownMenu.Add(dropDownItem));
+
+            // Only show the update trigger dropdown if there is more than one choice
+            if (dropDownMenu.ItemCount > 1)
+            {
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    dropDownMenu.OnGUI("Event");
+                }
+            }
+
+            updateTriggerCount = dropDownMenu.ItemCount;
+        }
+
+        return updateTriggerCount;
     }
 
     private static IEnumerable<DropDownItem> GetDropUnityEventDownItems(Type componentType, string currentEvent, Action<string> onEventSelected)

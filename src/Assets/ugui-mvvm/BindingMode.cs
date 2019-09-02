@@ -27,7 +27,7 @@ namespace uguimvvm
     {
         public static bool IsTargetBoundToSource(this BindingMode bindingMode)
         {
-            return bindingMode != BindingMode.OneWayToSource;
+            return bindingMode == BindingMode.OneWayToTarget || bindingMode == BindingMode.TwoWay;
         }
 
         public static bool IsSourceBoundToTarget(this BindingMode bindingMode)

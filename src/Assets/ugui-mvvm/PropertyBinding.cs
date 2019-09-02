@@ -294,10 +294,10 @@ namespace uguimvvm
         ComponentPath _target;
         public ComponentPath Target => _target;
 
-#pragma warning disable 0169
-
         [SerializeField]
         private BindingUpdateTrigger _targetUpdateTrigger = BindingUpdateTrigger.None;
+
+#pragma warning disable 0169
 
         [SerializeField]
         [FormerlySerializedAs("_viewEvent")]
@@ -313,13 +313,21 @@ namespace uguimvvm
         public ComponentPath Source => _source;
 
         [SerializeField]
+        private BindingUpdateTrigger _sourceUpdateTrigger = BindingUpdateTrigger.None;
+
+#pragma warning disable 0414
+
+        [SerializeField]
+        private string _sourceEvent = null;
+
+#pragma warning restore 0414
+
+        [SerializeField]
         BindingMode _mode = BindingMode.OneWayToTarget;
         public BindingMode Mode { get { return _mode; } }
 
-#pragma warning disable 0649
         [SerializeField]
-        ScriptableObject _converter;
-#pragma warning restore 0649
+        ScriptableObject _converter = null;
 
         IValueConverter _ci;
         Type _vType;
@@ -354,7 +362,7 @@ namespace uguimvvm
         {
             FigureBindings();
 
-            ApplyVMToV();
+            ApplySourceToTarget();
 
             if (_mode == BindingMode.OneTime)
             {
@@ -368,7 +376,13 @@ namespace uguimvvm
             ClearBindings();
         }
 
+        [Obsolete("Use ApplyTargetToSource")]
         public void ApplyVToVM()
+        {
+            ApplyTargetToSource();
+        }
+
+        public void ApplyTargetToSource()
         {
             //Debug.Log("Applying v to vm");
             if (_vmProp == null || _vProp == null) return;
@@ -400,7 +414,13 @@ namespace uguimvvm
             SetVmValue(value);
         }
 
+        [Obsolete("Use ApplySourceToTarget")]
         public void ApplyVMToV()
+        {
+            ApplySourceToTarget();
+        }
+
+        public void ApplySourceToTarget()
         {
             if (_vmProp == null || _vProp == null) return;
 
@@ -475,14 +495,19 @@ namespace uguimvvm
 
         private void FigureBindings()
         {
-            // TODO: Maybe we only need to call these if BindingUpdateTrigger (for each of them) is not UnityEvent, and then in PropertyBindingEditor::FigureViewBindings it actually needs to process both source and target and look for ones that use UnityEvent as the trigger.
-            _vmProp = FigureBinding(_source, ApplyVMToV, true);
+            // Post processing will have set up our _target iff the update trigger is a Unity event.
+            Action sourceUpdateHandler = null;
+            if (_sourceUpdateTrigger != BindingUpdateTrigger.UnityEvent)
+            {
+                sourceUpdateHandler = ApplySourceToTarget;
+            }
+            _vmProp = FigureBinding(_source, sourceUpdateHandler, true);
 
             // Post processing will have set up our _target iff the update trigger is a Unity event.
             Action targetUpdateHandler = null;
             if (_targetUpdateTrigger != BindingUpdateTrigger.UnityEvent)
             {
-                targetUpdateHandler = ApplyVToVM;
+                targetUpdateHandler = ApplyTargetToSource;
             }
             _vProp = FigureBinding(_target, targetUpdateHandler, false);
 
