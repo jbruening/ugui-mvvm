@@ -45,7 +45,7 @@ namespace uguimvvm
         void Awake()
         {
             if (_propertyBinding != null && _propertyBinding.Component != null)
-                _prop = uguimvvm.PropertyBinding.FigureBinding(_propertyBinding, this.BindingPropertyChanged, true);
+                _prop = uguimvvm.PropertyBinding.FigureBinding(_propertyBinding, this.ApplyBindingToValue, true);
 
             ApplyBindingToValue();
 
@@ -77,7 +77,7 @@ namespace uguimvvm
                 if (_value != null)
                 {
                     item.Prop.AddHandler(_value, item.Handler);
-                    item.Prop.TriggerHandler(_value);
+                    item.Prop.TriggerHandler();
                 }
             }
 
@@ -133,12 +133,6 @@ namespace uguimvvm
         }
 
 #region property binding
-        private void BindingPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "" || e.PropertyName == _propertyBinding.Property)
-                ApplyBindingToValue();
-        }
-
         private void ApplyBindingToValue()
         {
             if (_propertyBinding == null) return;
@@ -150,7 +144,7 @@ namespace uguimvvm
         }
 #endregion
 
-        public void AddDependentProperty(PropertyBinding.PropertyPath prop, PropertyChangedEventHandler handler)
+        public void AddDependentProperty(PropertyBinding.PropertyPath prop, Action handler)
         {
             var dependentProperty = new DependentProperty(prop, handler);
             dependentProperty.Prop.AddHandler(_value, dependentProperty.Handler);
@@ -161,9 +155,9 @@ namespace uguimvvm
         public class DependentProperty
         {
             public PropertyBinding.PropertyPath Prop { get; private set; }
-            public PropertyChangedEventHandler Handler { get; private set; }
+            public Action Handler { get; private set; }
 
-            public DependentProperty(PropertyBinding.PropertyPath prop, PropertyChangedEventHandler handler)
+            public DependentProperty(PropertyBinding.PropertyPath prop, Action handler)
             {
                 Prop = prop;
                 Handler = handler;
