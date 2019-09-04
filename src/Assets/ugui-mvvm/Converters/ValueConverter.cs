@@ -54,7 +54,7 @@ namespace uguimvvm.converters
             this.targetComparer = tTargetComparer;
         }
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public virtual object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (itemLookup == null)
             {
@@ -84,7 +84,7 @@ namespace uguimvvm.converters
             }
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public virtual object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (!allowTwoWayConversion)
             {
