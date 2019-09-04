@@ -387,6 +387,11 @@ class PropertyBindingEditor : Editor
                 {
                     dropDownMenu.OnGUI("Event");
                 }
+
+                if (dropDownMenu.SelectedIndex < 0)
+                {
+                    EditorGUILayout.HelpBox($"Select an event that indicates the property has changed, or update the binding mode.", MessageType.Warning);
+                }
             }
 
             updateTriggerCount = dropDownMenu.ItemCount;

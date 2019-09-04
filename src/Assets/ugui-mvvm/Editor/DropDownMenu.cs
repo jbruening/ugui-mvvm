@@ -19,6 +19,8 @@ namespace uguimvvm
 
         public int ItemCount => _dropDownItems.Count;
 
+        public int SelectedIndex => _selectedItem;
+
         public void Add(DropDownItem item)
         {
             if (item.IsSelected)
