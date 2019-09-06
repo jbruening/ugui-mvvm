@@ -294,15 +294,16 @@ namespace uguimvvm
         ComponentPath _target;
         public ComponentPath Target => _target;
 
-#pragma warning disable 0169
+        [SerializeField]
+        private BindingUpdateTrigger _targetUpdateTrigger = BindingUpdateTrigger.None;
+
+#pragma warning disable 0414 // _targetEvent is not used directly, only via SerializedObject.FindProperty
 
         [SerializeField]
         [FormerlySerializedAs("_viewEvent")]
-        string _targetEvent;
+        string _targetEvent = null;
 
-#if !UNITY_EDITOR
-#pragma warning restore 0169
-#endif
+#pragma warning restore 0414
 
         [SerializeField]
         [FormerlySerializedAs("_viewModel")]
@@ -310,13 +311,21 @@ namespace uguimvvm
         public ComponentPath Source => _source;
 
         [SerializeField]
+        private BindingUpdateTrigger _sourceUpdateTrigger = BindingUpdateTrigger.None;
+
+#pragma warning disable 0414 // _sourceEvent is not used directly, only via SerializedObject.FindProperty
+
+        [SerializeField]
+        private string _sourceEvent = null;
+
+#pragma warning restore 0414
+
+        [SerializeField]
         BindingMode _mode = BindingMode.OneWayToTarget;
         public BindingMode Mode { get { return _mode; } }
 
-#pragma warning disable 0649
         [SerializeField]
-        ScriptableObject _converter;
-#pragma warning restore 0649
+        ScriptableObject _converter = null;
 
         IValueConverter _ci;
         Type _vType;
@@ -342,16 +351,16 @@ namespace uguimvvm
             return 10;
         }
 
-        void Awake()
+        private void Awake()
         {
             _ci = _converter as IValueConverter;
 
             FigureBindings();
         }
 
-        void OnEnable()
+        private void OnEnable()
         {
-            ApplyVMToV();
+            UpdateTarget();
 
             if (_mode == BindingMode.OneTime)
             {
@@ -360,12 +369,18 @@ namespace uguimvvm
             }
         }
 
-        void OnDestroy()
+        private void OnDestroy()
         {
             ClearBindings();
         }
 
+        [Obsolete("Use UpdateSource")]
         public void ApplyVToVM()
+        {
+            UpdateSource();
+        }
+
+        public void UpdateSource()
         {
             //Debug.Log("Applying v to vm");
             if (_vmProp == null || _vProp == null) return;
@@ -397,7 +412,13 @@ namespace uguimvvm
             SetVmValue(value);
         }
 
+        [Obsolete("Use UpdateTarget")]
         public void ApplyVMToV()
+        {
+            UpdateTarget();
+        }
+
+        public void UpdateTarget()
         {
             if (_vmProp == null || _vProp == null) return;
 
@@ -472,9 +493,21 @@ namespace uguimvvm
 
         private void FigureBindings()
         {
-            _vmProp = FigureBinding(_source, ApplyVMToV, true);
-            //post processing will have set up our _target.
-            _vProp = FigureBinding(_target, null, false);
+            // Post processing will have set up our _target iff the update trigger is a Unity event.
+            Action sourceUpdateHandler = null;
+            if (_sourceUpdateTrigger != BindingUpdateTrigger.UnityEvent)
+            {
+                sourceUpdateHandler = UpdateTarget;
+            }
+            _vmProp = FigureBinding(_source, sourceUpdateHandler, true);
+
+            // Post processing will have set up our _target iff the update trigger is a Unity event.
+            Action targetUpdateHandler = null;
+            if (_targetUpdateTrigger != BindingUpdateTrigger.UnityEvent)
+            {
+                targetUpdateHandler = UpdateSource;
+            }
+            _vProp = FigureBinding(_target, targetUpdateHandler, false);
 
             if (_vmProp.IsValid)
             {
@@ -499,11 +532,7 @@ namespace uguimvvm
 
         public static PropertyPath FigureBinding(ComponentPath path, Action handler, bool resolveDataContext)
         {
-            Type type;
-            if (resolveDataContext && path.Component is DataContext)
-                type = (path.Component as DataContext).Type;
-            else
-                type = path.Component.GetType();
+            Type type = PropertyBinding.GetComponentType(path.Component, resolveDataContext);
 
             var prop = new PropertyPath(path.Property, type, true);
 
@@ -516,6 +545,21 @@ namespace uguimvvm
             }
 
             return prop;
+        }
+
+        public static Type GetComponentType(Component component, bool resolveDataContext)
+        {
+            if (component == null)
+            {
+                return null;
+            }
+
+            if (resolveDataContext && component is DataContext dataContext)
+            {
+                return dataContext.Type;
+            }
+
+            return component.GetType();
         }
 
         private void ClearBindings()

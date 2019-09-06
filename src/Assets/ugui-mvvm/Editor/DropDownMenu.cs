@@ -14,10 +14,12 @@ namespace uguimvvm
 
     public class DropDownMenu
     {
-        private List<DropDownItem> _dropDownItems = new List<DropDownItem>();
+        private readonly List<DropDownItem> _dropDownItems = new List<DropDownItem>();
         private int _selectedItem = -1;
 
         public int ItemCount => _dropDownItems.Count;
+
+        public int SelectedIndex => _selectedItem;
 
         public void Add(DropDownItem item)
         {
