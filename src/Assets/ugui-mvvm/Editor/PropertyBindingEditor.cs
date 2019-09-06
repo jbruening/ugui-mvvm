@@ -109,7 +109,7 @@ class PropertyBindingEditor : Editor
             return;
         }
 
-        FigureBinding(binding, "_source", "_sourceEvent", binding.ApplySourceToTarget);
+        FigureBinding(binding, "_source", "_sourceEvent", binding.UpdateTarget);
     }
 
     private static void FigureTargetBinding(PropertyBinding binding)
@@ -120,7 +120,7 @@ class PropertyBindingEditor : Editor
             return;
         }
 
-        FigureBinding(binding, "_target", "_targetEvent", binding.ApplyTargetToSource);
+        FigureBinding(binding, "_target", "_targetEvent", binding.UpdateSource);
     }
 
     private static void FigureBinding(PropertyBinding binding, string componentPathPropertyName, string eventPropertyName, UnityAction handler)

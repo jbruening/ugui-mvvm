@@ -297,15 +297,13 @@ namespace uguimvvm
         [SerializeField]
         private BindingUpdateTrigger _targetUpdateTrigger = BindingUpdateTrigger.None;
 
-#pragma warning disable 0169
+#pragma warning disable 0414 // _targetEvent is not used directly, only via SerializedObject.FindProperty
 
         [SerializeField]
         [FormerlySerializedAs("_viewEvent")]
-        string _targetEvent;
+        string _targetEvent = null;
 
-#if !UNITY_EDITOR
-#pragma warning restore 0169
-#endif
+#pragma warning restore 0414
 
         [SerializeField]
         [FormerlySerializedAs("_viewModel")]
@@ -315,7 +313,7 @@ namespace uguimvvm
         [SerializeField]
         private BindingUpdateTrigger _sourceUpdateTrigger = BindingUpdateTrigger.None;
 
-#pragma warning disable 0414
+#pragma warning disable 0414 // _sourceEvent is not used directly, only via SerializedObject.FindProperty
 
         [SerializeField]
         private string _sourceEvent = null;
@@ -362,7 +360,7 @@ namespace uguimvvm
 
         private void OnEnable()
         {
-            ApplySourceToTarget();
+            UpdateTarget();
 
             if (_mode == BindingMode.OneTime)
             {
@@ -376,13 +374,13 @@ namespace uguimvvm
             ClearBindings();
         }
 
-        [Obsolete("Use ApplyTargetToSource")]
+        [Obsolete("Use UpdateSource")]
         public void ApplyVToVM()
         {
-            ApplyTargetToSource();
+            UpdateSource();
         }
 
-        public void ApplyTargetToSource()
+        public void UpdateSource()
         {
             //Debug.Log("Applying v to vm");
             if (_vmProp == null || _vProp == null) return;
@@ -414,13 +412,13 @@ namespace uguimvvm
             SetVmValue(value);
         }
 
-        [Obsolete("Use ApplySourceToTarget")]
+        [Obsolete("Use UpdateTarget")]
         public void ApplyVMToV()
         {
-            ApplySourceToTarget();
+            UpdateTarget();
         }
 
-        public void ApplySourceToTarget()
+        public void UpdateTarget()
         {
             if (_vmProp == null || _vProp == null) return;
 
@@ -499,7 +497,7 @@ namespace uguimvvm
             Action sourceUpdateHandler = null;
             if (_sourceUpdateTrigger != BindingUpdateTrigger.UnityEvent)
             {
-                sourceUpdateHandler = ApplySourceToTarget;
+                sourceUpdateHandler = UpdateTarget;
             }
             _vmProp = FigureBinding(_source, sourceUpdateHandler, true);
 
@@ -507,7 +505,7 @@ namespace uguimvvm
             Action targetUpdateHandler = null;
             if (_targetUpdateTrigger != BindingUpdateTrigger.UnityEvent)
             {
-                targetUpdateHandler = ApplyTargetToSource;
+                targetUpdateHandler = UpdateSource;
             }
             _vProp = FigureBinding(_target, targetUpdateHandler, false);
 
