@@ -4,21 +4,29 @@ using System.Linq;
 
 namespace AutoSuggest
 {
+    /// <summary>
+    /// Suggestion provider for wrapping a non-changing list of possible options that should be used to provide suggestions.
+    /// </summary>
     public class FixedListSuggestionProvider : ISuggestionProvider
     {
         private IReadOnlyList<string> _options;
-        private bool _warnForUnknownValues;
+        private readonly bool _warnForUnknownValues;
 
-#pragma warning disable 0067
+        /// <inheritdoc />
         public event Action SuggestionsChanged;
-#pragma warning restore 0067
 
+        /// <summary>
+        /// Suggestion provider for wrapping a non-changing list of possible options that should be used to provide suggestions.
+        /// </summary>
+        /// <param name="options">The complete collection of possible options.</param>
+        /// <param name="warnForUnknownValues">Flag indicating if the user should be warned when their entered value cannot be mapped to any of the <c>options</c>.</param>
         public FixedListSuggestionProvider(IReadOnlyList<string> options, bool warnForUnknownValues)
         {
             _options = options;
             _warnForUnknownValues = warnForUnknownValues;
         }
 
+        /// <inheritdoc />
         public IEnumerable<Suggestion> GetSuggestions(string currentValue, bool isFocused)
         {
             var errors = new List<Suggestion>();
@@ -64,6 +72,19 @@ namespace AutoSuggest
             }
 
             return errors.Concat(suggestions);
+        }
+
+        /// <summary>
+        /// Update the fixed set of options from which to generate suggestions.
+        /// </summary>
+        /// <param name="options">The complete collection of possible options.</param>
+        public void SetOptions(IReadOnlyList<string> options)
+        {
+            if (!_options.SequenceEqual(options))
+            {
+                _options = options;
+                SuggestionsChanged?.Invoke();
+            }
         }
     }
 }

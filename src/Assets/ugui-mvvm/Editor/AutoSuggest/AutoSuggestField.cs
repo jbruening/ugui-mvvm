@@ -12,6 +12,9 @@ namespace AutoSuggest
     /// </summary>
     public class AutoSuggestField
     {
+        /// <summary>
+        /// Options for configuring behaviors of the <see cref="AutoSuggestField"/>.
+        /// </summary>
         public class Options
         {
             /// <summary>
@@ -21,7 +24,7 @@ namespace AutoSuggest
             public DisplayMode DisplayMode { get; set; } = DisplayMode.Inline;
 
             /// <summary>
-            /// How many suggestions to show in the autosuggest drop down.
+            /// How many suggestions to show in the auto-suggest drop down.
             /// </summary>
             public int MaxSuggestionsToDisplay { get; set; } = 7;
         }
@@ -29,7 +32,7 @@ namespace AutoSuggest
         private const int _scrollDistance = 3;
         private const string _keyFieldNamePrefix = "AutoSuggestField";
         private static int _controlCount = 0;
-        
+
         private static GUIStyle _dropDownBoxStyle = null;
         private static GUIStyle _itemStyle = null;
         private static GUIStyle _selectedItemStyle = null;
@@ -39,9 +42,9 @@ namespace AutoSuggest
         private string _textForCachedSuggestions = null;
         private bool _focusedForCachedSuggestions = false;
         private bool _cacheInvalid = false;
-        private object _cacheInvalidationLock = new object();
+        private readonly object _cacheInvalidationLock = new object();
         private ISuggestionProvider _suggestionProvider;
-        private GUIContent _label;
+        private readonly GUIContent _label;
         private ValueAnimator _heightAnimator = new ValueAnimator(0.0f, 0.5f);
         private DrawSpaceClaimer _drawSpaceClaimer;
         private Options _options;
@@ -49,7 +52,7 @@ namespace AutoSuggest
         private int _scrolledIndex = 0;
         private bool _isFocused = false;
         private bool _setSelectedSuggestionToTextField = false;
-        private int _controlId;
+        private readonly int _controlId;
         private Rect _textFieldPosition;
         private bool _prevRenderWasFirstPass = false;
         private bool _haveWarnedAboutRenderPassError = false;
@@ -74,10 +77,11 @@ namespace AutoSuggest
         }
 
         /// <summary>
-        /// Autosuggest field for Unity Editor.
+        /// Auto-suggest field for Unity Editor.
         /// </summary>
         /// <param name="suggestionProvider">Provides the list of suggestions to show based on what the user typed.</param>
         /// <param name="label">The label to render with the control.</param>
+        /// <param name="options">Configuration options for the behaviors of this control.</param>
         public AutoSuggestField(ISuggestionProvider suggestionProvider, GUIContent label, Options options)
         {
             _suggestionProvider = suggestionProvider;
@@ -316,7 +320,7 @@ namespace AutoSuggest
         {
             if (!_cachedSuggestions[_selectedIndex].IsErrorMessage)
             {
-                // To get the the textfield to render correctly, we must set focus away from it,
+                // To get the TextField to render correctly, we must set focus away from it,
                 // then render it with the new text, then set focus back to it.
                 _setSelectedSuggestionToTextField = true;
                 GUI.FocusControl("");
@@ -420,7 +424,7 @@ namespace AutoSuggest
             {
                 if (_prevRenderWasFirstPass == isFirstRenderPass)
                 {
-                    // Called the same render pass twice in a row.  They should call them alternatingly.
+                    // Called the same render pass twice in a row.  They should call them in an alternating order.
                     string currentPassName = (isFirstRenderPass) ? nameof(OnGUI) : nameof(OnGUISecondPass);
                     Debug.LogError($"When using AutoSuggestField in Overlay mode, you must call OnGUI, then render other controls in the pane, then call OnGUISecondPass.  " +
                         $"You have called {currentPassName} twice in a row.");

@@ -2,11 +2,19 @@
 
 namespace AutoSuggest
 {
+    /// <summary>
+    /// Class for smoothly animating between two values.
+    /// </summary>
     public class ValueAnimator
     {
-        private float _smoothTime;
+        private readonly float _smoothTime;
         private float _velocity;
 
+        /// <summary>
+        /// Class for smoothly animating between two values.
+        /// </summary>
+        /// <param name="initialValue">The initial value to use as both <see cref="Current"/> and <see cref="Target"/>.</param>
+        /// <param name="smoothTime">The approximate amount of time to take for <see cref="Current"/> to reach <see cref="Target"/>.</param>
         public ValueAnimator(float initialValue, float smoothTime)
         {
             Current = initialValue;
@@ -14,7 +22,14 @@ namespace AutoSuggest
             _smoothTime = smoothTime;
         }
 
+        /// <summary>
+        /// The current animated value.
+        /// </summary>
         public float Current { get; private set; }
+
+        /// <summary>
+        /// The value to animate <see cref="Current"/> towards.
+        /// </summary>
         public float Target { get; set; }
 
         /// <summary>

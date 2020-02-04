@@ -3,26 +3,32 @@ using UnityEngine;
 
 namespace AutoSuggest
 {
-    public enum DisplayMode
-    {
-        Inline,
-        Overlay,
-    }
-
+    /// <summary>
+    /// Class for dynamically reserving space in the <see cref="EditorGUILayout"/> control layout.
+    /// </summary>
     public class DrawSpaceClaimer
     {
-        DisplayMode _displayMode;
-        float _drawLocation;
-        float _additionDrawSpaceToClaim;
-        bool _hasShownError = false;
-        bool _hasRenderedFirstPass = false;
-        bool _hasRenderedSecondPass = false;
+        private readonly DisplayMode _displayMode;
+        private float _drawLocation;
+        private float _additionDrawSpaceToClaim;
+        private bool _hasShownError = false;
+        private bool _hasRenderedFirstPass = false;
+        private bool _hasRenderedSecondPass = false;
 
+        /// <summary>
+        /// Class for dynamically reserving space in the <see cref="EditorGUILayout"/> control layout.
+        /// </summary>
+        /// <param name="displayMode">The kind of display methodology for which space should be reserved.</param>
         public DrawSpaceClaimer(DisplayMode displayMode)
         {
             _displayMode = displayMode;
         }
 
+        /// <summary>
+        /// Reserves space (if needed) in the <see cref="EditorGUILayout"/> control layout.
+        /// </summary>
+        /// <param name="isFirstRenderPass">Flag indicating if this is the first/default/normal render pass, or instead a subsequent render pass executing outside of the normal ordering.</param>
+        /// <param name="desiredHeight">The amount of vertical space that should be reserved.</param>
         public void ClaimDrawSpace(bool isFirstRenderPass, float desiredHeight)
         {
             if (_displayMode == DisplayMode.Inline)
