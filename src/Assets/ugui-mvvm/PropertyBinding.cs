@@ -687,9 +687,13 @@ namespace uguimvvm
                 return null;
             }
 
-            if (resolveDataContext && component is DataContext dataContext)
+            if (resolveDataContext)
             {
-                return dataContext.Type;
+                DataContext dataContext = component as DataContext;
+                if (dataContext != null)
+                {
+                    return dataContext.Type;
+                }
             }
 
             return component.GetType();
