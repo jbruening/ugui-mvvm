@@ -30,7 +30,7 @@ namespace uguimvvm
             { }
         }
 
-        private SerializedProperty _property;
+        private readonly SerializedProperty _property;
 
         /// <inheritdoc />
         public event Action SuggestionsChanged;
