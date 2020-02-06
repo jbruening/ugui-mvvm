@@ -16,7 +16,7 @@ class PropertyBindingEditor : Editor
 {
     private static List<PropertyBinding> cachedBindings = new List<PropertyBinding>();
 
-#region scene post processing
+    #region scene post processing
     [PostProcessScene(1)]
     public static void OnPostProcessScene()
     {
@@ -161,7 +161,7 @@ class PropertyBindingEditor : Editor
             return evField.GetValue(component) as UnityEventBase;
         }
 
-        var evProp = type.GetProperty(eventName, typeof (UnityEventBase));
+        var evProp = type.GetProperty(eventName, typeof(UnityEventBase));
         if (evProp != null)
         {
             return evProp.GetValue(component, null) as UnityEventBase;
@@ -209,7 +209,7 @@ class PropertyBindingEditor : Editor
 
     static bool IsEventType(Type type)
     {
-        return typeof (UnityEventBase).IsAssignableFrom(type);
+        return typeof(UnityEventBase).IsAssignableFrom(type);
     }
 
     static SerializedProperty FirstOrDefault(SerializedProperty prop, Predicate<SerializedProperty> predicate, bool descendIntoChildren = false)
@@ -221,7 +221,7 @@ class PropertyBindingEditor : Editor
         }
         return null;
     }
-#endregion
+    #endregion
 
     public override void OnInspectorGUI()
     {

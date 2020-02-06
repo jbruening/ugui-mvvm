@@ -6,12 +6,21 @@ using UnityEngine;
 
 namespace uguimvvm.converters
 {
+    /// <summary>
+    /// A base class implementation to define a mapping from an item of type <typeparamref name="TSource"/> to an item of type <typeparamref name="TTarget"/>.
+    /// </summary>
     [Serializable]
     public abstract class ItemMapping<TSource, TTarget>
     {
+        /// <summary>
+        /// The starting item which maps to <see cref="TargetValue"/>.
+        /// </summary>
         [SerializeField]
         public TSource SourceValue;
 
+        /// <summary>
+        /// The resulting item when mapping from <see cref="SourceValue"/>.
+        /// </summary>
         [SerializeField]
         public TTarget TargetValue;
     }
@@ -24,7 +33,7 @@ namespace uguimvvm.converters
         [SerializeField]
         [Tooltip("List of mappings that can covert to each other")]
         private List<ItemMapping> itemLookup = null;
-        
+
         [SerializeField]
         [Tooltip("If the mappings can covert back to each other")]
         private bool allowTwoWayConversion = false;
@@ -40,20 +49,33 @@ namespace uguimvvm.converters
         private readonly IEqualityComparer<TSource> sourceComparer;
         private readonly IEqualityComparer<TTarget> targetComparer;
 
-        protected ValueConverter() : this (EqualityComparer<TSource>.Default, EqualityComparer<TTarget>.Default)
+        /// <summary>
+        /// Constructs a new <see cref="ValueConverter{ItemMapping, TSource, TTarget}"/> instance.
+        /// </summary>
+        protected ValueConverter() : this(EqualityComparer<TSource>.Default, EqualityComparer<TTarget>.Default)
         {
         }
 
-        protected ValueConverter(IEqualityComparer<TSource> tSourceComparer ) : this(tSourceComparer, EqualityComparer<TTarget>.Default)
+        /// <summary>
+        /// Constructs a new <see cref="ValueConverter{ItemMapping, TSource, TTarget}"/> instance.
+        /// </summary>
+        /// <param name="tSourceComparer">A custom comparer to use when comparing source values to convert, against source values from the <typeparamref name="ItemMapping"/>.</param>
+        protected ValueConverter(IEqualityComparer<TSource> tSourceComparer) : this(tSourceComparer, EqualityComparer<TTarget>.Default)
         {
         }
 
+        /// <summary>
+        /// Constructs a new <see cref="ValueConverter{ItemMapping, TSource, TTarget}"/> instance.
+        /// </summary>
+        /// <param name="tSourceComparer">A custom comparer to use when comparing source values to convert, against source values from the <typeparamref name="ItemMapping"/>.</param>
+        /// <param name="tTargetComparer">A custom comparer to use when comparing target values to convert back, against target values from the <typeparamref name="ItemMapping"/>.</param>
         protected ValueConverter(IEqualityComparer<TSource> tSourceComparer, IEqualityComparer<TTarget> tTargetComparer)
         {
             this.sourceComparer = tSourceComparer;
             this.targetComparer = tTargetComparer;
         }
 
+        /// <inheritdoc />
         public virtual object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (itemLookup == null)
@@ -84,6 +106,7 @@ namespace uguimvvm.converters
             }
         }
 
+        /// <inheritdoc />
         public virtual object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (!allowTwoWayConversion)

@@ -4,25 +4,58 @@ using System.Collections;
 
 namespace uguimvvm
 {
+    /// <summary>
+    /// Represents the method that handles the <see cref="INotifyCollectionChanged.CollectionChanged"/> event.
+    /// </summary>
+    /// <param name="sender">The object that raised the event.</param>
+    /// <param name="e">Information about the event.</param>
     public delegate void NotifyCollectionChangedEventHandler(Object sender, NotifyCollectionChangedEventArgs e);
 
+    /// <summary>
+    /// Notifies listeners of dynamic changes, such as when an item is added and removed or the whole list is cleared.
+    /// </summary>
     public interface INotifyCollectionChanged
     {
+        /// <summary>
+        /// Occurs when the collection changes.
+        /// </summary>
         event NotifyCollectionChangedEventHandler CollectionChanged;
     }
 
+    /// <summary>
+    /// Provides data for the <see cref="INotifyCollectionChanged.CollectionChanged"/> event.
+    /// </summary>
     public class NotifyCollectionChangedEventArgs : EventArgs
     {
+        /// <summary>
+        /// Gets the action that caused the event.
+        /// </summary>
         public NotifyCollectionChangedAction Action { get; private set; }
+
+        /// <summary>
+        /// Gets the list of new items involved in the change.
+        /// </summary>
         public IList NewItems { get; private set; }
+
+        /// <summary>
+        /// Gets the index at which the change occurred.
+        /// </summary>
         public int NewStartingIndex { get; private set; }
+
+        /// <summary>
+        /// Gets the list of items affected by a <see cref="NotifyCollectionChangedAction.Replace"/>, <see cref="NotifyCollectionChangedAction.Remove"/>, or <see cref="NotifyCollectionChangedAction.Move"/> action.
+        /// </summary>
         public IList OldItems { get; private set; }
+
+        /// <summary>
+        /// Gets the index at which a <see cref="NotifyCollectionChangedAction.Move"/>, <see cref="NotifyCollectionChangedAction.Remove"/>, or <see cref="NotifyCollectionChangedAction.Replace"/> action occurred.
+        /// </summary>
         public int OldStartingIndex { get; private set; }
 
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a reset change.
         /// </summary>
-        /// <param name="action">The action that caused the event (must be Reset).
+        /// <param name="action">The action that caused the event (must be Reset).</param>
         public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action)
         {
             if (action != NotifyCollectionChangedAction.Reset)
@@ -34,8 +67,8 @@ namespace uguimvvm
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a one-item change.
         /// </summary>
-        /// <param name="action">The action that caused the event; can only be Reset, Add or Remove action.
-        /// <param name="changedItem">The item affected by the change.
+        /// <param name="action">The action that caused the event; can only be Reset, Add or Remove action.</param>
+        /// <param name="changedItem">The item affected by the change.</param>
         public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, object changedItem)
         {
             if ((action != NotifyCollectionChangedAction.Add) && (action != NotifyCollectionChangedAction.Remove)
@@ -58,9 +91,9 @@ namespace uguimvvm
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a one-item change.
         /// </summary>
-        /// <param name="action">The action that caused the event.
-        /// <param name="changedItem">The item affected by the change.
-        /// <param name="index">The index where the change occurred.
+        /// <param name="action">The action that caused the event.</param>
+        /// <param name="changedItem">The item affected by the change.</param>
+        /// <param name="index">The index where the change occurred.</param>
         public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, object changedItem, int index)
         {
             if ((action != NotifyCollectionChangedAction.Add) && (action != NotifyCollectionChangedAction.Remove)
@@ -85,8 +118,8 @@ namespace uguimvvm
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a multi-item change.
         /// </summary>
-        /// <param name="action">The action that caused the event.
-        /// <param name="changedItems">The items affected by the change.
+        /// <param name="action">The action that caused the event.</param>
+        /// <param name="changedItems">The items affected by the change.</param>
         public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, IList changedItems)
         {
             if ((action != NotifyCollectionChangedAction.Add) && (action != NotifyCollectionChangedAction.Remove)
@@ -112,9 +145,9 @@ namespace uguimvvm
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a multi-item change (or a reset).
         /// </summary>
-        /// <param name="action">The action that caused the event.
-        /// <param name="changedItems">The items affected by the change.
-        /// <param name="startingIndex">The index where the change occurred.
+        /// <param name="action">The action that caused the event.</param>
+        /// <param name="changedItems">The items affected by the change.</param>
+        /// <param name="startingIndex">The index where the change occurred.</param>
         public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, IList changedItems, int startingIndex)
         {
             if ((action != NotifyCollectionChangedAction.Add) && (action != NotifyCollectionChangedAction.Remove)
@@ -144,9 +177,9 @@ namespace uguimvvm
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a one-item Replace event.
         /// </summary>
-        /// <param name="action">Can only be a Replace action.
-        /// <param name="newItem">The new item replacing the original item.
-        /// <param name="oldItem">The original item that is replaced.
+        /// <param name="action">Can only be a Replace action.</param>
+        /// <param name="newItem">The new item replacing the original item.</param>
+        /// <param name="oldItem">The original item that is replaced.</param>
         public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, object newItem, object oldItem)
         {
             if (action != NotifyCollectionChangedAction.Replace)
@@ -158,10 +191,10 @@ namespace uguimvvm
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a one-item Replace event.
         /// </summary>
-        /// <param name="action">Can only be a Replace action.
-        /// <param name="newItem">The new item replacing the original item.
-        /// <param name="oldItem">The original item that is replaced.
-        /// <param name="index">The index of the item being replaced.
+        /// <param name="action">Can only be a Replace action.</param>
+        /// <param name="newItem">The new item replacing the original item.</param>
+        /// <param name="oldItem">The original item that is replaced.</param>
+        /// <param name="index">The index of the item being replaced.</param>
         public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, object newItem, object oldItem, int index)
         {
             if (action != NotifyCollectionChangedAction.Replace)
@@ -173,9 +206,9 @@ namespace uguimvvm
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a multi-item Replace event.
         /// </summary>
-        /// <param name="action">Can only be a Replace action.
-        /// <param name="newItems">The new items replacing the original items.
-        /// <param name="oldItems">The original items that are replaced.
+        /// <param name="action">Can only be a Replace action.</param>
+        /// <param name="newItems">The new items replacing the original items.</param>
+        /// <param name="oldItems">The original items that are replaced.</param>
         public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, IList newItems, IList oldItems)
         {
             if (action != NotifyCollectionChangedAction.Replace)
@@ -191,10 +224,10 @@ namespace uguimvvm
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a multi-item Replace event.
         /// </summary>
-        /// <param name="action">Can only be a Replace action.
-        /// <param name="newItems">The new items replacing the original items.
-        /// <param name="oldItems">The original items that are replaced.
-        /// <param name="startingIndex">The starting index of the items being replaced.
+        /// <param name="action">Can only be a Replace action.</param>
+        /// <param name="newItems">The new items replacing the original items.</param>
+        /// <param name="oldItems">The original items that are replaced.</param>
+        /// <param name="startingIndex">The starting index of the items being replaced.</param>
         public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, IList newItems, IList oldItems, int startingIndex)
         {
             if (action != NotifyCollectionChangedAction.Replace)
@@ -210,10 +243,10 @@ namespace uguimvvm
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a one-item Move event.
         /// </summary>
-        /// <param name="action">Can only be a Move action.
-        /// <param name="changedItem">The item affected by the change.
-        /// <param name="index">The new index for the changed item.
-        /// <param name="oldIndex">The old index for the changed item.
+        /// <param name="action">Can only be a Move action.</param>
+        /// <param name="changedItem">The item affected by the change.</param>
+        /// <param name="index">The new index for the changed item.</param>
+        /// <param name="oldIndex">The old index for the changed item.</param>
         public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, object changedItem, int index, int oldIndex)
         {
             if (action != NotifyCollectionChangedAction.Move)
@@ -228,10 +261,10 @@ namespace uguimvvm
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a multi-item Move event.
         /// </summary>
-        /// <param name="action">The action that caused the event.
-        /// <param name="changedItems">The items affected by the change.
-        /// <param name="index">The new index for the changed items.
-        /// <param name="oldIndex">The old index for the changed items.
+        /// <param name="action">The action that caused the event.</param>
+        /// <param name="changedItems">The items affected by the change.</param>
+        /// <param name="index">The new index for the changed items.</param>
+        /// <param name="oldIndex">The old index for the changed items.</param>
         public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, IList changedItems, int index, int oldIndex)
         {
             if (action != NotifyCollectionChangedAction.Move)
@@ -273,6 +306,9 @@ namespace uguimvvm
         }
     }
 
+    /// <summary>
+    /// Describes the action that caused a <see cref="INotifyCollectionChanged.CollectionChanged"/> event.
+    /// </summary>
     public enum NotifyCollectionChangedAction
     {
         /// <summary> One or more items were added to the collection. </summary>

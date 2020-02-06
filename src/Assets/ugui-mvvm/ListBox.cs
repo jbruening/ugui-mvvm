@@ -6,8 +6,11 @@ using UnityEngine.EventSystems;
 
 namespace uguimvvm
 {
+    /// <summary>
+    /// Presents a list of items the user can select from.
+    /// </summary>
     public class ListBox : Primitives.Selector
-    {        
+    {
         private GameObject _lastSelected;
         private static Func<ListBoxItem, bool> _selectionState = s => s == null ? false : s.IsSelected();
 
@@ -48,7 +51,7 @@ namespace uguimvvm
             //we only use the first parent, in the case of nested listboxes
             var parentItem = selected.GetComponentInParent<ListBoxItem>();
             var parent = parentItem == null ? null : parentItem.gameObject;
-            foreach(var info in _items)
+            foreach (var info in _items)
             {
                 if (info.Control == parent)
                     return info;
@@ -57,6 +60,7 @@ namespace uguimvvm
             return null;
         }
 
+        /// <inheritdoc />
         protected override void OnSelectedChanged(bool fromProperty)
         {
             if (!fromProperty)

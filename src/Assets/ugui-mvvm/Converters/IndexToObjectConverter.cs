@@ -19,6 +19,7 @@ namespace uguimvvm.converters
         [Tooltip("List of items that the converted index should pick from")]
         private T[] convertToValues = null;
 
+        /// <inheritdoc />
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null)
@@ -33,6 +34,7 @@ namespace uguimvvm.converters
             return convertToValues[realValue];
         }
 
+        /// <inheritdoc />
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();

@@ -13,8 +13,16 @@ using UnityEngine.Serialization;
 
 namespace uguimvvm
 {
+    /// <summary>
+    /// Helper methods for performing additional operations on <see cref="Type"/> values.
+    /// </summary>
     public static class TypeExtensions
     {
+        /// <summary>
+        /// Determines if the given <see cref="Type"/> is a <see cref="ValueType"/>.
+        /// </summary>
+        /// <param name="type">The <see cref="Type"/> to evaluate.</param>
+        /// <returns><c>true</c> if type is a <see cref="ValueType"/>, otherwise <c>false</c>.</returns>
         public static bool IsValueType(this Type type)
         {
 #if UNITY_WSA && ENABLE_DOTNET && !UNITY_EDITOR
@@ -24,6 +32,11 @@ namespace uguimvvm
 #endif
         }
 
+        /// <summary>
+        /// Gets the type from which the given <see cref="Type"/> directly inherits.
+        /// </summary>
+        /// <param name="type">The <see cref="Type"/> to evaluate.</param>
+        /// <returns>The <see cref="Type"/> from which the current <see cref="Type"/> directly inherits, or <c>null</c> if the current <see cref="Type"/> does not inherit (e.g. an <see cref="object"/> or interface).</returns>
         public static Type BaseType(this Type type)
         {
 #if UNITY_WSA && ENABLE_DOTNET && !UNITY_EDITOR
@@ -34,23 +47,40 @@ namespace uguimvvm
         }
     }
 
+    /// <summary>
+    /// Defines a binding that connects the properties of binding targets and data sources.
+    /// </summary>
     public class PropertyBinding : MonoBehaviour
     {
+        /// <summary>
+        /// Defines a path to a property, relative to a defined <see cref="UnityEngine.Component"/>.
+        /// </summary>
         [Serializable]
         public class ComponentPath
         {
+            /// <summary>
+            /// The root object to which the <see cref="Property"/> is relative.
+            /// </summary>
             public Component Component;
+
+            /// <summary>
+            /// The property path from the <see cref="Component"/> to the property being represented.
+            /// </summary>
             public string Property;
         }
 
+        /// <summary>
+        /// Implements a data structure for describing a property as a path below another property, or below an owning type.
+        /// </summary>
         public class PropertyPath
         {
             /// <summary>
-            /// Emit warnings when GetValue fails due to nulls in the path
+            /// Emit warnings when GetValue fails due to nulls in the path.
             /// </summary>
             public static bool WarnOnGetValue = false;
+
             /// <summary>
-            /// Emit warnings when SetValue fails due to nulls in the path
+            /// Emit warnings when SetValue fails due to nulls in the path.
             /// </summary>
             public static bool WarnOnSetValue = false;
 
@@ -67,9 +97,23 @@ namespace uguimvvm
             private readonly PropertyInfo[] _pPath;
             private readonly Notifier[] _notifies;
             private Action _handler;
+
+            /// <summary>
+            /// The collection of <see cref="PropertyInfo"/> objects for each <see cref="Parts"/>.
+            /// </summary>
             public PropertyInfo[] PPath { get { return _pPath; } }
+
+            /// <summary>
+            /// The collection of sections the complete path is divided into.
+            /// </summary>
             public string[] Parts { get; private set; }
 
+            /// <summary>
+            /// Initializes a new instance of the <see cref="PropertyPath"/> class based on the given parameters.
+            /// </summary>
+            /// <param name="path">The path string to the property.</param>
+            /// <param name="type">The <see cref="Type"/> from which the <paramref name="path"/> is relatively defined from.</param>
+            /// <param name="warnOnFailure">Flag indicating if a warning should be logged if the <see cref="PropertyPath"/> could not be initialized as expected.</param>
             public PropertyPath(string path, Type type, bool warnOnFailure = false)
             {
                 if (path == "this")
@@ -107,15 +151,26 @@ namespace uguimvvm
                 IsValid = true;
             }
 
+            /// <summary>
+            /// The path string to the property.
+            /// </summary>
             public string Path { get; private set; }
+
+            /// <summary>
+            /// Flag indicating if the <see cref="Path"/> was successfully resolved to a property of type <see cref="PropertyType"/>.
+            /// </summary>
             public bool IsValid { get; private set; }
+
+            /// <summary>
+            /// The <see cref="Type"/> of the property.
+            /// </summary>
             public Type PropertyType { get; private set; }
 
             /// <summary>
-            /// Resolve the value by traversing the property path
+            /// Gets the value of the property defined by this <see cref="PropertyPath"/>, relative to a given object.
             /// </summary>
-            /// <param name="root"></param>
-            /// <param name="index"></param>
+            /// <param name="root">The object from which the <see cref="Path"/> is relative.</param>
+            /// <param name="index">Optional index values for indexed properties. This value should be <c>null</c> for non-indexed properties.</param>
             /// <returns></returns>
             public object GetValue(object root, object[] index)
             {
@@ -132,7 +187,7 @@ namespace uguimvvm
                 if (PropertyPathAccessors.ValidateGetter(_pPath, ref _getter))
                     return _getter(root);
 
-// ReSharper disable once ForCanBeConvertedToForeach - unity has bad foreach handling
+                // ReSharper disable once ForCanBeConvertedToForeach - unity has bad foreach handling
                 for (int i = 0; i < _pPath.Length; i++)
                 {
                     if (root == null)
@@ -147,12 +202,18 @@ namespace uguimvvm
                     if (part == null)
                         return null;
 
-                    root = part.GetValue(root, null);
+                    root = part.GetValue(root, (i == (_pPath.Length - 1)) ? index : null);
                 }
 
                 return root;
             }
 
+            /// <summary>
+            /// Sets the value of the property defined by this <see cref="PropertyPath"/>, relative to a given object.
+            /// </summary>
+            /// <param name="root">The object from which the <see cref="Path"/> is relative.</param>
+            /// <param name="value">The value to assign as the property's value.</param>
+            /// <param name="index">Optional index values for indexed properties. This value should be <c>null</c> for non-indexed properties.</param>
             public void SetValue(object root, object value, object[] index)
             {
                 if (!IsValid)
@@ -165,7 +226,7 @@ namespace uguimvvm
                 }
 
                 var i = 0;
-                for (;i < _pPath.Length - 1; i++)
+                for (; i < _pPath.Length - 1; i++)
                 {
                     var part = GetIdxProperty(i, root);
 
@@ -184,6 +245,11 @@ namespace uguimvvm
                 _pPath[i].SetValue(root, value, index);
             }
 
+            /// <summary>
+            /// Set the callback to be invoked if the property (or any of its parent properties) change.
+            /// </summary>
+            /// <param name="root">The object from which the <see cref="Path"/> is relative.</param>
+            /// <param name="handler">The callback to be invoked on property change.</param>
             public void AddHandler(object root, Action handler)
             {
                 for (var i = 0; i < _pPath.Length; i++)
@@ -233,8 +299,8 @@ namespace uguimvvm
 
                     if (root == null) return; //nope. new tree is lacking value somewhere
 
-                    if (i+1 < _notifies.Length)
-                        TrySubscribe(root, i+1);
+                    if (i + 1 < _notifies.Length)
+                        TrySubscribe(root, i + 1);
                 }
 
                 _handler();
@@ -256,6 +322,12 @@ namespace uguimvvm
                 return _pPath[idx] ?? GetProperty(root.GetType(), Parts[idx]);
             }
 
+            /// <summary>
+            /// Gets the <see cref="PropertyInfo"/> for a named property of a given <see cref="Type"/>.
+            /// </summary>
+            /// <param name="type">The base <see cref="Type"/> that defines the property.</param>
+            /// <param name="name">The name of the property.</param>
+            /// <returns>The <see cref="PropertyInfo"/> of the named property of the specified <see cref="Type"/>.</returns>
             public static PropertyInfo GetProperty(Type type, string name)
             {
                 if (type == null)
@@ -276,6 +348,9 @@ namespace uguimvvm
                 }
             }
 
+            /// <summary>
+            /// Unsubscribe/clear the callback registered to be invoked on property change.
+            /// </summary>
             public void ClearHandlers()
             {
                 for (var i = 0; i < _notifies.Length; i++)
@@ -292,6 +367,10 @@ namespace uguimvvm
         [SerializeField]
         [FormerlySerializedAs("_view")]
         ComponentPath _target;
+
+        /// <summary>
+        /// The object and path to use as the binding target.
+        /// </summary>
         public ComponentPath Target => _target;
 
         [SerializeField]
@@ -308,6 +387,10 @@ namespace uguimvvm
         [SerializeField]
         [FormerlySerializedAs("_viewModel")]
         ComponentPath _source;
+
+        /// <summary>
+        /// The object and path to use as the binding source.
+        /// </summary>
         public ComponentPath Source => _source;
 
         [SerializeField]
@@ -322,6 +405,10 @@ namespace uguimvvm
 
         [SerializeField]
         BindingMode _mode = BindingMode.OneWayToTarget;
+
+        /// <summary>
+        /// Value indicating the direction of the data flow in the binding.
+        /// </summary>
         public BindingMode Mode { get { return _mode; } }
 
         [SerializeField]
@@ -374,12 +461,18 @@ namespace uguimvvm
             ClearBindings();
         }
 
+        /// <summary>
+        /// Deprecated - use <see cref="UpdateSource"/> instead.
+        /// </summary>
         [Obsolete("Use UpdateSource")]
         public void ApplyVToVM()
         {
             UpdateSource();
         }
 
+        /// <summary>
+        /// Updates the value of the <see cref="Source"/> based on the value of the <see cref="Target"/>, if the binding is configured to allow data flow in that direction.
+        /// </summary>
         public void UpdateSource()
         {
             //Debug.Log("Applying v to vm");
@@ -412,12 +505,18 @@ namespace uguimvvm
             SetVmValue(value);
         }
 
+        /// <summary>
+        /// Deprecated - use <see cref="UpdateTarget"/> instead.
+        /// </summary>
         [Obsolete("Use UpdateTarget")]
         public void ApplyVMToV()
         {
             UpdateTarget();
         }
 
+        /// <summary>
+        /// Updates the value of the <see cref="Target"/> based on the value of the <see cref="Source"/>, if the binding is configured to allow data flow in that direction.
+        /// </summary>
         public void UpdateTarget()
         {
             if (_vmProp == null || _vProp == null) return;
@@ -469,6 +568,18 @@ namespace uguimvvm
             _vProp.SetValue(_target.Component, value, null);
         }
 
+        /// <summary>
+        /// Gets the value of the requested property on the requested component.
+        /// </summary>
+        /// <param name="path">The path to the base component from which the <paramref name="prop"/> is relatively defined.</param>
+        /// <param name="prop">The property to fetch the value of.</param>
+        /// <param name="resolveDataContext">
+        /// Flag indicating that if the <paramref name="path"/> points to a <see cref="DataContext"/>, the <paramref name="prop"/> will
+        /// be evaluated as relative to the <see cref="DataContext"/>'s <see cref="DataContext.Value"/>, rather than the default behaviour
+        /// of evaluating against the <see cref="DataContext"/> object directly.
+        /// If the <paramref name="path"/> does not point to a <see cref="DataContext"/> settings this flag will have no effect.
+        /// </param>
+        /// <returns></returns>
         public static object GetValue(ComponentPath path, PropertyPath prop, bool resolveDataContext = true)
         {
             if (resolveDataContext && path.Component is DataContext)
@@ -530,6 +641,18 @@ namespace uguimvvm
             }
         }
 
+        /// <summary>
+        /// Creates and registers a <see cref="PropertyPath"/> to connect a property to a property-changed handler.
+        /// </summary>
+        /// <param name="path">The property of interest.</param>
+        /// <param name="handler">The callback to be invoked when the value of the property changes.</param>
+        /// <param name="resolveDataContext">
+        /// Flag indicating that if the root of the <paramref name="path"/> is a <see cref="DataContext"/>, the relative portion
+        /// of the <paramref name="path"/> should be evaluated against the <see cref="DataContext"/>'s <see cref="DataContext.Value"/>,
+        /// rather than the default behavior of evaluating against the <see cref="DataContext"/> directly.
+        /// If the root of the <paramref name="path"/> is not a <see cref="DataContext"/> setting this flag will have no effect.
+        /// </param>
+        /// <returns></returns>
         public static PropertyPath FigureBinding(ComponentPath path, Action handler, bool resolveDataContext)
         {
             Type type = PropertyBinding.GetComponentType(path.Component, resolveDataContext);
@@ -547,6 +670,16 @@ namespace uguimvvm
             return prop;
         }
 
+        /// <summary>
+        /// Get the effective <see cref="Type"/> of the given <see cref="Component"/>.
+        /// </summary>
+        /// <param name="component">The object to determine the <see cref="Type"/> of.</param>
+        /// <param name="resolveDataContext">
+        /// Flag indicating that if the <paramref name="component"/> is a <see cref="DataContext"/>, the returned <see cref="Type"/>
+        /// should by the <see cref="Type"/> of the <see cref="DataContext"/>'s <see cref="DataContext.Value"/>, rather than the
+        /// <see cref="DataContext"/>'s type directly.
+        /// If the <paramref name="component"/> is not a <see cref="DataContext"/> settings this flag will have no effect.
+        /// </param>
         public static Type GetComponentType(Component component, bool resolveDataContext)
         {
             if (component == null)
@@ -554,13 +687,9 @@ namespace uguimvvm
                 return null;
             }
 
-            if (resolveDataContext)
+            if (resolveDataContext && component is DataContext dataContext)
             {
-                DataContext dataContext = component as DataContext;
-                if (dataContext != null)
-                {
-                    return dataContext.Type;
-                }
+                return dataContext.Type;
             }
 
             return component.GetType();

@@ -9,14 +9,29 @@ using UnityEngine;
 
 namespace uguimvvm
 {
+    /// <summary>
+    /// Represents a suggestion to be surfaced to a user, representing a <see cref="System.Type"/>.
+    /// </summary>
     public class TypeSuggestion : Suggestion
     {
+        /// <summary>
+        /// The underlying <see cref="System.Type"/> being represented.
+        /// </summary>
         public Type Type { get; }
 
+        /// <summary>
+        /// Represents a suggestion to be surfaced to a user, representing a <see cref="System.Type"/>.
+        /// </summary>
+        /// <param name="errorMessage">The error message to be surfaced to the user in a similar fashion to an actionable suggestion.</param>
         public TypeSuggestion(string errorMessage)
             : base(errorMessage)
         { }
 
+        /// <summary>
+        /// Represents a suggestion to be surfaced to a user, representing a <see cref="System.Type"/>.
+        /// </summary>
+        /// <param name="type">The underlying <see cref="System.Type"/> being represented.</param>
+        /// <param name="searchString">The user input string entered that maps to this suggestion.</param>
         public TypeSuggestion(Type type, string searchString)
             : base(type.FullName, type.FullName, type.FullName.IndexOf(searchString, StringComparison.OrdinalIgnoreCase), searchString.Length)
         {
@@ -24,13 +39,24 @@ namespace uguimvvm
         }
     }
 
+    /// <summary>
+    /// <see cref="ISuggestionProvider"/> implementation for surfacing all <see cref="Type"/>s defined in the current <see cref="AppDomain"/>.
+    /// </summary>
     public class TypeSuggestionProvider : AsyncSuggestionProvider
     {
         private IEnumerable<Type> _types;
 
+        /// <summary>
+        /// The current selected <see cref="Type"/>, if a <see cref="Type"/> is selected.
+        /// </summary>
         public Type SelectedType { get; private set; } = null;
+
+        /// <summary>
+        /// Flag indicating that the <see cref="SelectedType"/> property has been evaluated against the latest value.
+        /// </summary>
         public bool SelectedTypeIsValid { get; protected set; } = false;
 
+        /// <inheritdoc />
         public override async Task<IEnumerable<Suggestion>> GetSuggestionsAsync(string currentValue, bool isFocused, CancellationToken cancellationToken)
         {
             IList<TypeSuggestion> results = null;

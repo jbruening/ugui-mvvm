@@ -7,7 +7,7 @@ using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
 
-[CustomEditor(typeof (CommandBinding))]
+[CustomEditor(typeof(CommandBinding))]
 class CommandBindingEditor : Editor
 {
     private SerializedProperty _parmprop;
@@ -15,7 +15,7 @@ class CommandBindingEditor : Editor
     private SerializedProperty _vmprop;
     private SerializedProperty _veprop;
 
-#region scene post processing
+    #region scene post processing
     [PostProcessScene(1)]
     public static void OnPostProcessScene()
     {
@@ -50,7 +50,7 @@ class CommandBindingEditor : Editor
         {
             // Fixing adding multiple command binding event handlers when using prefabs
             var eventCount = @event.GetPersistentEventCount();
-            for(var idx = 0; idx < eventCount; idx++)
+            for (var idx = 0; idx < eventCount; idx++)
             {
                 var perTarget = @event.GetPersistentTarget(idx);
                 // if we find a duplicate event skip over adding it
@@ -59,13 +59,13 @@ class CommandBindingEditor : Editor
                     return;
                 }
             }
-            
+
             UnityEditor.Events.UnityEventTools.AddVoidPersistentListener(@event, binding.ExecuteCommand);
         }
 
         sobj.ApplyModifiedProperties();
     }
-#endregion
+    #endregion
 
     void OnEnable()
     {
