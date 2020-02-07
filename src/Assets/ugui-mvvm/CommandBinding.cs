@@ -12,6 +12,9 @@ using Component = UnityEngine.Component;
 
 namespace uguimvvm
 {
+    /// <summary>
+    /// Defines a binding that connects an <see cref="ICommand"/> source to a supported target.
+    /// </summary>
     public class CommandBinding : MonoBehaviour
     {
         [SerializeField]
@@ -33,7 +36,13 @@ namespace uguimvvm
         [SerializeField]
         private BindingParameter _parameter = null;
 
-        // alternatively use this property for custom parameter types to pass at runtime by binding this property to a PropertyBinding
+        /// <summary>
+        /// Parameter to be passed to the <see cref="ICommand"/>'s <see cref="ICommand.Execute(object)"/> and <see cref="ICommand.CanExecute(object)"/> methods when they are executed.
+        /// Defaults to the serialized values associated with this <see cref="CommandBinding"/>, but overridable at runtime.
+        /// </summary>
+        /// <remarks>
+        /// This is intended for use with custom parameter types to pass at runtime by binding this property to a <see cref="PropertyBinding"/>.
+        /// </remarks>
         public object Parameter
         {
             get
@@ -54,6 +63,9 @@ namespace uguimvvm
         PropertyBinding.PropertyPath _vmProp;
         private ICommand _command;
 
+        /// <summary>
+        /// Deprecated - use <see cref="Source"/> instead.
+        /// </summary>
         [Obsolete("Use the Source property.")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public PropertyBinding.ComponentPath ViewModel
@@ -64,6 +76,9 @@ namespace uguimvvm
             }
         }
 
+        /// <summary>
+        /// The source from which the <see cref="ICommand"/> can be fetched.
+        /// </summary>
         public PropertyBinding.ComponentPath Source
         {
             get
@@ -115,7 +130,7 @@ namespace uguimvvm
                     gameObject.GetParentNameHierarchy());
             }
 
-            if (!typeof (ICommand).IsAssignableFrom(_vmProp.PropertyType))
+            if (!typeof(ICommand).IsAssignableFrom(_vmProp.PropertyType))
                 _vmProp = null;
 
             if (_vmProp == null)
@@ -166,7 +181,7 @@ namespace uguimvvm
 
         private void CommandOnCanExecuteChanged(object sender, EventArgs eventArgs)
         {
-            //enable if we don't have a command, or whatever the command's canexecute is.
+            //enable if we don't have a command, or whatever the command's CanExecute is.
             SetViewEnabledState(_command == null || _command.CanExecute(Parameter));
         }
 
@@ -176,6 +191,9 @@ namespace uguimvvm
                 (_target as Selectable).interactable = state;
         }
 
+        /// <summary>
+        /// Executes the <see cref="ICommand"/> associated with this binding.
+        /// </summary>
         public void ExecuteCommand()
         {
             if (_command == null) return;
@@ -183,19 +201,49 @@ namespace uguimvvm
         }
     }
 
+    /// <summary>
+    /// Serializable class for defining an optional <see cref="CommandBinding.Parameter"/>.
+    /// </summary>
     [Serializable]
     public class BindingParameter
     {
+        /// <summary>
+        /// The type of value this class should deserialize for the <see cref="CommandBinding.Parameter"/>.
+        /// </summary>
         public BindingParameterType Type;
+
+        /// <summary>
+        /// The value to be used when <see cref="Type"/> is <see cref="BindingParameterType.ObjectReference"/>.
+        /// </summary>
         public UnityEngine.Object ObjectReference;
+
+        /// <summary>
+        /// The value to be used when <see cref="Type"/> is <see cref="BindingParameterType.String"/>.
+        /// </summary>
         public string String;
+
+        /// <summary>
+        /// The value to be used when <see cref="Type"/> is <see cref="BindingParameterType.Int"/>.
+        /// </summary>
         public int Int;
+
+        /// <summary>
+        /// The value to be used when <see cref="Type"/> is <see cref="BindingParameterType.Float"/>.
+        /// </summary>
         public float Float;
+
+        /// <summary>
+        /// The value to be used when <see cref="Type"/> is <see cref="BindingParameterType.Bool"/>.
+        /// </summary>
         public bool Bool;
 
+        /// <summary>
+        /// Fetches the appropriate deserialized value to use for the <see cref="CommandBinding.Parameter"/>.
+        /// </summary>
+        /// <returns>The deserialized value.</returns>
         public object GetValue()
         {
-            switch(Type)
+            switch (Type)
             {
                 case BindingParameterType.Bool:
                     return Bool;
@@ -212,13 +260,23 @@ namespace uguimvvm
             }
         }
     }
+
+    /// <summary>
+    /// The types of values supported by the <see cref="BindingParameter"/> class for serialization.
+    /// </summary>
     public enum BindingParameterType
     {
+        /// <summary>Value for no type</summary>
         None,
+        /// <summary>Value for type of <see cref="UnityEngine.Object"/></summary>
         ObjectReference,
+        /// <summary>Value for type of <see cref="string"/></summary>
         String,
+        /// <summary>Value for type of <see cref="int"/></summary>
         Int,
+        /// <summary>Value for type of <see cref="float"/></summary>
         Float,
+        /// <summary>Value for type of <see cref="bool"/></summary>
         Bool,
     }
 }

@@ -3,7 +3,7 @@
 namespace uguimvvm.extensions
 {
     /// <summary>
-    /// Use this monobehavior to use PropertyBindings to perform operations on material properties
+    /// Use this <see cref="MonoBehaviour"/> to use PropertyBindings to perform operations on material properties
     /// </summary>
     [RequireComponent(typeof(PropertyBinding))]
     public class MaterialPropertyExtensions : MonoBehaviour
@@ -12,8 +12,11 @@ namespace uguimvvm.extensions
         private Material material = null;
 
         [SerializeField]
-        private string materialPropertyName = null; 
+        private string materialPropertyName = null;
 
+        /// <summary>
+        /// Settable property for pushing a value through the <see cref="Material.SetFloat(string, float)"/> method.
+        /// </summary>
         public float MaterialFloatProperty
         {
             set
@@ -22,6 +25,9 @@ namespace uguimvvm.extensions
             }
         }
 
+        /// <summary>
+        /// Settable property for pushing a value through the <see cref="Material.SetColor(string, Color)"/> method.
+        /// </summary>
         public Color MaterialColorProperty
         {
             set
@@ -30,6 +36,9 @@ namespace uguimvvm.extensions
             }
         }
 
+        /// <summary>
+        /// Settable property for pushing a value through the <see cref="Material.SetTexture(string, Texture)"/> method.
+        /// </summary>
         public Texture MaterialTextureProperty
         {
             set
@@ -38,6 +47,9 @@ namespace uguimvvm.extensions
             }
         }
 
+        /// <summary>
+        /// Settable property for pushing a value through the <see cref="Material.SetVector(string, Vector4)"/> method.
+        /// </summary>
         public Vector4 MaterialVectorProperty
         {
             set

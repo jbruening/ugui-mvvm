@@ -4,6 +4,9 @@ using uguimvvm;
 using UnityEditor;
 using UnityEngine;
 
+/// <summary>
+/// Concrete implementation of <see cref="ObsoleteAwareEnumDrawer{BindingMode}"/> to be used by the Editor.
+/// </summary>
 [CustomPropertyDrawer(typeof(BindingMode))]
 public class BindingModeDrawer : ObsoleteAwareEnumDrawer<BindingMode>
 {
@@ -18,6 +21,12 @@ public class BindingModeDrawer : ObsoleteAwareEnumDrawer<BindingMode>
 /// <typeparam name="EnumT"></typeparam>
 public class ObsoleteAwareEnumDrawer<EnumT> : PropertyDrawer
 {
+    /// <summary>
+    /// Renders the given control.
+    /// </summary>
+    /// <param name="position">Rectangle on the screen to use for the render.</param>
+    /// <param name="property">The <see cref="SerializedProperty"/> for which to render the custom GUI.</param>
+    /// <param name="label">The label to render with the <paramref name="property"/>.</param>
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         var dropDownPosition = EditorGUI.PrefixLabel(position, label);
@@ -28,7 +37,7 @@ public class ObsoleteAwareEnumDrawer<EnumT> : PropertyDrawer
 
         var selectedItem = property.intValue;
         int newSelectedItem = selectedItem;
-        
+
         DropDownMenu menu = new DropDownMenu();
         for (int i = 0; i < names.Length; i++)
         {

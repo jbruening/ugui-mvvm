@@ -4,14 +4,17 @@ using System.Reflection;
 
 namespace uguimvvm
 {
-    public class PropertyPathAccessors
+    /// <summary>
+    /// Functionality for caching accessors for properties.
+    /// </summary>
+    public static class PropertyPathAccessors
     {
         class PathComparer : IEqualityComparer<PropertyInfo[]>
         {
             public bool Equals(PropertyInfo[] x, PropertyInfo[] y)
             {
                 if (x.Length != y.Length) return false;
-                for(var i = 0; i < x.Length; i++)
+                for (var i = 0; i < x.Length; i++)
                     if (x[i] != y[i]) return false;
                 return true;
             }
@@ -23,11 +26,11 @@ namespace uguimvvm
                     var hash = 17;
 
                     // get hash code for all items in array
-// ReSharper disable once ForCanBeConvertedToForeach - unity has bad foreach handling
+                    // ReSharper disable once ForCanBeConvertedToForeach - unity has bad foreach handling
                     for (var i = 0; i < obj.Length; i++)
                     {
                         var item = obj[i];
-                        hash = hash*23 + ((item != null) ? item.GetHashCode() : 0);
+                        hash = hash * 23 + ((item != null) ? item.GetHashCode() : 0);
                     }
 
                     return hash;
@@ -35,9 +38,24 @@ namespace uguimvvm
             }
         }
 
+        /// <summary>
+        /// Placeholder getter used when no valid property getter can be found.
+        /// </summary>
         public static readonly Func<object, object> NoGetter = o => null;
-        public static readonly Action<object, object> NoSetter = (o, o1) => {};
+
+        /// <summary>
+        /// Placeholder setter used when no valid property setter can be found.
+        /// </summary>
+        public static readonly Action<object, object> NoSetter = (o, o1) => { };
+
+        /// <summary>
+        /// Comparer used for distinguishing getter and setter instances.
+        /// </summary>
         public static readonly IEqualityComparer<PropertyInfo[]> Comparer = new PathComparer();
+
+        /// <summary>
+        /// Flags to use when looking up properties.
+        /// </summary>
         public static readonly BindingFlags Flags = BindingFlags.Public | BindingFlags.Instance;
 
         private static readonly Dictionary<PropertyInfo[], Func<object, object>> Getters = new Dictionary<PropertyInfo[], Func<object, object>>(Comparer);
@@ -45,6 +63,12 @@ namespace uguimvvm
 
         static bool _initialized;
 
+        /// <summary>
+        /// Registers the getter and setter for the given <see cref="PropertyInfo"/> in the cache maintained by this component.
+        /// </summary>
+        /// <param name="prop">The <see cref="PropertyInfo"/> sequence identifying the property.</param>
+        /// <param name="getter">The getter for the property.</param>
+        /// <param name="setter">The setter for the property.</param>
         public static void Register(PropertyInfo[] prop, Func<object, object> getter, Action<object, object> setter)
         {
             Getters[prop] = getter;

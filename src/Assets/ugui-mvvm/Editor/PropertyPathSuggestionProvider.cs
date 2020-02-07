@@ -7,6 +7,9 @@ using UnityEditor;
 
 namespace uguimvvm
 {
+    /// <summary>
+    /// <see cref="ISuggestionProvider"/> implementation for surfacing property paths.
+    /// </summary>
     public class PropertyPathSuggestionProvider : ISuggestionProvider
     {
         private class PropertySuggestion : Suggestion
@@ -27,15 +30,21 @@ namespace uguimvvm
             { }
         }
 
-        private SerializedProperty _property;
+        private readonly SerializedProperty _property;
 
+        /// <inheritdoc />
         public event Action SuggestionsChanged;
 
+        /// <summary>
+        /// <see cref="ISuggestionProvider"/> implementation for surfacing property paths.
+        /// </summary>
+        /// <param name="property">The starting property from which to suggest paths.</param>
         public PropertyPathSuggestionProvider(SerializedProperty property)
         {
             _property = property;
         }
 
+        /// <inheritdoc />
         public IEnumerable<Suggestion> GetSuggestions(string currentValue, bool isFocused)
         {
             string currentValueToLastDot;
@@ -76,6 +85,9 @@ namespace uguimvvm
             }
         }
 
+        /// <summary>
+        /// Raises the <see cref="SuggestionsChanged"/> event.
+        /// </summary>
         public void FireSuggestionsChangedEvent()
         {
             SuggestionsChanged?.Invoke();

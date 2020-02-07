@@ -3,6 +3,9 @@ using UnityEngine.UI;
 
 namespace uguimvvm
 {
+    /// <summary>
+    /// Represents a control that displays a single tab in a <see cref="TabControl"/>.
+    /// </summary>
     [RequireComponent(typeof(Image))]
     [AddComponentMenu("UI/Tabs/TabItem", 2)]
     public class TabItem : Button
@@ -17,6 +20,9 @@ namespace uguimvvm
 
         private bool _isOnTab;
 
+        /// <summary>
+        /// Unity callback invoked when the script instance is being loaded.
+        /// </summary>
         protected override void Awake()
         {
             _image = GetComponent<Image>();
@@ -28,6 +34,9 @@ namespace uguimvvm
             onClick.AddListener(OnClick);
         }
 
+        /// <summary>
+        /// Unity callback invoked when the parent property of the transform has changed.
+        /// </summary>
         protected override void OnTransformParentChanged()
         {
             base.OnTransformParentChanged();
@@ -40,6 +49,10 @@ namespace uguimvvm
             SetSelected(true);
         }
 
+        /// <summary>
+        /// Sets if this tab is currently selected.
+        /// </summary>
+        /// <param name="state"><c>true</c> if this tab should be considered selected, otherwise <c>false</c>.</param>
         public void SetSelected(bool state)
         {
             //we're getting information before awake?
@@ -61,6 +74,11 @@ namespace uguimvvm
         }
 
         //the following two overridden methods are what are known to perform sprite swaps in selectable
+        /// <summary>
+        /// Transition the <see cref="Selectable"/> to the requested state.
+        /// </summary>
+        /// <param name="state">State to transition to.</param>
+        /// <param name="instant">Should the transition occur instantly.</param>
         protected override void DoStateTransition(SelectionState state, bool instant)
         {
             base.DoStateTransition(state, instant);
@@ -76,6 +94,9 @@ namespace uguimvvm
                 SetSelected(_isOnTab);
         }
 
+        /// <summary>
+        /// Clear any internal state from the <see cref="Selectable"/> (used when disabling).
+        /// </summary>
         protected override void InstantClearState()
         {
             base.InstantClearState();

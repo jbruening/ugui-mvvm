@@ -3,16 +3,41 @@ using UnityEngine;
 
 namespace AutoSuggest
 {
+    /// <summary>
+    /// Class representing a suggestion to be surfaced to the user.
+    /// </summary>
     public class Suggestion
     {
         private string _richDisplayText = null;
 
+        /// <summary>
+        /// The underlying value represented by this suggestion.
+        /// </summary>
         public string Value { get; }
+
+        /// <summary>
+        /// The text to be displayed to the user for this suggestion (often matches <see cref="Value"/> for non-error scenarios).
+        /// </summary>
         public string DisplayText { get; }
+
+        /// <summary>
+        /// The starting index for the portion of the <see cref="DisplayText"/> that matches the user input value for which this suggestion was generated.
+        /// </summary>
         public int DisplayTextMatchIndex { get; }
+
+        /// <summary>
+        /// The length of the portion of the <see cref="DisplayText"/> that matches the user input value for which this suggestion was generated.
+        /// </summary>
         public int DisplayTextMatchLength { get; }
+
+        /// <summary>
+        /// Flag indicating this "suggestion" is actually an error message to surface to the user.
+        /// </summary>
         public bool IsErrorMessage { get; }
 
+        /// <summary>
+        /// A formatted version of <see cref="DisplayText"/> that bolds the matching portion of text.
+        /// </summary>
         public string RichDisplayText
         {
             get
@@ -26,6 +51,13 @@ namespace AutoSuggest
             }
         }
 
+        /// <summary>
+        /// Class representing a suggestion to be surfaced to the user.
+        /// </summary>
+        /// <param name="value">The actual value represented by this suggestion.</param>
+        /// <param name="displayText">The text to be displayed to the user for this suggestion (often matches <c>value</c>).</param>
+        /// <param name="displayTextMatchIndex">The starting index for the portion of the <c>displayText</c> that matches the user input value for which this suggestion was generated.</param>
+        /// <param name="displayTextMatchLength">The length of the portion of the<c>displayText</c> that matches the user input value for which this suggestion was generated.</param>
         public Suggestion(string value, string displayText, int displayTextMatchIndex, int displayTextMatchLength)
         {
             Value = value;
@@ -34,6 +66,10 @@ namespace AutoSuggest
             DisplayTextMatchLength = displayTextMatchLength;
         }
 
+        /// <summary>
+        /// Class representing a suggestion to be surfaced to the user.
+        /// </summary>
+        /// <param name="errorMessage">The error message to be surfaced to the user in a similar fashion to an actionable suggestion.</param>
         public Suggestion(string errorMessage)
         {
             IsErrorMessage = true;

@@ -10,17 +10,22 @@ using UnityEngine.EventSystems;
 
 namespace uguimvvm
 {
+    /// <summary>
+    /// Represents a control that displays a set of <see cref="TabItem"/>s.
+    /// </summary>
     [AddComponentMenu("UI/Tabs/TabControl", 1)]
     public class TabControl : Selector
     {
         private GameObject _lastTab;
 
+        /// <inheritdoc />
         protected override void OnItemsSourceChanged()
         {
             base.OnItemsSourceChanged();
             Reselect();
         }
 
+        /// <inheritdoc />
         protected override void CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             base.CollectionChanged(sender, e);
@@ -43,6 +48,7 @@ namespace uguimvvm
             SetTabsState(info.Control);
         }
 
+        /// <inheritdoc />
         protected override void OnSelectedChanged(bool fromProperty)
         {
             if (SelectedInfo == null)
@@ -57,7 +63,7 @@ namespace uguimvvm
 
         private void SetTabsState(GameObject tab)
         {
-            for(var i = 0; i < transform.childCount; i++)
+            for (var i = 0; i < transform.childCount; i++)
             {
                 var child = transform.GetChild(i).gameObject;
                 if (i == 0 && tab == null)

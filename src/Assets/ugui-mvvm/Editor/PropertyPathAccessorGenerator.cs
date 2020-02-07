@@ -12,19 +12,29 @@ using UnityEditor.SceneManagement;
 #endif
 using UnityEngine;
 
+/// <summary>
+/// Functionality for generating accessors for known properties at compile-time to avoid their lookup being required at runtime.
+/// </summary>
 public class PropertyPathAccessorGenerator
 {
     private static string _filePath;
     private static StringBuilder _contents;
     private readonly static HashSet<PropertyInfo[]> _paths = new HashSet<PropertyInfo[]>(PropertyPathAccessors.Comparer);
+
+    /// <summary>
+    /// The directory in which generated code is placed.
+    /// </summary>
     public static string Dir { get; set; }
 
+    /// <summary>
+    /// Generates code that registers all the property accessors of all enabled scenes and prefabs.
+    /// </summary>
     [MenuItem("Assets/Generate PropertyPathGen")]
     public static void Generate()
     {
         if (Application.isPlaying) return;
 
-        const string title = "Generating propery accessors";
+        const string title = "Generating property accessors";
         EditorUtility.DisplayProgressBar(title, "", 0);
 
 #if UNITY_5_3_OR_NEWER
@@ -50,7 +60,7 @@ public class PropertyPathAccessorGenerator
 #else
             EditorApplication.OpenScene(level);
 #endif
-            EditorUtility.DisplayProgressBar(title, "Adding paths in " + level, i/total);
+            EditorUtility.DisplayProgressBar(title, "Adding paths in " + level, i / total);
             BuildPathsInScene(_contents);
 #if UNITY_5_3_OR_NEWER
             EditorSceneManager.CloseScene(scene, true);
@@ -118,6 +128,12 @@ static void Register()
 {");
     }
 
+    /// <summary>
+    /// Cleans up state from work done as part of the <see cref="Generate"/> function.
+    /// Invoked by Unity just after building the player.
+    /// </summary>
+    /// <param name="target"></param>
+    /// <param name="pathToBuiltProject"></param>
     [PostProcessBuild(0)]
     public static void FinishedBuilding(BuildTarget target, string pathToBuiltProject)
     {
@@ -222,7 +238,7 @@ static void Register()
 
         if (!ppath.IsValid) return;
 
-        if (_paths.Contains(ppath.PPath)) 
+        if (_paths.Contains(ppath.PPath))
             return;
         _paths.Add(ppath.PPath);
 
@@ -242,8 +258,8 @@ static void Register()
 {4}
     }});",
             string.Join(",\r\n", ppath.PPath.Select(p =>
-                string.Format("        PropertyBinding.PropertyPath.GetProperty(typeof({0}), \"{1}\")", 
-                    GetFullName(p.DeclaringType), 
+                string.Format("        PropertyBinding.PropertyPath.GetProperty(typeof({0}), \"{1}\")",
+                    GetFullName(p.DeclaringType),
                     p.Name))
                     .ToArray()),
             GetFullName(ppath.PPath[0].DeclaringType),
@@ -262,7 +278,7 @@ static void Register()
         var i = 1;
         for (; i < ppath.Parts.Length - 1; i++)
         {
-            sb  .AppendFormat("        var v{0} = v{1}.{2}", i, i-1, ppath.Parts[i])
+            sb.AppendFormat("        var v{0} = v{1}.{2}", i, i - 1, ppath.Parts[i])
                 .AppendLine()
                 .AppendFormat("        if (v{0} == null) return null;", i)
                 .AppendLine();
@@ -277,8 +293,8 @@ static void Register()
     {
         if (ppath.Parts.Length == 1)
         {
-            return string.Format("        (({0})obj).{1} = ({2})value;", 
-                GetFullName(ppath.PPath[0].DeclaringType), 
+            return string.Format("        (({0})obj).{1} = ({2})value;",
+                GetFullName(ppath.PPath[0].DeclaringType),
                 ppath.Parts[0],
                 GetFullName(ppath.PPath[0].PropertyType));
         }
@@ -290,7 +306,7 @@ static void Register()
         var i = 1;
         for (; i < ppath.Parts.Length - 1; i++)
         {
-            sb  .AppendFormat("        var v{0} = v{1}.{2}", i, i - 1, ppath.Parts[i])
+            sb.AppendFormat("        var v{0} = v{1}.{2}", i, i - 1, ppath.Parts[i])
                 .AppendLine()
                 .AppendFormat("        if (v{0} == null) return;", i)
                 .AppendLine();

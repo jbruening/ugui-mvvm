@@ -6,10 +6,13 @@ using UnityEngine.EventSystems;
 
 namespace uguimvvm
 {
+    /// <summary>
+    /// Presents a list of items the user can select from.
+    /// </summary>
     public class ListBox : Primitives.Selector
-    {        
+    {
         private GameObject _lastSelected;
-        private static Func<ListBoxItem, bool> _selectionState = s => s == null ? false : s.IsSelected();
+        private static readonly Func<ListBoxItem, bool> _selectionState = s => s == null ? false : s.IsSelected();
 
         //because there are no events for when the selected object changes....
         void LateUpdate()
@@ -19,7 +22,7 @@ namespace uguimvvm
 
             _lastSelected = selected;
 
-            //we only update selection if it's a child of a selector.  Prevents things like buttons/textboxes setting our selection to null.
+            //we only update selection if it's a child of a selector.  Prevents things like Buttons/TextBoxes setting our selection to null.
             if (selected == null) return;
             if (selected.transform.GetComponentInParent<Primitives.Selector>() == null) return;
 
@@ -45,10 +48,10 @@ namespace uguimvvm
                     return info;
             }
 
-            //we only use the first parent, in the case of nested listboxes
+            //we only use the first parent, in the case of nested ListBoxes
             var parentItem = selected.GetComponentInParent<ListBoxItem>();
             var parent = parentItem == null ? null : parentItem.gameObject;
-            foreach(var info in _items)
+            foreach (var info in _items)
             {
                 if (info.Control == parent)
                     return info;
@@ -57,6 +60,7 @@ namespace uguimvvm
             return null;
         }
 
+        /// <inheritdoc />
         protected override void OnSelectedChanged(bool fromProperty)
         {
             if (!fromProperty)

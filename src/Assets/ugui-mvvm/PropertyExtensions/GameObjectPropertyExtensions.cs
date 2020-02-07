@@ -3,12 +3,14 @@
 namespace uguimvvm.extensions
 {
     /// <summary>
-    /// Use this monobehavior to use PropertyBindings to perform operations on gameobjects
-    /// e.g setting gameobject active state bound to a Viewmodel property
+    /// Use this <see cref="MonoBehaviour"/> to use <see cref="PropertyBinding"/>s to perform operations on <see cref="GameObject"/>s
     /// </summary>
     [RequireComponent(typeof(PropertyBinding))]
     public class GameObjectPropertyExtensions : MonoBehaviour
     {
+        /// <summary>
+        /// Settable property for pushing a value through the <see cref="GameObject.SetActive(bool)"/> method.
+        /// </summary>
         public bool ActiveState
         {
             set

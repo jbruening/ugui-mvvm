@@ -4,9 +4,12 @@ using UnityEngine.EventSystems;
 
 namespace uguimvvm
 {
+    /// <summary>
+    /// Controls the showing/hiding of a <see cref="ContextMenu"/> based on mouse interactions.
+    /// </summary>
     public class ShowContext : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
-        [SerializeField] 
+        [SerializeField]
         private ContextMenu _menu = null;
 
         [SerializeField]
@@ -23,13 +26,17 @@ namespace uguimvvm
         private bool _rightClick = true;
 
         [SerializeField]
-        [Tooltip("Null will just use the first INotifyPropertyChanged object up the tree")] 
+        [Tooltip("Null will just use the first INotifyPropertyChanged object up the tree")]
         private MonoBehaviour _dataContext = null;
 
         private Vector2 _lastPos;
         private bool _isOver;
         private float _lastStopTime;
 
+        /// <summary>
+        /// Unity callback invoked when the pointer is clicked.
+        /// </summary>
+        /// <param name="eventData">EventData describing the details of the pointer operation.</param>
         public void OnPointerClick(PointerEventData eventData)
         {
             if (_leftClick && eventData.button == PointerEventData.InputButton.Left)
@@ -45,7 +52,7 @@ namespace uguimvvm
         private void Show(Vector2 position)
         {
             if (_menu == null) return;
-            _menu.Show(position, _dataContext ?? gameObject.GetComponentInParent(typeof (INotifyPropertyChanged)));
+            _menu.Show(position, _dataContext ?? gameObject.GetComponentInParent(typeof(INotifyPropertyChanged)));
             _isOver = false;
         }
 
@@ -74,6 +81,10 @@ namespace uguimvvm
                 Hide();
         }
 
+        /// <summary>
+        /// Unity callback invoked when the pointer moves from outside the bounds of the control to within the bounds of the control.
+        /// </summary>
+        /// <param name="eventData">EventData describing the details of the pointer operation.</param>
         public void OnPointerEnter(PointerEventData eventData)
         {
             if (!_hover) return;
@@ -81,6 +92,10 @@ namespace uguimvvm
             _isOver = true;
         }
 
+        /// <summary>
+        /// Unity callback invoked when the pointer moves from within the bounds of the control to outside the bounds of the control.
+        /// </summary>
+        /// <param name="eventData">EventData describing the details of the pointer operation.</param>
         public void OnPointerExit(PointerEventData eventData)
         {
             if (!_hover) return;
