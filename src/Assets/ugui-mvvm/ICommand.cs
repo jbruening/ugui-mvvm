@@ -72,7 +72,9 @@ namespace uguimvvm
                 CanExecuteChanged(this, EventArgs.Empty);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Occurs when changes occur that affect whether or not the command should execute.
+        /// </summary>
         public event EventHandler CanExecuteChanged;
     }
 
@@ -121,7 +123,9 @@ namespace uguimvvm
                 CanExecuteChanged(this, EventArgs.Empty);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Occurs when changes occur that affect whether or not the command should execute.
+        /// </summary>
         public event EventHandler CanExecuteChanged;
     }
 }
