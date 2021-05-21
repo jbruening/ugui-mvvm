@@ -259,7 +259,7 @@ namespace uguimvvm
 
                     TrySubscribe(root, i);
 
-                    if (root != null)
+                    if (root != null && part.CanRead)
                         root = part.GetValue(root, null);
                     else
                         break;
