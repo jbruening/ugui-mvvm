@@ -115,6 +115,24 @@ namespace uguimvvm
         /// </summary>
         protected readonly List<ItemInfo> _items = new List<ItemInfo>();
 
+        /// <summary>
+        /// The collection of the item's GameObjects generated for caching 
+        /// </summary>
+        private readonly List<GameObjects> _gameObjectsCached = new List<GameObjects>();
+
+        /// <summary>
+        /// Correlating items to their cached GameObjects  
+        /// </summary>
+        private readonly Dictionary<ItemInfo, GameObject> _itemToGameObjectMap = new Dictionary<ItemInfo, GameObject>();
+
+        [Tooltip("Enable caching of GameObjects for items. GameObjects get cached at start, then enabled and disabled when items come and go. This currently isn't supported with the ItemTemplateSelector")]
+        [SerializeField]
+        private bool _cacheGameObjects;
+
+        [Tooltip("The amount of GameObjects to instatiate at Awake used for items. This amount will automatically increase to accommodate item count")]
+        [SerializeField]
+        private int _cacheItemPoolSize = 10;
+
         [SerializeField]
         private UnityEvent _itemsSourceChanged = null;
 
@@ -138,6 +156,11 @@ namespace uguimvvm
 
         void Awake()
         {
+            // Don't allow caching of GameObjects if there is an itemTemplateSelector, can only cache if there is a specific item template
+            if (_itemTemplateSelector != null)
+                _cacheGameObjects = false;
+            if (_cacheGameObjects)
+                InstantiateGameObjectPool();
             if (_destroyChildrenOnAwake)
             {
                 for (var i = transform.childCount - 1; i >= 0; i--)
@@ -149,6 +172,36 @@ namespace uguimvvm
                         Destroy(cg);
                 }
             }
+        }
+
+        private void InstantiateGameObjectPool()
+        {
+            if (_gameObjectsCached.Count > 0)
+            {
+                // This must have already generated the pool, this currently doesn't have support for being called a second time
+                Debug.LogWarning("Trying to genernate the pool of list items twice");
+                return;
+            }
+            if (_itemTemplate == null)
+            {
+                Debug.LogWarning("There is no ItemTemplate set for this ItemsControl list");
+                return;
+            }
+            for (var i = 0; i < _cacheItemPoolSize; i++)
+                InstantiateItemToPool();
+        }
+
+        private GameObject InstantiateItemToPool()
+        {
+            var newGameObject = Instantiate(_itemTemplate);
+            var rect = newGameObject.GetComponent<RectTransform>();
+            if (rect == null)
+                newGameObject.transform.parent = transform;
+            else
+                rect.SetParent(transform, false);
+            newGameObject.SetActive(false);
+            _gameObjectsCached.Add(newGameObject);
+            return newGameObject;
         }
 
         private void ResetBindings(IEnumerable oldvalue, IEnumerable newvalue)
@@ -204,18 +257,34 @@ namespace uguimvvm
 
         private ItemInfo AddItem(object item)
         {
-            var trans = transform;
-            var itemTemplate = ItemTemplateSelector != null ? ItemTemplateSelector.SelectTemplate(item) : _itemTemplate;
-            var control = Instantiate(itemTemplate);
+            GameObject control;
+            RectTransform rect;
 
-            var rect = control.GetComponent<RectTransform>();
-            if (rect == null)
-                control.transform.parent = trans;
+            if (_cacheGameObjects)
+            {
+                control = GetCachedControl();
+
+                if (control == null)
+                {
+                    Debug.LogError("Failed to get a control for the item, make sure to set an ItemTemplate");
+                    return null;
+                }
+            }
             else
-                rect.SetParent(trans, false);
+                control = InstatiateControl(item);
+
+            rect = control.GetComponent<RectTransform>();
+
+            if (rect == null)
+                control.transform.parent = transform;
+            else
+                rect.SetParent(transform, false);
 
             var info = new ItemInfo(item, control, rect);
             _items.Add(info);
+
+            if (_cacheGameObjects)
+                _itemToGameObjectMap.Add(info, control);
 
             control.SetActive(true);
 
@@ -225,6 +294,49 @@ namespace uguimvvm
 
             OnItemAdded(info);
             return info;
+        }
+
+        private GameObject InstatiateControl(object item)
+        {
+            // MRMW Start Change - Prefab Selector support
+            var itemTemplate = ItemTemplateSelector != null ? ItemTemplateSelector.SelectTemplate(item) : _itemTemplate;
+            var control = Instantiate(itemTemplate);
+            // MRMW End Change - Prefab Selector support
+
+            return control;
+        }
+
+        private GameObject GetCachedControl()
+        {
+            GameObject control = null;
+
+            if (ItemTemplate == null)
+            {
+                Debug.LogError("Couldn't find Template or ItemTemplateSelector");
+                return null;
+            }
+
+            if (_items.Count < _cacheItemPoolSize)
+            {
+                foreach (var go in _gameObjectsCached)
+                {
+                    if (!_itemToGameObjectMap.ContainsValue(go))
+                    {
+                        control = go;
+                        break;
+                    }
+                }
+            }
+
+            // This should help prevent regressions when there are more items than the pool is set to contain  
+            if (control == null)
+            {
+                // There wasn't any in the pool left, create a new one
+                control = InstantiateItemToPool();
+                _cacheItemPoolSize++;
+            }
+
+            return control;
         }
 
         private void AddItems(IEnumerable newItems)
@@ -309,7 +421,17 @@ namespace uguimvvm
 
                 //leftovers need to be removed.
                 foreach (var item in toRemove)
-                    Destroy(item.Control);
+                {
+                    if (_cacheGameObjects)
+                    {
+                        item.Control.SetActive(false);
+                        _itemToGameObjectMap.Remove(item);
+                    }
+                    else
+                    {
+                        Destroy(item.Control);
+                    }
+                }
 
                 HasItemsChanged.Invoke();
             }
@@ -333,7 +455,23 @@ namespace uguimvvm
             if (idx < 0) return;
             var item = _items[idx];
             _items.RemoveAt(idx);
-            Destroy(item.Control);
+            if (_cacheGameObjects)
+            {
+                // hide item
+                item.Control.SetActive(false);
+                // free up gameobject from the pool so it can be reasigned
+                _itemToGameObjectMap.Remove(item);
+            }
+            else
+            {
+                var rect = item.Control.GetComponent<RectTransform>();
+                if (rect == null)
+                    item.Control.transform.parent = null;
+                else
+                    rect.SetParent(null, false);
+
+                Destroy(item.Control);
+            }
             OnItemRemoved(item);
         }
 
