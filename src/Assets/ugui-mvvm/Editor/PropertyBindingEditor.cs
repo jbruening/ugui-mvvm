@@ -393,8 +393,12 @@ class PropertyBindingEditor : Editor
                     EditorGUILayout.HelpBox($"Select an event that indicates the property has changed, or update the binding mode.", MessageType.Warning);
                 }
             }
+			else if (dropDownMenu.ItemCount == 1)
+			{
+                dropDownMenu.Items[0].Command();
+			}
 
-            updateTriggerCount = dropDownMenu.ItemCount;
+			updateTriggerCount = dropDownMenu.ItemCount;
         }
 
         return updateTriggerCount;

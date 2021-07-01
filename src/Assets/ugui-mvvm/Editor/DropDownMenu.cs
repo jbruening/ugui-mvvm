@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -33,6 +34,8 @@ namespace uguimvvm
     {
         private readonly List<DropDownItem> _dropDownItems = new List<DropDownItem>();
         private int _selectedItem = -1;
+
+        public List<DropDownItem> Items => _dropDownItems.ToList();
 
         /// <summary>
         /// The number of items in the list.
